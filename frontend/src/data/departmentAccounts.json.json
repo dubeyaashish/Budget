@@ -1,0 +1,6398 @@
+[
+    {
+      "Department": "ควบคุมคุณภาพ QC",
+      "Accounts": [
+        {
+          "Key Account ID": "51131101",
+          "Key Account": "เงินเดือน-ฝ่ายผลิต"
+        },
+        {
+          "Key Account ID": "51131102",
+          "Key Account": "ค่าล่วงเวลา-ฝ่ายผลิต"
+        },
+        {
+          "Key Account ID": "51131106",
+          "Key Account": "ค่าพาหนะ ค่าโทรศัพท์พนักงาน(เงินเดือน)-ฝ่ายผลิต"
+        },
+        {
+          "Key Account ID": "51131107",
+          "Key Account": "ค่าเบี้ยขยัน(เงินเดือน)-ฝ่ายผลิต"
+        },
+        {
+          "Key Account ID": "51131108",
+          "Key Account": "ค่าหอพักพนักงาน(เงินเดือน)-ฝ่ายผลิต"
+        },
+        {
+          "Key Account ID": "51131109",
+          "Key Account": "เงินสมทบประกันสังคม-ฝ่ายผลิต"
+        },
+        {
+          "Key Account ID": "51131110",
+          "Key Account": "กองทุนสำรองเลี้ยงชีพ-ฝ่ายผลิต"
+        },
+        {
+          "Key Account ID": "51131112",
+          "Key Account": "สวัสดิการ-ฝ่ายผลิต"
+        },
+        {
+          "Key Account ID": "51131201",
+          "Key Account": "ค่าจ้างผลิต บรรจุ-ฝ่ายผลิต"
+        },
+        {
+          "Key Account ID": "51131202",
+          "Key Account": "ค่าจ้างและบริการอื่น-ฝ่ายผลิต"
+        },
+        {
+          "Key Account ID": "51131206",
+          "Key Account": "ค่าวัสดุสิ้นเปลือง-ฝ่ายผลิต"
+        },
+        {
+          "Key Account ID": "51131207",
+          "Key Account": "ค่าเครื่องมือเครื่องใช้-ฝ่ายผลิต"
+        },
+        {
+          "Key Account ID": "51131208",
+          "Key Account": "ค่าซ่อมแซมบำรุงรักษา-ฝ่ายผลิต"
+        },
+        {
+          "Key Account ID": "59111101",
+          "Key Account": "ขาดทุนจากสินค้าเสื่อมสภาพ"
+        },
+        {
+          "Key Account ID": "61131101",
+          "Key Account": "ค่าอบรมและสัมนา"
+        },
+        {
+          "Key Account ID": "61161101",
+          "Key Account": "ค่าน้ำมันและค่าพาหนะ"
+        },
+        {
+          "Key Account ID": "61161201",
+          "Key Account": "ค่าใช้จ่ายเดินทางในประเทศ"
+        },
+        {
+          "Key Account ID": "63111101",
+          "Key Account": "ค่าขนส่ง"
+        },
+        {
+          "Key Account ID": "63221101",
+          "Key Account": "ค่าเครื่องเขียนแบบพิมพ์"
+        },
+        {
+          "Key Account ID": "63231201",
+          "Key Account": "ค่าวัสดุสิ้นเปลืองคอมพิวเตอร์"
+        },
+        {
+          "Key Account ID": "63251801",
+          "Key Account": "ค่าธรรมเนียมอื่น"
+        }
+      ]
+    },
+    {
+      "Department": "ประกันคุณภาพ QA",
+      "Accounts": [
+        {
+          "Key Account ID": "51131101",
+          "Key Account": "เงินเดือน-ฝ่ายผลิต"
+        },
+        {
+          "Key Account ID": "51131102",
+          "Key Account": "ค่าล่วงเวลา-ฝ่ายผลิต"
+        },
+        {
+          "Key Account ID": "51131106",
+          "Key Account": "ค่าพาหนะ ค่าโทรศัพท์พนักงาน(เงินเดือน)-ฝ่ายผลิต"
+        },
+        {
+          "Key Account ID": "51131107",
+          "Key Account": "ค่าเบี้ยขยัน(เงินเดือน)-ฝ่ายผลิต"
+        },
+        {
+          "Key Account ID": "51131108",
+          "Key Account": "ค่าหอพักพนักงาน(เงินเดือน)-ฝ่ายผลิต"
+        },
+        {
+          "Key Account ID": "51131109",
+          "Key Account": "เงินสมทบประกันสังคม-ฝ่ายผลิต"
+        },
+        {
+          "Key Account ID": "51131110",
+          "Key Account": "กองทุนสำรองเลี้ยงชีพ-ฝ่ายผลิต"
+        },
+        {
+          "Key Account ID": "51131112",
+          "Key Account": "สวัสดิการ-ฝ่ายผลิต"
+        },
+        {
+          "Key Account ID": "51131201",
+          "Key Account": "ค่าจ้างผลิต บรรจุ-ฝ่ายผลิต"
+        },
+        {
+          "Key Account ID": "51131202",
+          "Key Account": "ค่าจ้างและบริการอื่น-ฝ่ายผลิต"
+        },
+        {
+          "Key Account ID": "51131206",
+          "Key Account": "ค่าวัสดุสิ้นเปลือง-ฝ่ายผลิต"
+        },
+        {
+          "Key Account ID": "51131207",
+          "Key Account": "ค่าเครื่องมือเครื่องใช้-ฝ่ายผลิต"
+        },
+        {
+          "Key Account ID": "51131208",
+          "Key Account": "ค่าซ่อมแซมบำรุงรักษา-ฝ่ายผลิต"
+        },
+        {
+          "Key Account ID": "59111101",
+          "Key Account": "ขาดทุนจากสินค้าเสื่อมสภาพ"
+        },
+        {
+          "Key Account ID": "61131101",
+          "Key Account": "ค่าอบรมและสัมนา"
+        },
+        {
+          "Key Account ID": "61161101",
+          "Key Account": "ค่าน้ำมันและค่าพาหนะ"
+        },
+        {
+          "Key Account ID": "61161201",
+          "Key Account": "ค่าใช้จ่ายเดินทางในประเทศ"
+        },
+        {
+          "Key Account ID": "63111101",
+          "Key Account": "ค่าขนส่ง"
+        },
+        {
+          "Key Account ID": "63221101",
+          "Key Account": "ค่าเครื่องเขียนแบบพิมพ์"
+        },
+        {
+          "Key Account ID": "63231101",
+          "Key Account": "วัสดุสิ้นเปลือง"
+        },
+        {
+          "Key Account ID": "63231201",
+          "Key Account": "ค่าวัสดุสิ้นเปลืองคอมพิวเตอร์"
+        },
+        {
+          "Key Account ID": "63251801",
+          "Key Account": "ค่าธรรมเนียมอื่น"
+        }
+      ]
+    },
+    {
+      "Department": "ผลิตเคมีน้ำ",
+      "Accounts": [
+        {
+          "Key Account ID": "51131101",
+          "Key Account": "เงินเดือน-ฝ่ายผลิต"
+        },
+        {
+          "Key Account ID": "51131102",
+          "Key Account": "ค่าล่วงเวลา-ฝ่ายผลิต"
+        },
+        {
+          "Key Account ID": "51131104",
+          "Key Account": "ค่าเบี้ยเลี้ยงนักศึกษาฝึกงาน-ฝ่ายผลิต"
+        },
+        {
+          "Key Account ID": "51131106",
+          "Key Account": "ค่าพาหนะ ค่าโทรศัพท์พนักงาน(เงินเดือน)-ฝ่ายผลิต"
+        },
+        {
+          "Key Account ID": "51131107",
+          "Key Account": "ค่าเบี้ยขยัน(เงินเดือน)-ฝ่ายผลิต"
+        },
+        {
+          "Key Account ID": "51131108",
+          "Key Account": "ค่าหอพักพนักงาน(เงินเดือน)-ฝ่ายผลิต"
+        },
+        {
+          "Key Account ID": "51131109",
+          "Key Account": "เงินสมทบประกันสังคม-ฝ่ายผลิต"
+        },
+        {
+          "Key Account ID": "51131110",
+          "Key Account": "กองทุนสำรองเลี้ยงชีพ-ฝ่ายผลิต"
+        },
+        {
+          "Key Account ID": "51131112",
+          "Key Account": "สวัสดิการ-ฝ่ายผลิต"
+        },
+        {
+          "Key Account ID": "51131201",
+          "Key Account": "ค่าจ้างผลิต บรรจุ-ฝ่ายผลิต"
+        },
+        {
+          "Key Account ID": "51131202",
+          "Key Account": "ค่าจ้างและบริการอื่น-ฝ่ายผลิต"
+        },
+        {
+          "Key Account ID": "51131206",
+          "Key Account": "ค่าวัสดุสิ้นเปลือง-ฝ่ายผลิต"
+        },
+        {
+          "Key Account ID": "51131207",
+          "Key Account": "ค่าเครื่องมือเครื่องใช้-ฝ่ายผลิต"
+        },
+        {
+          "Key Account ID": "51131208",
+          "Key Account": "ค่าซ่อมแซมบำรุงรักษา-ฝ่ายผลิต"
+        },
+        {
+          "Key Account ID": "55111501",
+          "Key Account": "ค่าวัสดุสิ้นเปลือง(ต้นทุน)"
+        },
+        {
+          "Key Account ID": "59111101",
+          "Key Account": "ขาดทุนจากสินค้าเสื่อมสภาพ"
+        },
+        {
+          "Key Account ID": "61131101",
+          "Key Account": "ค่าอบรมและสัมนา"
+        },
+        {
+          "Key Account ID": "61151101",
+          "Key Account": "ค่าเบี้ยเลี้ยงพนักงาน"
+        },
+        {
+          "Key Account ID": "61161101",
+          "Key Account": "ค่าน้ำมันและค่าพาหนะ"
+        },
+        {
+          "Key Account ID": "61161401",
+          "Key Account": "ค่าที่พัก"
+        },
+        {
+          "Key Account ID": "63111101",
+          "Key Account": "ค่าขนส่ง"
+        },
+        {
+          "Key Account ID": "63131502",
+          "Key Account": "ค่าสินค้าตัวอย่าง"
+        },
+        {
+          "Key Account ID": "63151101",
+          "Key Account": "ค่าไฟฟ้า"
+        },
+        {
+          "Key Account ID": "63212401",
+          "Key Account": "ค่าจ้างอื่นๆ"
+        },
+        {
+          "Key Account ID": "63221101",
+          "Key Account": "ค่าเครื่องเขียนแบบพิมพ์"
+        },
+        {
+          "Key Account ID": "63231101",
+          "Key Account": "วัสดุสิ้นเปลือง"
+        },
+        {
+          "Key Account ID": "63231201",
+          "Key Account": "ค่าวัสดุสิ้นเปลืองคอมพิวเตอร์"
+        },
+        {
+          "Key Account ID": "63231301",
+          "Key Account": "ค่าเครื่องมือเครื่องใช้"
+        },
+        {
+          "Key Account ID": "63971101",
+          "Key Account": "ขาดทุนจากการตัดจำหน่ายทรัพย์สิน"
+        }
+      ]
+    },
+    {
+      "Department": "บรรจุภัณฑ์สินค้า",
+      "Accounts": [
+        {
+          "Key Account ID": "51131101",
+          "Key Account": "เงินเดือน-ฝ่ายผลิต"
+        },
+        {
+          "Key Account ID": "51131102",
+          "Key Account": "ค่าล่วงเวลา-ฝ่ายผลิต"
+        },
+        {
+          "Key Account ID": "51131107",
+          "Key Account": "ค่าเบี้ยขยัน(เงินเดือน)-ฝ่ายผลิต"
+        },
+        {
+          "Key Account ID": "51131109",
+          "Key Account": "เงินสมทบประกันสังคม-ฝ่ายผลิต"
+        },
+        {
+          "Key Account ID": "51131110",
+          "Key Account": "กองทุนสำรองเลี้ยงชีพ-ฝ่ายผลิต"
+        },
+        {
+          "Key Account ID": "51131112",
+          "Key Account": "สวัสดิการ-ฝ่ายผลิต"
+        },
+        {
+          "Key Account ID": "51131113",
+          "Key Account": "ค่าใช้จ่ายในการเดินทาง-ฝ่ายผลิต"
+        },
+        {
+          "Key Account ID": "51131201",
+          "Key Account": "ค่าจ้างผลิต บรรจุ-ฝ่ายผลิต"
+        },
+        {
+          "Key Account ID": "51131202",
+          "Key Account": "ค่าจ้างและบริการอื่น-ฝ่ายผลิต"
+        },
+        {
+          "Key Account ID": "51131206",
+          "Key Account": "ค่าวัสดุสิ้นเปลือง-ฝ่ายผลิต"
+        },
+        {
+          "Key Account ID": "51131207",
+          "Key Account": "ค่าเครื่องมือเครื่องใช้-ฝ่ายผลิต"
+        },
+        {
+          "Key Account ID": "51131208",
+          "Key Account": "ค่าซ่อมแซมบำรุงรักษา-ฝ่ายผลิต"
+        },
+        {
+          "Key Account ID": "51131210",
+          "Key Account": "ค่าเบี้ยประกันภัย-ฝ่ายผลิต"
+        },
+        {
+          "Key Account ID": "55111501",
+          "Key Account": "ค่าวัสดุสิ้นเปลือง(ต้นทุน)"
+        },
+        {
+          "Key Account ID": "59111101",
+          "Key Account": "ขาดทุนจากสินค้าเสื่อมสภาพ"
+        },
+        {
+          "Key Account ID": "61131101",
+          "Key Account": "ค่าอบรมและสัมนา"
+        },
+        {
+          "Key Account ID": "61161101",
+          "Key Account": "ค่าน้ำมันและค่าพาหนะ"
+        },
+        {
+          "Key Account ID": "63111101",
+          "Key Account": "ค่าขนส่ง"
+        },
+        {
+          "Key Account ID": "63221101",
+          "Key Account": "ค่าเครื่องเขียนแบบพิมพ์"
+        },
+        {
+          "Key Account ID": "63231101",
+          "Key Account": "วัสดุสิ้นเปลือง"
+        },
+        {
+          "Key Account ID": "63251401",
+          "Key Account": "ค่ารับรอง"
+        },
+        {
+          "Key Account ID": "63991101",
+          "Key Account": "ค่าใช้จ่ายต้องห้าม"
+        }
+      ]
+    },
+    {
+      "Department": "ผลิตหัวเชื้อ",
+      "Accounts": [
+        {
+          "Key Account ID": "51131101",
+          "Key Account": "เงินเดือน-ฝ่ายผลิต"
+        },
+        {
+          "Key Account ID": "51131102",
+          "Key Account": "ค่าล่วงเวลา-ฝ่ายผลิต"
+        },
+        {
+          "Key Account ID": "51131106",
+          "Key Account": "ค่าพาหนะ ค่าโทรศัพท์พนักงาน(เงินเดือน)-ฝ่ายผลิต"
+        },
+        {
+          "Key Account ID": "51131107",
+          "Key Account": "ค่าเบี้ยขยัน(เงินเดือน)-ฝ่ายผลิต"
+        },
+        {
+          "Key Account ID": "51131109",
+          "Key Account": "เงินสมทบประกันสังคม-ฝ่ายผลิต"
+        },
+        {
+          "Key Account ID": "51131110",
+          "Key Account": "กองทุนสำรองเลี้ยงชีพ-ฝ่ายผลิต"
+        },
+        {
+          "Key Account ID": "51131112",
+          "Key Account": "สวัสดิการ-ฝ่ายผลิต"
+        },
+        {
+          "Key Account ID": "51131202",
+          "Key Account": "ค่าจ้างและบริการอื่น-ฝ่ายผลิต"
+        },
+        {
+          "Key Account ID": "51131206",
+          "Key Account": "ค่าวัสดุสิ้นเปลือง-ฝ่ายผลิต"
+        },
+        {
+          "Key Account ID": "51131207",
+          "Key Account": "ค่าเครื่องมือเครื่องใช้-ฝ่ายผลิต"
+        },
+        {
+          "Key Account ID": "51131208",
+          "Key Account": "ค่าซ่อมแซมบำรุงรักษา-ฝ่ายผลิต"
+        },
+        {
+          "Key Account ID": "63111101",
+          "Key Account": "ค่าขนส่ง"
+        },
+        {
+          "Key Account ID": "63221101",
+          "Key Account": "ค่าเครื่องเขียนแบบพิมพ์"
+        },
+        {
+          "Key Account ID": "63971101",
+          "Key Account": "ขาดทุนจากการตัดจำหน่ายทรัพย์สิน"
+        }
+      ]
+    },
+    {
+      "Department": "เคมีผง",
+      "Accounts": [
+        {
+          "Key Account ID": "51131101",
+          "Key Account": "เงินเดือน-ฝ่ายผลิต"
+        },
+        {
+          "Key Account ID": "51131102",
+          "Key Account": "ค่าล่วงเวลา-ฝ่ายผลิต"
+        },
+        {
+          "Key Account ID": "51131106",
+          "Key Account": "ค่าพาหนะ ค่าโทรศัพท์พนักงาน(เงินเดือน)-ฝ่ายผลิต"
+        },
+        {
+          "Key Account ID": "51131107",
+          "Key Account": "ค่าเบี้ยขยัน(เงินเดือน)-ฝ่ายผลิต"
+        },
+        {
+          "Key Account ID": "51131109",
+          "Key Account": "เงินสมทบประกันสังคม-ฝ่ายผลิต"
+        },
+        {
+          "Key Account ID": "51131110",
+          "Key Account": "กองทุนสำรองเลี้ยงชีพ-ฝ่ายผลิต"
+        },
+        {
+          "Key Account ID": "51131112",
+          "Key Account": "สวัสดิการ-ฝ่ายผลิต"
+        },
+        {
+          "Key Account ID": "51131201",
+          "Key Account": "ค่าจ้างผลิต บรรจุ-ฝ่ายผลิต"
+        },
+        {
+          "Key Account ID": "51131202",
+          "Key Account": "ค่าจ้างและบริการอื่น-ฝ่ายผลิต"
+        },
+        {
+          "Key Account ID": "51131206",
+          "Key Account": "ค่าวัสดุสิ้นเปลือง-ฝ่ายผลิต"
+        },
+        {
+          "Key Account ID": "51131207",
+          "Key Account": "ค่าเครื่องมือเครื่องใช้-ฝ่ายผลิต"
+        },
+        {
+          "Key Account ID": "51131208",
+          "Key Account": "ค่าซ่อมแซมบำรุงรักษา-ฝ่ายผลิต"
+        },
+        {
+          "Key Account ID": "51131210",
+          "Key Account": "ค่าเบี้ยประกันภัย-ฝ่ายผลิต"
+        },
+        {
+          "Key Account ID": "51131211",
+          "Key Account": "ดอกเบี้ยจ่าย TFRS16-ฝ่ายผลิต"
+        },
+        {
+          "Key Account ID": "55111501",
+          "Key Account": "ค่าวัสดุสิ้นเปลือง(ต้นทุน)"
+        },
+        {
+          "Key Account ID": "63111101",
+          "Key Account": "ค่าขนส่ง"
+        },
+        {
+          "Key Account ID": "63221101",
+          "Key Account": "ค่าเครื่องเขียนแบบพิมพ์"
+        },
+        {
+          "Key Account ID": "63971101",
+          "Key Account": "ขาดทุนจากการตัดจำหน่ายทรัพย์สิน"
+        }
+      ]
+    },
+    {
+      "Department": "เคมีบรรจุสินค้า",
+      "Accounts": [
+        {
+          "Key Account ID": "51131101",
+          "Key Account": "เงินเดือน-ฝ่ายผลิต"
+        },
+        {
+          "Key Account ID": "51131102",
+          "Key Account": "ค่าล่วงเวลา-ฝ่ายผลิต"
+        },
+        {
+          "Key Account ID": "51131106",
+          "Key Account": "ค่าพาหนะ ค่าโทรศัพท์พนักงาน(เงินเดือน)-ฝ่ายผลิต"
+        },
+        {
+          "Key Account ID": "51131107",
+          "Key Account": "ค่าเบี้ยขยัน(เงินเดือน)-ฝ่ายผลิต"
+        },
+        {
+          "Key Account ID": "51131108",
+          "Key Account": "ค่าหอพักพนักงาน(เงินเดือน)-ฝ่ายผลิต"
+        },
+        {
+          "Key Account ID": "51131109",
+          "Key Account": "เงินสมทบประกันสังคม-ฝ่ายผลิต"
+        },
+        {
+          "Key Account ID": "51131110",
+          "Key Account": "กองทุนสำรองเลี้ยงชีพ-ฝ่ายผลิต"
+        },
+        {
+          "Key Account ID": "51131112",
+          "Key Account": "สวัสดิการ-ฝ่ายผลิต"
+        },
+        {
+          "Key Account ID": "51131113",
+          "Key Account": "ค่าใช้จ่ายในการเดินทาง-ฝ่ายผลิต"
+        },
+        {
+          "Key Account ID": "51131114",
+          "Key Account": "ค่าน้ำมัน-ฝ่ายผลิต"
+        },
+        {
+          "Key Account ID": "51131201",
+          "Key Account": "ค่าจ้างผลิต บรรจุ-ฝ่ายผลิต"
+        },
+        {
+          "Key Account ID": "51131202",
+          "Key Account": "ค่าจ้างและบริการอื่น-ฝ่ายผลิต"
+        },
+        {
+          "Key Account ID": "51131205",
+          "Key Account": "ค่าเช่า-ฝ่ายผลิต"
+        },
+        {
+          "Key Account ID": "51131206",
+          "Key Account": "ค่าวัสดุสิ้นเปลือง-ฝ่ายผลิต"
+        },
+        {
+          "Key Account ID": "51131207",
+          "Key Account": "ค่าเครื่องมือเครื่องใช้-ฝ่ายผลิต"
+        },
+        {
+          "Key Account ID": "51131208",
+          "Key Account": "ค่าซ่อมแซมบำรุงรักษา-ฝ่ายผลิต"
+        },
+        {
+          "Key Account ID": "51131211",
+          "Key Account": "ดอกเบี้ยจ่าย TFRS16-ฝ่ายผลิต"
+        },
+        {
+          "Key Account ID": "55111501",
+          "Key Account": "ค่าวัสดุสิ้นเปลือง(ต้นทุน)"
+        },
+        {
+          "Key Account ID": "59111101",
+          "Key Account": "ขาดทุนจากสินค้าเสื่อมสภาพ"
+        },
+        {
+          "Key Account ID": "61131101",
+          "Key Account": "ค่าอบรมและสัมนา"
+        },
+        {
+          "Key Account ID": "61151101",
+          "Key Account": "ค่าเบี้ยเลี้ยงพนักงาน"
+        },
+        {
+          "Key Account ID": "61181101",
+          "Key Account": "ค่าสวัสดิการ"
+        },
+        {
+          "Key Account ID": "63111101",
+          "Key Account": "ค่าขนส่ง"
+        },
+        {
+          "Key Account ID": "63221101",
+          "Key Account": "ค่าเครื่องเขียนแบบพิมพ์"
+        },
+        {
+          "Key Account ID": "63251401",
+          "Key Account": "ค่ารับรอง"
+        },
+        {
+          "Key Account ID": "63971101",
+          "Key Account": "ขาดทุนจากการตัดจำหน่ายทรัพย์สิน"
+        }
+      ]
+    },
+    {
+      "Department": "ผลิต Food Additive",
+      "Accounts": [
+        {
+          "Key Account ID": "51131101",
+          "Key Account": "เงินเดือน-ฝ่ายผลิต"
+        },
+        {
+          "Key Account ID": "51131102",
+          "Key Account": "ค่าล่วงเวลา-ฝ่ายผลิต"
+        },
+        {
+          "Key Account ID": "51131106",
+          "Key Account": "ค่าพาหนะ ค่าโทรศัพท์พนักงาน(เงินเดือน)-ฝ่ายผลิต"
+        },
+        {
+          "Key Account ID": "51131107",
+          "Key Account": "ค่าเบี้ยขยัน(เงินเดือน)-ฝ่ายผลิต"
+        },
+        {
+          "Key Account ID": "51131109",
+          "Key Account": "เงินสมทบประกันสังคม-ฝ่ายผลิต"
+        },
+        {
+          "Key Account ID": "51131110",
+          "Key Account": "กองทุนสำรองเลี้ยงชีพ-ฝ่ายผลิต"
+        },
+        {
+          "Key Account ID": "51131202",
+          "Key Account": "ค่าจ้างและบริการอื่น-ฝ่ายผลิต"
+        },
+        {
+          "Key Account ID": "51131206",
+          "Key Account": "ค่าวัสดุสิ้นเปลือง-ฝ่ายผลิต"
+        }
+      ]
+    },
+    {
+      "Department": "วางแผนผลิต",
+      "Accounts": [
+        {
+          "Key Account ID": "51131101",
+          "Key Account": "เงินเดือน-ฝ่ายผลิต"
+        },
+        {
+          "Key Account ID": "51131102",
+          "Key Account": "ค่าล่วงเวลา-ฝ่ายผลิต"
+        },
+        {
+          "Key Account ID": "51131107",
+          "Key Account": "ค่าเบี้ยขยัน(เงินเดือน)-ฝ่ายผลิต"
+        },
+        {
+          "Key Account ID": "51131108",
+          "Key Account": "ค่าหอพักพนักงาน(เงินเดือน)-ฝ่ายผลิต"
+        },
+        {
+          "Key Account ID": "51131109",
+          "Key Account": "เงินสมทบประกันสังคม-ฝ่ายผลิต"
+        },
+        {
+          "Key Account ID": "51131110",
+          "Key Account": "กองทุนสำรองเลี้ยงชีพ-ฝ่ายผลิต"
+        },
+        {
+          "Key Account ID": "51131112",
+          "Key Account": "สวัสดิการ-ฝ่ายผลิต"
+        },
+        {
+          "Key Account ID": "51131113",
+          "Key Account": "ค่าใช้จ่ายในการเดินทาง-ฝ่ายผลิต"
+        },
+        {
+          "Key Account ID": "51131201",
+          "Key Account": "ค่าจ้างผลิต บรรจุ-ฝ่ายผลิต"
+        },
+        {
+          "Key Account ID": "51131202",
+          "Key Account": "ค่าจ้างและบริการอื่น-ฝ่ายผลิต"
+        },
+        {
+          "Key Account ID": "51131205",
+          "Key Account": "ค่าเช่า-ฝ่ายผลิต"
+        },
+        {
+          "Key Account ID": "51131206",
+          "Key Account": "ค่าวัสดุสิ้นเปลือง-ฝ่ายผลิต"
+        },
+        {
+          "Key Account ID": "51131207",
+          "Key Account": "ค่าเครื่องมือเครื่องใช้-ฝ่ายผลิต"
+        },
+        {
+          "Key Account ID": "51131208",
+          "Key Account": "ค่าซ่อมแซมบำรุงรักษา-ฝ่ายผลิต"
+        },
+        {
+          "Key Account ID": "51131210",
+          "Key Account": "ค่าเบี้ยประกันภัย-ฝ่ายผลิต"
+        },
+        {
+          "Key Account ID": "51131211",
+          "Key Account": "ดอกเบี้ยจ่าย TFRS16-ฝ่ายผลิต"
+        },
+        {
+          "Key Account ID": "59111101",
+          "Key Account": "ขาดทุนจากสินค้าเสื่อมสภาพ"
+        },
+        {
+          "Key Account ID": "61151101",
+          "Key Account": "ค่าเบี้ยเลี้ยงพนักงาน"
+        },
+        {
+          "Key Account ID": "63111101",
+          "Key Account": "ค่าขนส่ง"
+        },
+        {
+          "Key Account ID": "63131502",
+          "Key Account": "ค่าสินค้าตัวอย่าง"
+        },
+        {
+          "Key Account ID": "63151201",
+          "Key Account": "ค่าโทรศัพท์"
+        },
+        {
+          "Key Account ID": "63212401",
+          "Key Account": "ค่าจ้างอื่นๆ"
+        },
+        {
+          "Key Account ID": "63221101",
+          "Key Account": "ค่าเครื่องเขียนแบบพิมพ์"
+        },
+        {
+          "Key Account ID": "63231101",
+          "Key Account": "วัสดุสิ้นเปลือง"
+        },
+        {
+          "Key Account ID": "63231201",
+          "Key Account": "ค่าวัสดุสิ้นเปลืองคอมพิวเตอร์"
+        },
+        {
+          "Key Account ID": "63251301",
+          "Key Account": "เงินบริจาค"
+        },
+        {
+          "Key Account ID": "63251501",
+          "Key Account": "ค่าส่งไปรษณีย์"
+        },
+        {
+          "Key Account ID": "63259801",
+          "Key Account": "ค่าใช้จ่ายเบ็ดเตล็ด"
+        },
+        {
+          "Key Account ID": "63261101",
+          "Key Account": "ค่าธรรมเนียมธนาคาร"
+        },
+        {
+          "Key Account ID": "63971101",
+          "Key Account": "ขาดทุนจากการตัดจำหน่ายทรัพย์สิน"
+        },
+        {
+          "Key Account ID": "63259901",
+          "Key Account": "ค่าใช้จ่ายอื่น"
+        },
+        {
+          "Key Account ID": "63991101",
+          "Key Account": "ค่าใช้จ่ายต้องห้าม"
+        }
+      ]
+    },
+    {
+      "Department": "วิศวกรรมซ่อมบำรุง",
+      "Accounts": [
+        {
+          "Key Account ID": "51131101",
+          "Key Account": "เงินเดือน-ฝ่ายผลิต"
+        },
+        {
+          "Key Account ID": "51131102",
+          "Key Account": "ค่าล่วงเวลา-ฝ่ายผลิต"
+        },
+        {
+          "Key Account ID": "51131107",
+          "Key Account": "ค่าเบี้ยขยัน(เงินเดือน)-ฝ่ายผลิต"
+        },
+        {
+          "Key Account ID": "51131108",
+          "Key Account": "ค่าหอพักพนักงาน(เงินเดือน)-ฝ่ายผลิต"
+        },
+        {
+          "Key Account ID": "51131109",
+          "Key Account": "เงินสมทบประกันสังคม-ฝ่ายผลิต"
+        },
+        {
+          "Key Account ID": "51131110",
+          "Key Account": "กองทุนสำรองเลี้ยงชีพ-ฝ่ายผลิต"
+        },
+        {
+          "Key Account ID": "51131112",
+          "Key Account": "สวัสดิการ-ฝ่ายผลิต"
+        },
+        {
+          "Key Account ID": "51131114",
+          "Key Account": "ค่าน้ำมัน-ฝ่ายผลิต"
+        },
+        {
+          "Key Account ID": "51131202",
+          "Key Account": "ค่าจ้างและบริการอื่น-ฝ่ายผลิต"
+        },
+        {
+          "Key Account ID": "51131203",
+          "Key Account": "ค่าไฟฟ้า-ฝ่ายผลิต"
+        },
+        {
+          "Key Account ID": "51131204",
+          "Key Account": "ค่าน้ำประปา-ฝ่ายผลิต"
+        },
+        {
+          "Key Account ID": "51131206",
+          "Key Account": "ค่าวัสดุสิ้นเปลือง-ฝ่ายผลิต"
+        },
+        {
+          "Key Account ID": "51131207",
+          "Key Account": "ค่าเครื่องมือเครื่องใช้-ฝ่ายผลิต"
+        },
+        {
+          "Key Account ID": "51131208",
+          "Key Account": "ค่าซ่อมแซมบำรุงรักษา-ฝ่ายผลิต"
+        },
+        {
+          "Key Account ID": "51131210",
+          "Key Account": "ค่าเบี้ยประกันภัย-ฝ่ายผลิต"
+        },
+        {
+          "Key Account ID": "61111102",
+          "Key Account": "เงินเดือน-บริหาร"
+        },
+        {
+          "Key Account ID": "61151201",
+          "Key Account": "ค่าเบี้ยเลี้ยงนักศึกษาทวิภาคี"
+        },
+        {
+          "Key Account ID": "61161101",
+          "Key Account": "ค่าน้ำมันและค่าพาหนะ"
+        },
+        {
+          "Key Account ID": "61161201",
+          "Key Account": "ค่าใช้จ่ายเดินทางในประเทศ"
+        },
+        {
+          "Key Account ID": "61181101",
+          "Key Account": "ค่าสวัสดิการ"
+        },
+        {
+          "Key Account ID": "63111101",
+          "Key Account": "ค่าขนส่ง"
+        },
+        {
+          "Key Account ID": "63131502",
+          "Key Account": "ค่าสินค้าตัวอย่าง"
+        },
+        {
+          "Key Account ID": "63161101",
+          "Key Account": "ค่าซ่อมแซมและบำรุง"
+        },
+        {
+          "Key Account ID": "63221101",
+          "Key Account": "ค่าเครื่องเขียนแบบพิมพ์"
+        },
+        {
+          "Key Account ID": "63231101",
+          "Key Account": "วัสดุสิ้นเปลือง"
+        },
+        {
+          "Key Account ID": "63241201",
+          "Key Account": "ค่าภาษีรถยนต์"
+        },
+        {
+          "Key Account ID": "63251901",
+          "Key Account": "ค่าใช้จ่ายอื่นเกี่ยวกับรถยนต์"
+        }
+      ]
+    },
+    {
+      "Department": "วิจัยและพัฒนา",
+      "Accounts": [
+        {
+          "Key Account ID": "51131101",
+          "Key Account": "เงินเดือน-ฝ่ายผลิต"
+        },
+        {
+          "Key Account ID": "51131102",
+          "Key Account": "ค่าล่วงเวลา-ฝ่ายผลิต"
+        },
+        {
+          "Key Account ID": "51131106",
+          "Key Account": "ค่าพาหนะ ค่าโทรศัพท์พนักงาน(เงินเดือน)-ฝ่ายผลิต"
+        },
+        {
+          "Key Account ID": "51131107",
+          "Key Account": "ค่าเบี้ยขยัน(เงินเดือน)-ฝ่ายผลิต"
+        },
+        {
+          "Key Account ID": "51131108",
+          "Key Account": "ค่าหอพักพนักงาน(เงินเดือน)-ฝ่ายผลิต"
+        },
+        {
+          "Key Account ID": "51131109",
+          "Key Account": "เงินสมทบประกันสังคม-ฝ่ายผลิต"
+        },
+        {
+          "Key Account ID": "51131110",
+          "Key Account": "กองทุนสำรองเลี้ยงชีพ-ฝ่ายผลิต"
+        },
+        {
+          "Key Account ID": "51131112",
+          "Key Account": "สวัสดิการ-ฝ่ายผลิต"
+        },
+        {
+          "Key Account ID": "51131202",
+          "Key Account": "ค่าจ้างและบริการอื่น-ฝ่ายผลิต"
+        },
+        {
+          "Key Account ID": "51131206",
+          "Key Account": "ค่าวัสดุสิ้นเปลือง-ฝ่ายผลิต"
+        },
+        {
+          "Key Account ID": "55111501",
+          "Key Account": "ค่าวัสดุสิ้นเปลือง(ต้นทุน)"
+        },
+        {
+          "Key Account ID": "61131101",
+          "Key Account": "ค่าอบรมและสัมนา"
+        },
+        {
+          "Key Account ID": "61151101",
+          "Key Account": "ค่าเบี้ยเลี้ยงพนักงาน"
+        },
+        {
+          "Key Account ID": "61161101",
+          "Key Account": "ค่าน้ำมันและค่าพาหนะ"
+        },
+        {
+          "Key Account ID": "61161201",
+          "Key Account": "ค่าใช้จ่ายเดินทางในประเทศ"
+        },
+        {
+          "Key Account ID": "61161401",
+          "Key Account": "ค่าที่พัก"
+        },
+        {
+          "Key Account ID": "61181101",
+          "Key Account": "ค่าสวัสดิการ"
+        },
+        {
+          "Key Account ID": "63111101",
+          "Key Account": "ค่าขนส่ง"
+        },
+        {
+          "Key Account ID": "63131202",
+          "Key Account": "ค่าส่งเสริมการขาย"
+        },
+        {
+          "Key Account ID": "63131502",
+          "Key Account": "ค่าสินค้าตัวอย่าง"
+        },
+        {
+          "Key Account ID": "63181201",
+          "Key Account": "ค่าเช่ายานพาหนะ"
+        },
+        {
+          "Key Account ID": "63212401",
+          "Key Account": "ค่าจ้างอื่นๆ"
+        },
+        {
+          "Key Account ID": "63221101",
+          "Key Account": "ค่าเครื่องเขียนแบบพิมพ์"
+        },
+        {
+          "Key Account ID": "63231101",
+          "Key Account": "วัสดุสิ้นเปลือง"
+        },
+        {
+          "Key Account ID": "63231201",
+          "Key Account": "ค่าวัสดุสิ้นเปลืองคอมพิวเตอร์"
+        },
+        {
+          "Key Account ID": "63231301",
+          "Key Account": "ค่าเครื่องมือเครื่องใช้"
+        },
+        {
+          "Key Account ID": "63251301",
+          "Key Account": "เงินบริจาค"
+        },
+        {
+          "Key Account ID": "63251401",
+          "Key Account": "ค่ารับรอง"
+        },
+        {
+          "Key Account ID": "63251501",
+          "Key Account": "ค่าส่งไปรษณีย์"
+        },
+        {
+          "Key Account ID": "63251601",
+          "Key Account": "ค่าใช้จ่ายในการวิจัยและพัฒนาธุรกิจ"
+        },
+        {
+          "Key Account ID": "63251801",
+          "Key Account": "ค่าธรรมเนียมอื่น"
+        },
+        {
+          "Key Account ID": "63261101",
+          "Key Account": "ค่าธรรมเนียมธนาคาร"
+        }
+      ]
+    },
+    {
+      "Department": "สิ่งแวดล้อม",
+      "Accounts": [
+        {
+          "Key Account ID": "51131101",
+          "Key Account": "เงินเดือน-ฝ่ายผลิต"
+        },
+        {
+          "Key Account ID": "51131102",
+          "Key Account": "ค่าล่วงเวลา-ฝ่ายผลิต"
+        },
+        {
+          "Key Account ID": "51131107",
+          "Key Account": "ค่าเบี้ยขยัน(เงินเดือน)-ฝ่ายผลิต"
+        },
+        {
+          "Key Account ID": "51131109",
+          "Key Account": "เงินสมทบประกันสังคม-ฝ่ายผลิต"
+        },
+        {
+          "Key Account ID": "51131110",
+          "Key Account": "กองทุนสำรองเลี้ยงชีพ-ฝ่ายผลิต"
+        },
+        {
+          "Key Account ID": "51131202",
+          "Key Account": "ค่าจ้างและบริการอื่น-ฝ่ายผลิต"
+        },
+        {
+          "Key Account ID": "51131206",
+          "Key Account": "ค่าวัสดุสิ้นเปลือง-ฝ่ายผลิต"
+        },
+        {
+          "Key Account ID": "51131208",
+          "Key Account": "ค่าซ่อมแซมบำรุงรักษา-ฝ่ายผลิต"
+        },
+        {
+          "Key Account ID": "61131101",
+          "Key Account": "ค่าอบรมและสัมนา"
+        },
+        {
+          "Key Account ID": "61151101",
+          "Key Account": "ค่าเบี้ยเลี้ยงพนักงาน"
+        },
+        {
+          "Key Account ID": "61161101",
+          "Key Account": "ค่าน้ำมันและค่าพาหนะ"
+        },
+        {
+          "Key Account ID": "61161201",
+          "Key Account": "ค่าใช้จ่ายเดินทางในประเทศ"
+        },
+        {
+          "Key Account ID": "61181101",
+          "Key Account": "ค่าสวัสดิการ"
+        },
+        {
+          "Key Account ID": "63111101",
+          "Key Account": "ค่าขนส่ง"
+        },
+        {
+          "Key Account ID": "63131502",
+          "Key Account": "ค่าสินค้าตัวอย่าง"
+        },
+        {
+          "Key Account ID": "63151201",
+          "Key Account": "ค่าโทรศัพท์"
+        },
+        {
+          "Key Account ID": "63212401",
+          "Key Account": "ค่าจ้างอื่นๆ"
+        },
+        {
+          "Key Account ID": "63221101",
+          "Key Account": "ค่าเครื่องเขียนแบบพิมพ์"
+        },
+        {
+          "Key Account ID": "63231101",
+          "Key Account": "วัสดุสิ้นเปลือง"
+        },
+        {
+          "Key Account ID": "63251401",
+          "Key Account": "ค่ารับรอง"
+        },
+        {
+          "Key Account ID": "63251402",
+          "Key Account": "ค่าของขวัญ"
+        },
+        {
+          "Key Account ID": "63251501",
+          "Key Account": "ค่าส่งไปรษณีย์"
+        },
+        {
+          "Key Account ID": "63251801",
+          "Key Account": "ค่าธรรมเนียมอื่น"
+        },
+        {
+          "Key Account ID": "63261101",
+          "Key Account": "ค่าธรรมเนียมธนาคาร"
+        },
+        {
+          "Key Account ID": "63271101",
+          "Key Account": "ค่าบำบัดน้ำเสียและกำจัดของเสีย"
+        }
+      ]
+    },
+    {
+      "Department": "ส่วนกลาง",
+      "Accounts": [
+        {
+          "Key Account ID": "51131101",
+          "Key Account": "เงินเดือน-ฝ่ายผลิต"
+        },
+        {
+          "Key Account ID": "51131102",
+          "Key Account": "ค่าล่วงเวลา-ฝ่ายผลิต"
+        },
+        {
+          "Key Account ID": "51131105",
+          "Key Account": "ค่าโบนัส-ฝ่ายผลิต"
+        },
+        {
+          "Key Account ID": "51131111",
+          "Key Account": "ผลประโยชน์พนักงาน-ฝ่ายผลิต"
+        },
+        {
+          "Key Account ID": "51131301",
+          "Key Account": "ค่าเสื่อมราคาเครื่องจักร-ฝ่ายผลิต"
+        },
+        {
+          "Key Account ID": "51131302",
+          "Key Account": "ค่าเสื่อมราคาเครื่องมือเครื่องใช้-ฝ่ายผลิต"
+        },
+        {
+          "Key Account ID": "51131303",
+          "Key Account": "ค่าเสื่อมราคาสินทรัพย์สิทธิการใช้ TFRS16-ฝ่ายผลิต"
+        },
+        {
+          "Key Account ID": "56111102",
+          "Key Account": "ค่าเช่าอุปกรณ์ประกอบการขายครัว"
+        },
+        {
+          "Key Account ID": "59299101",
+          "Key Account": "ผลต่างราคาซื้อ (Purchase Price Variance)"
+        },
+        {
+          "Key Account ID": "60111203",
+          "Key Account": "ค่าอะไหล่อุปกรณ์ให้เช่า"
+        },
+        {
+          "Key Account ID": "60161201",
+          "Key Account": "เงินเดือน-โลจีสติกส์"
+        },
+        {
+          "Key Account ID": "60161202",
+          "Key Account": "ค่าล่วงเวลา-โลจีสติกส์"
+        },
+        {
+          "Key Account ID": "60161205",
+          "Key Account": "ค่าโบนัส-โลจีสติกส์"
+        },
+        {
+          "Key Account ID": "61111601",
+          "Key Account": "ค่าโบนัส"
+        },
+        {
+          "Key Account ID": "61121202",
+          "Key Account": "ค่าเงินรางวัล-ขาย"
+        },
+        {
+          "Key Account ID": "61171101",
+          "Key Account": "ค่าเงินชดเชยพนักงานลาออก"
+        },
+        {
+          "Key Account ID": "61171201",
+          "Key Account": "ผลประโยชน์พนักงาน-ฝ่ายขาย"
+        },
+        {
+          "Key Account ID": "61171202",
+          "Key Account": "ผลประโยชน์พนักงาน-ฝ่ายบริหาร"
+        },
+        {
+          "Key Account ID": "63111201",
+          "Key Account": "ค่าใช้จ่ายนำเข้าสินค้า"
+        },
+        {
+          "Key Account ID": "63131601",
+          "Key Account": "ค่าสิทธิ์"
+        },
+        {
+          "Key Account ID": "63151101",
+          "Key Account": "ค่าไฟฟ้า"
+        },
+        {
+          "Key Account ID": "63181601",
+          "Key Account": "ค่าเช่าเครื่องถ่ายเอกสาร"
+        },
+        {
+          "Key Account ID": "63211502",
+          "Key Account": "ค่าบริการทำเงินเดือน"
+        },
+        {
+          "Key Account ID": "63212401",
+          "Key Account": "ค่าจ้างอื่นๆ"
+        },
+        {
+          "Key Account ID": "63261101",
+          "Key Account": "ค่าธรรมเนียมธนาคาร"
+        },
+        {
+          "Key Account ID": "63961101",
+          "Key Account": "ขาดทุนจากอัตราแลกเปลี่ยน"
+        },
+        {
+          "Key Account ID": "63981101",
+          "Key Account": "หนี้สงสัยจะสูญ"
+        },
+        {
+          "Key Account ID": "63981201",
+          "Key Account": "หนี้สูญ"
+        },
+        {
+          "Key Account ID": "64111201",
+          "Key Account": "ส่วนปรับปรุงที่ดิน"
+        },
+        {
+          "Key Account ID": "64111202",
+          "Key Account": "ส่วนปรับปรุงอาคารเช่า"
+        },
+        {
+          "Key Account ID": "64112101",
+          "Key Account": "อาคารและสิ่งปลูกสร้าง"
+        },
+        {
+          "Key Account ID": "64113201",
+          "Key Account": "เครื่องมือและอุปกรณ์"
+        },
+        {
+          "Key Account ID": "64114101",
+          "Key Account": "เครื่องใช้สำนักงาน"
+        },
+        {
+          "Key Account ID": "64114201",
+          "Key Account": "เครื่องตกแต่งและติดตั้ง"
+        },
+        {
+          "Key Account ID": "64115101",
+          "Key Account": "อุปกรณ์ให้เช่า"
+        },
+        {
+          "Key Account ID": "64115201",
+          "Key Account": "อุปกรณ์บริการลูกค้า"
+        },
+        {
+          "Key Account ID": "64116101",
+          "Key Account": "ยานพาหนะ"
+        },
+        {
+          "Key Account ID": "64117101",
+          "Key Account": "คอมพิวเตอร์และอุปกรณ์"
+        },
+        {
+          "Key Account ID": "64119901",
+          "Key Account": "สินทรัพย์สิทธิการใช้ TFRS16"
+        },
+        {
+          "Key Account ID": "64121101",
+          "Key Account": "โปรแกรมคอมพิวเตอร์"
+        },
+        {
+          "Key Account ID": "64122101",
+          "Key Account": "ลิขสิทธิ์"
+        },
+        {
+          "Key Account ID": "71121101",
+          "Key Account": "เช่าซื้อ (Leasing)"
+        },
+        {
+          "Key Account ID": "71122101",
+          "Key Account": "สิทธิการใช้ TFRS16"
+        }
+      ]
+    },
+    {
+      "Department": "ผลิตเครื่องจักร",
+      "Accounts": [
+        {
+          "Key Account ID": "51131202",
+          "Key Account": "ค่าจ้างและบริการอื่น-ฝ่ายผลิต"
+        },
+        {
+          "Key Account ID": "51131207",
+          "Key Account": "ค่าเครื่องมือเครื่องใช้-ฝ่ายผลิต"
+        },
+        {
+          "Key Account ID": "61131101",
+          "Key Account": "ค่าอบรมและสัมนา"
+        },
+        {
+          "Key Account ID": "61151201",
+          "Key Account": "ค่าเบี้ยเลี้ยงนักศึกษาทวิภาคี"
+        },
+        {
+          "Key Account ID": "63111101",
+          "Key Account": "ค่าขนส่ง"
+        },
+        {
+          "Key Account ID": "63151101",
+          "Key Account": "ค่าไฟฟ้า"
+        },
+        {
+          "Key Account ID": "63161101",
+          "Key Account": "ค่าซ่อมแซมและบำรุง"
+        },
+        {
+          "Key Account ID": "63212401",
+          "Key Account": "ค่าจ้างอื่นๆ"
+        },
+        {
+          "Key Account ID": "63221101",
+          "Key Account": "ค่าเครื่องเขียนแบบพิมพ์"
+        },
+        {
+          "Key Account ID": "63231101",
+          "Key Account": "วัสดุสิ้นเปลือง"
+        },
+        {
+          "Key Account ID": "63231301",
+          "Key Account": "ค่าเครื่องมือเครื่องใช้"
+        }
+      ]
+    },
+    {
+      "Department": "ความปลอดภัย",
+      "Accounts": [
+        {
+          "Key Account ID": "51131202",
+          "Key Account": "ค่าจ้างและบริการอื่น-ฝ่ายผลิต"
+        },
+        {
+          "Key Account ID": "61111701",
+          "Key Account": "ค่าหอพักพนักงาน"
+        },
+        {
+          "Key Account ID": "61131101",
+          "Key Account": "ค่าอบรมและสัมนา"
+        },
+        {
+          "Key Account ID": "61141101",
+          "Key Account": "ค่าเงินประกันสังคม"
+        },
+        {
+          "Key Account ID": "61151101",
+          "Key Account": "ค่าเบี้ยเลี้ยงพนักงาน"
+        },
+        {
+          "Key Account ID": "61161101",
+          "Key Account": "ค่าน้ำมันและค่าพาหนะ"
+        },
+        {
+          "Key Account ID": "61161201",
+          "Key Account": "ค่าใช้จ่ายเดินทางในประเทศ"
+        },
+        {
+          "Key Account ID": "61181101",
+          "Key Account": "ค่าสวัสดิการ"
+        },
+        {
+          "Key Account ID": "63111101",
+          "Key Account": "ค่าขนส่ง"
+        },
+        {
+          "Key Account ID": "63131502",
+          "Key Account": "ค่าสินค้าตัวอย่าง"
+        },
+        {
+          "Key Account ID": "63161101",
+          "Key Account": "ค่าซ่อมแซมและบำรุง"
+        },
+        {
+          "Key Account ID": "63221101",
+          "Key Account": "ค่าเครื่องเขียนแบบพิมพ์"
+        },
+        {
+          "Key Account ID": "63221301",
+          "Key Account": "ค่าสมาชิกรายปี"
+        },
+        {
+          "Key Account ID": "63231101",
+          "Key Account": "วัสดุสิ้นเปลือง"
+        },
+        {
+          "Key Account ID": "63251401",
+          "Key Account": "ค่ารับรอง"
+        },
+        {
+          "Key Account ID": "63251501",
+          "Key Account": "ค่าส่งไปรษณีย์"
+        },
+        {
+          "Key Account ID": "63251801",
+          "Key Account": "ค่าธรรมเนียมอื่น"
+        },
+        {
+          "Key Account ID": "63259801",
+          "Key Account": "ค่าใช้จ่ายเบ็ดเตล็ด"
+        }
+      ]
+    },
+    {
+      "Department": "Logistic",
+      "Accounts": [
+        {
+          "Key Account ID": "55111501",
+          "Key Account": "ค่าวัสดุสิ้นเปลือง(ต้นทุน)"
+        },
+        {
+          "Key Account ID": "59111101",
+          "Key Account": "ขาดทุนจากสินค้าเสื่อมสภาพ"
+        },
+        {
+          "Key Account ID": "59111301",
+          "Key Account": "ขาดทุนจากสินค้าสูญหาย"
+        },
+        {
+          "Key Account ID": "60161201",
+          "Key Account": "เงินเดือน-โลจีสติกส์"
+        },
+        {
+          "Key Account ID": "60161202",
+          "Key Account": "ค่าล่วงเวลา-โลจีสติกส์"
+        },
+        {
+          "Key Account ID": "60161203",
+          "Key Account": "เบี้ยเลี้ยง-โลจีสติกส์"
+        },
+        {
+          "Key Account ID": "60161206",
+          "Key Account": "ค่าพาหนะ ค่าโทรศัพท์พนักงาน(รายเดือน)-โลจีสติกส์"
+        },
+        {
+          "Key Account ID": "60161207",
+          "Key Account": "ค่าเบี้ยขยัน(เงินเดือน)-โลจีสติกส์"
+        },
+        {
+          "Key Account ID": "60161208",
+          "Key Account": "ค่าหอพักพนักงาน(เงินเดือน)-โลจีสติกส์"
+        },
+        {
+          "Key Account ID": "60161209",
+          "Key Account": "เงินสมทบประกันสังคม-โลจีสติกส์"
+        },
+        {
+          "Key Account ID": "60161210",
+          "Key Account": "กองทุนสำรองเลี้ยงชีพ-โลจีสติกส์"
+        },
+        {
+          "Key Account ID": "60161212",
+          "Key Account": "สวัสดิการ-โลจีสติกส์"
+        },
+        {
+          "Key Account ID": "60161213",
+          "Key Account": "ค่าใช้จ่ายในการเดินทาง-โลจีสติกส์"
+        },
+        {
+          "Key Account ID": "60161214",
+          "Key Account": "ค่าน้ำมัน-โลจีสติกส์"
+        },
+        {
+          "Key Account ID": "60161215",
+          "Key Account": "ค่าโทรศัพท์-โลจีสติกส์"
+        },
+        {
+          "Key Account ID": "60161301",
+          "Key Account": "ค่าจ้างขนส่ง-โลจีสติกส์"
+        },
+        {
+          "Key Account ID": "60161302",
+          "Key Account": "ค่าจ้างทำของ-โลจีสติกส์"
+        },
+        {
+          "Key Account ID": "60161303",
+          "Key Account": "ค่าไฟฟ้า-โลจีสติกส์"
+        },
+        {
+          "Key Account ID": "60161304",
+          "Key Account": "ค่าน้ำประปา-โลจีสติกส์"
+        },
+        {
+          "Key Account ID": "60161305",
+          "Key Account": "ค่าเช่า-โลจีสติกส์"
+        },
+        {
+          "Key Account ID": "60161306",
+          "Key Account": "ค่าซ่อมแซมและบำรุงรักษา-โลจีสติกส์"
+        },
+        {
+          "Key Account ID": "60161307",
+          "Key Account": "ค่าเบี้ยประกันภัย-โลจีสติกส์"
+        },
+        {
+          "Key Account ID": "60161308",
+          "Key Account": "ค่าเครื่องมือเครื่องใช้-โลจีสติกส์"
+        },
+        {
+          "Key Account ID": "60161309",
+          "Key Account": "ค่าวัสดุสิ้นเปลือง-โลจีสติกส์"
+        },
+        {
+          "Key Account ID": "60161310",
+          "Key Account": "ค่าเครื่องเขียนแบบพิมพ์-โลจีสติกส์"
+        },
+        {
+          "Key Account ID": "60161311",
+          "Key Account": "ค่าชดเชยสินค้าเสียหาย-โลจีสติกส์"
+        },
+        {
+          "Key Account ID": "60161312",
+          "Key Account": "ดอกเบี้ยจ่าย TFRS16-โลจีสติกส์"
+        },
+        {
+          "Key Account ID": "60161401",
+          "Key Account": "ค่าเสื่อมราคายานพาหนะ-โลจีสติกส์"
+        },
+        {
+          "Key Account ID": "60161402",
+          "Key Account": "ค่าเสื่อมราคาเครื่องมือเครื่องใช้-โลจีสติกส์"
+        },
+        {
+          "Key Account ID": "60161403",
+          "Key Account": "ค่าเสื่อมราคาสินทรัพย์สิทธิการใช้ TFRS16-โลจีสติกส์"
+        },
+        {
+          "Key Account ID": "61131101",
+          "Key Account": "ค่าอบรมและสัมนา"
+        },
+        {
+          "Key Account ID": "61131201",
+          "Key Account": "ค่าใช้จ่ายเพื่อการศึกษาหรือเพื่อการกีฬา"
+        },
+        {
+          "Key Account ID": "61181101",
+          "Key Account": "ค่าสวัสดิการ"
+        },
+        {
+          "Key Account ID": "63111101",
+          "Key Account": "ค่าขนส่ง"
+        },
+        {
+          "Key Account ID": "63131502",
+          "Key Account": "ค่าสินค้าตัวอย่าง"
+        },
+        {
+          "Key Account ID": "63151101",
+          "Key Account": "ค่าไฟฟ้า"
+        },
+        {
+          "Key Account ID": "63151102",
+          "Key Account": "ค่าน้ำประปา"
+        },
+        {
+          "Key Account ID": "63151201",
+          "Key Account": "ค่าโทรศัพท์"
+        },
+        {
+          "Key Account ID": "63161201",
+          "Key Account": "ค่าซ่อมแซมและบำรุงรักษารถยนต์"
+        },
+        {
+          "Key Account ID": "63212401",
+          "Key Account": "ค่าจ้างอื่นๆ"
+        },
+        {
+          "Key Account ID": "63231101",
+          "Key Account": "วัสดุสิ้นเปลือง"
+        },
+        {
+          "Key Account ID": "63241101",
+          "Key Account": "ค่าภาษีป้ายและบำรุงท้องที่"
+        },
+        {
+          "Key Account ID": "63251901",
+          "Key Account": "ค่าใช้จ่ายอื่นเกี่ยวกับรถยนต์"
+        },
+        {
+          "Key Account ID": "63259801",
+          "Key Account": "ค่าใช้จ่ายเบ็ดเตล็ด"
+        },
+        {
+          "Key Account ID": "63261101",
+          "Key Account": "ค่าธรรมเนียมธนาคาร"
+        },
+        {
+          "Key Account ID": "63261401",
+          "Key Account": "ค่าอากรแสตมป์"
+        },
+        {
+          "Key Account ID": "63971101",
+          "Key Account": "ขาดทุนจากการตัดจำหน่ายทรัพย์สิน"
+        },
+        {
+          "Key Account ID": "63991101",
+          "Key Account": "ค่าใช้จ่ายต้องห้าม"
+        },
+        {
+          "Key Account ID": "63991201",
+          "Key Account": "ภาษีซื้อไม่ใช้สิทธิ์"
+        }
+      ]
+    },
+    {
+      "Department": "Oversea Business",
+      "Accounts": [
+        {
+          "Key Account ID": "55111501",
+          "Key Account": "ค่าวัสดุสิ้นเปลือง(ต้นทุน)"
+        },
+        {
+          "Key Account ID": "55111302",
+          "Key Account": "อะไหล่และวัสดุสิ้นเปลืองเครื่องป้อน"
+        },
+        {
+          "Key Account ID": "61111102",
+          "Key Account": "เงินเดือน-บริหาร"
+        },
+        {
+          "Key Account ID": "61111302",
+          "Key Account": "ค่าพาหนะ ค่าโทรศัพท์พนักงาน(รายเดือน)-ฝ่ายบริหาร"
+        },
+        {
+          "Key Account ID": "61111401",
+          "Key Account": "ค่าเบี้ยขยัน"
+        },
+        {
+          "Key Account ID": "61111701",
+          "Key Account": "ค่าหอพักพนักงาน"
+        },
+        {
+          "Key Account ID": "61121101",
+          "Key Account": "ค่าคอมมิชชั่นพนักงาน"
+        },
+        {
+          "Key Account ID": "61121201",
+          "Key Account": "ค่าเงินรางวัลผลการบริหารศูนย์และสาขา"
+        },
+        {
+          "Key Account ID": "61131101",
+          "Key Account": "ค่าอบรมและสัมนา"
+        },
+        {
+          "Key Account ID": "61141101",
+          "Key Account": "ค่าเงินประกันสังคม"
+        },
+        {
+          "Key Account ID": "61151101",
+          "Key Account": "ค่าเบี้ยเลี้ยงพนักงาน"
+        },
+        {
+          "Key Account ID": "61161103",
+          "Key Account": "ค่าน้ำมันและค่าพาหนะ - (ฝ่ายขาย)"
+        },
+        {
+          "Key Account ID": "61161201",
+          "Key Account": "ค่าใช้จ่ายเดินทางในประเทศ"
+        },
+        {
+          "Key Account ID": "61161301",
+          "Key Account": "ค่าใช้จ่ายเดินทางต่างประเทศ"
+        },
+        {
+          "Key Account ID": "61181101",
+          "Key Account": "ค่าสวัสดิการ"
+        },
+        {
+          "Key Account ID": "63111101",
+          "Key Account": "ค่าขนส่ง"
+        },
+        {
+          "Key Account ID": "63111202",
+          "Key Account": "ค่าใช้จ่ายส่งออกสินค้า"
+        },
+        {
+          "Key Account ID": "63131201",
+          "Key Account": "ค่าโฆษณาการตลาด"
+        },
+        {
+          "Key Account ID": "63131202",
+          "Key Account": "ค่าส่งเสริมการขาย"
+        },
+        {
+          "Key Account ID": "63131502",
+          "Key Account": "ค่าสินค้าตัวอย่าง"
+        },
+        {
+          "Key Account ID": "63151201",
+          "Key Account": "ค่าโทรศัพท์"
+        },
+        {
+          "Key Account ID": "63171101",
+          "Key Account": "ค่าเบี้ยประกันภัย"
+        },
+        {
+          "Key Account ID": "63181101",
+          "Key Account": "ค่าเช่าสำนักงาน"
+        },
+        {
+          "Key Account ID": "63211101",
+          "Key Account": "ค่าบริการส่งเอกสาร"
+        },
+        {
+          "Key Account ID": "63212401",
+          "Key Account": "ค่าจ้างอื่นๆ"
+        },
+        {
+          "Key Account ID": "63221101",
+          "Key Account": "ค่าเครื่องเขียนแบบพิมพ์"
+        },
+        {
+          "Key Account ID": "63221301",
+          "Key Account": "ค่าสมาชิกรายปี"
+        },
+        {
+          "Key Account ID": "63231101",
+          "Key Account": "วัสดุสิ้นเปลือง"
+        },
+        {
+          "Key Account ID": "63231201",
+          "Key Account": "ค่าวัสดุสิ้นเปลืองคอมพิวเตอร์"
+        },
+        {
+          "Key Account ID": "63251401",
+          "Key Account": "ค่ารับรอง"
+        },
+        {
+          "Key Account ID": "63251402",
+          "Key Account": "ค่าของขวัญ"
+        },
+        {
+          "Key Account ID": "63251501",
+          "Key Account": "ค่าส่งไปรษณีย์"
+        },
+        {
+          "Key Account ID": "63251801",
+          "Key Account": "ค่าธรรมเนียมอื่น"
+        },
+        {
+          "Key Account ID": "63259801",
+          "Key Account": "ค่าใช้จ่ายเบ็ดเตล็ด"
+        },
+        {
+          "Key Account ID": "63261101",
+          "Key Account": "ค่าธรรมเนียมธนาคาร"
+        },
+        {
+          "Key Account ID": "63971101",
+          "Key Account": "ขาดทุนจากการตัดจำหน่ายทรัพย์สิน"
+        },
+        {
+          "Key Account ID": "63259901",
+          "Key Account": "ค่าใช้จ่ายอื่น"
+        },
+        {
+          "Key Account ID": "63991101",
+          "Key Account": "ค่าใช้จ่ายต้องห้าม"
+        }
+      ]
+    },
+    {
+      "Department": "CDT",
+      "Accounts": [
+        {
+          "Key Account ID": "55111501",
+          "Key Account": "ค่าวัสดุสิ้นเปลือง(ต้นทุน)"
+        },
+        {
+          "Key Account ID": "59111101",
+          "Key Account": "ขาดทุนจากสินค้าเสื่อมสภาพ"
+        },
+        {
+          "Key Account ID": "56111102",
+          "Key Account": "ค่าเช่าอุปกรณ์ประกอบการขายครัว"
+        },
+        {
+          "Key Account ID": "61111102",
+          "Key Account": "เงินเดือน-บริหาร"
+        },
+        {
+          "Key Account ID": "61111301",
+          "Key Account": "ค่าพาหนะ ค่าโทรศัพท์พนักงาน(รายเดือน)-ฝ่ายขาย"
+        },
+        {
+          "Key Account ID": "61111401",
+          "Key Account": "ค่าเบี้ยขยัน"
+        },
+        {
+          "Key Account ID": "61121101",
+          "Key Account": "ค่าคอมมิชชั่นพนักงาน"
+        },
+        {
+          "Key Account ID": "61121202",
+          "Key Account": "ค่าเงินรางวัล-ขาย"
+        },
+        {
+          "Key Account ID": "61131101",
+          "Key Account": "ค่าอบรมและสัมนา"
+        },
+        {
+          "Key Account ID": "61141101",
+          "Key Account": "ค่าเงินประกันสังคม"
+        },
+        {
+          "Key Account ID": "61151101",
+          "Key Account": "ค่าเบี้ยเลี้ยงพนักงาน"
+        },
+        {
+          "Key Account ID": "61161103",
+          "Key Account": "ค่าน้ำมันและค่าพาหนะ - (ฝ่ายขาย)"
+        },
+        {
+          "Key Account ID": "61161201",
+          "Key Account": "ค่าใช้จ่ายเดินทางในประเทศ"
+        },
+        {
+          "Key Account ID": "61181101",
+          "Key Account": "ค่าสวัสดิการ"
+        },
+        {
+          "Key Account ID": "63111101",
+          "Key Account": "ค่าขนส่ง"
+        },
+        {
+          "Key Account ID": "63131202",
+          "Key Account": "ค่าส่งเสริมการขาย"
+        },
+        {
+          "Key Account ID": "63131502",
+          "Key Account": "ค่าสินค้าตัวอย่าง"
+        },
+        {
+          "Key Account ID": "63151201",
+          "Key Account": "ค่าโทรศัพท์"
+        },
+        {
+          "Key Account ID": "63181101",
+          "Key Account": "ค่าเช่าสำนักงาน"
+        },
+        {
+          "Key Account ID": "63191204",
+          "Key Account": "ค่าธรรมเนียมวิชาชีพ"
+        },
+        {
+          "Key Account ID": "63212401",
+          "Key Account": "ค่าจ้างอื่นๆ"
+        },
+        {
+          "Key Account ID": "63221101",
+          "Key Account": "ค่าเครื่องเขียนแบบพิมพ์"
+        },
+        {
+          "Key Account ID": "63221301",
+          "Key Account": "ค่าสมาชิกรายปี"
+        },
+        {
+          "Key Account ID": "63231101",
+          "Key Account": "วัสดุสิ้นเปลือง"
+        },
+        {
+          "Key Account ID": "63231201",
+          "Key Account": "ค่าวัสดุสิ้นเปลืองคอมพิวเตอร์"
+        },
+        {
+          "Key Account ID": "63251401",
+          "Key Account": "ค่ารับรอง"
+        },
+        {
+          "Key Account ID": "63251501",
+          "Key Account": "ค่าส่งไปรษณีย์"
+        },
+        {
+          "Key Account ID": "63251901",
+          "Key Account": "ค่าใช้จ่ายอื่นเกี่ยวกับรถยนต์"
+        },
+        {
+          "Key Account ID": "63252001",
+          "Key Account": "ค่าชดเชยความเสียหายจากสินค้า"
+        },
+        {
+          "Key Account ID": "63261101",
+          "Key Account": "ค่าธรรมเนียมธนาคาร"
+        },
+        {
+          "Key Account ID": "63259901",
+          "Key Account": "ค่าใช้จ่ายอื่น"
+        },
+        {
+          "Key Account ID": "63991101",
+          "Key Account": "ค่าใช้จ่ายต้องห้าม"
+        },
+        {
+          "Key Account ID": "63991201",
+          "Key Account": "ภาษีซื้อไม่ใช้สิทธิ์"
+        }
+      ]
+    },
+    {
+      "Department": "ศูนย์ธุรกิจกรุงเทพ",
+      "Accounts": [
+        {
+          "Key Account ID": "55111501",
+          "Key Account": "ค่าวัสดุสิ้นเปลือง(ต้นทุน)"
+        },
+        {
+          "Key Account ID": "55111302",
+          "Key Account": "อะไหล่และวัสดุสิ้นเปลืองเครื่องป้อน"
+        },
+        {
+          "Key Account ID": "56111102",
+          "Key Account": "ค่าเช่าอุปกรณ์ประกอบการขายครัว"
+        },
+        {
+          "Key Account ID": "61111102",
+          "Key Account": "เงินเดือน-บริหาร"
+        },
+        {
+          "Key Account ID": "61111301",
+          "Key Account": "ค่าพาหนะ ค่าโทรศัพท์พนักงาน(รายเดือน)-ฝ่ายขาย"
+        },
+        {
+          "Key Account ID": "61121101",
+          "Key Account": "ค่าคอมมิชชั่นพนักงาน"
+        },
+        {
+          "Key Account ID": "61121201",
+          "Key Account": "ค่าเงินรางวัลผลการบริหารศูนย์และสาขา"
+        },
+        {
+          "Key Account ID": "61131101",
+          "Key Account": "ค่าอบรมและสัมนา"
+        },
+        {
+          "Key Account ID": "61141101",
+          "Key Account": "ค่าเงินประกันสังคม"
+        },
+        {
+          "Key Account ID": "61161103",
+          "Key Account": "ค่าน้ำมันและค่าพาหนะ - (ฝ่ายขาย)"
+        },
+        {
+          "Key Account ID": "61181101",
+          "Key Account": "ค่าสวัสดิการ"
+        },
+        {
+          "Key Account ID": "63111101",
+          "Key Account": "ค่าขนส่ง"
+        },
+        {
+          "Key Account ID": "63131201",
+          "Key Account": "ค่าโฆษณาการตลาด"
+        },
+        {
+          "Key Account ID": "63131202",
+          "Key Account": "ค่าส่งเสริมการขาย"
+        },
+        {
+          "Key Account ID": "63131502",
+          "Key Account": "ค่าสินค้าตัวอย่าง"
+        },
+        {
+          "Key Account ID": "63151201",
+          "Key Account": "ค่าโทรศัพท์"
+        },
+        {
+          "Key Account ID": "63212401",
+          "Key Account": "ค่าจ้างอื่นๆ"
+        },
+        {
+          "Key Account ID": "63221101",
+          "Key Account": "ค่าเครื่องเขียนแบบพิมพ์"
+        },
+        {
+          "Key Account ID": "63231101",
+          "Key Account": "วัสดุสิ้นเปลือง"
+        },
+        {
+          "Key Account ID": "63231201",
+          "Key Account": "ค่าวัสดุสิ้นเปลืองคอมพิวเตอร์"
+        },
+        {
+          "Key Account ID": "63251301",
+          "Key Account": "เงินบริจาค"
+        },
+        {
+          "Key Account ID": "63251401",
+          "Key Account": "ค่ารับรอง"
+        },
+        {
+          "Key Account ID": "63251402",
+          "Key Account": "ค่าของขวัญ"
+        },
+        {
+          "Key Account ID": "63251501",
+          "Key Account": "ค่าส่งไปรษณีย์"
+        },
+        {
+          "Key Account ID": "63259801",
+          "Key Account": "ค่าใช้จ่ายเบ็ดเตล็ด"
+        },
+        {
+          "Key Account ID": "63261101",
+          "Key Account": "ค่าธรรมเนียมธนาคาร"
+        },
+        {
+          "Key Account ID": "63259901",
+          "Key Account": "ค่าใช้จ่ายอื่น"
+        },
+        {
+          "Key Account ID": "63991101",
+          "Key Account": "ค่าใช้จ่ายต้องห้าม"
+        }
+      ]
+    },
+    {
+      "Department": "ศูนย์ธุรกิจชะอำ",
+      "Accounts": [
+        {
+          "Key Account ID": "55111501",
+          "Key Account": "ค่าวัสดุสิ้นเปลือง(ต้นทุน)"
+        },
+        {
+          "Key Account ID": "55111302",
+          "Key Account": "อะไหล่และวัสดุสิ้นเปลืองเครื่องป้อน"
+        },
+        {
+          "Key Account ID": "56111102",
+          "Key Account": "ค่าเช่าอุปกรณ์ประกอบการขายครัว"
+        },
+        {
+          "Key Account ID": "60111203",
+          "Key Account": "ค่าอะไหล่อุปกรณ์ให้เช่า"
+        },
+        {
+          "Key Account ID": "61111102",
+          "Key Account": "เงินเดือน-บริหาร"
+        },
+        {
+          "Key Account ID": "61111301",
+          "Key Account": "ค่าพาหนะ ค่าโทรศัพท์พนักงาน(รายเดือน)-ฝ่ายขาย"
+        },
+        {
+          "Key Account ID": "61111401",
+          "Key Account": "ค่าเบี้ยขยัน"
+        },
+        {
+          "Key Account ID": "61111501",
+          "Key Account": "ค่าล่วงเวลา"
+        },
+        {
+          "Key Account ID": "61121101",
+          "Key Account": "ค่าคอมมิชชั่นพนักงาน"
+        },
+        {
+          "Key Account ID": "61121201",
+          "Key Account": "ค่าเงินรางวัลผลการบริหารศูนย์และสาขา"
+        },
+        {
+          "Key Account ID": "61131101",
+          "Key Account": "ค่าอบรมและสัมนา"
+        },
+        {
+          "Key Account ID": "61141101",
+          "Key Account": "ค่าเงินประกันสังคม"
+        },
+        {
+          "Key Account ID": "61161103",
+          "Key Account": "ค่าน้ำมันและค่าพาหนะ - (ฝ่ายขาย)"
+        },
+        {
+          "Key Account ID": "61181101",
+          "Key Account": "ค่าสวัสดิการ"
+        },
+        {
+          "Key Account ID": "63111101",
+          "Key Account": "ค่าขนส่ง"
+        },
+        {
+          "Key Account ID": "63131202",
+          "Key Account": "ค่าส่งเสริมการขาย"
+        },
+        {
+          "Key Account ID": "63131502",
+          "Key Account": "ค่าสินค้าตัวอย่าง"
+        },
+        {
+          "Key Account ID": "63141201",
+          "Key Account": "ค่าซ่อมแซมอุปกรณ์ประกอบการขาย"
+        },
+        {
+          "Key Account ID": "63151101",
+          "Key Account": "ค่าไฟฟ้า"
+        },
+        {
+          "Key Account ID": "63151102",
+          "Key Account": "ค่าน้ำประปา"
+        },
+        {
+          "Key Account ID": "63151201",
+          "Key Account": "ค่าโทรศัพท์"
+        },
+        {
+          "Key Account ID": "63161101",
+          "Key Account": "ค่าซ่อมแซมและบำรุง"
+        },
+        {
+          "Key Account ID": "63171201",
+          "Key Account": "ค่าเบี้ยประกันรถยนต์"
+        },
+        {
+          "Key Account ID": "63181101",
+          "Key Account": "ค่าเช่าสำนักงาน"
+        },
+        {
+          "Key Account ID": "63211301",
+          "Key Account": "ค่ารักษาความปลอดภัยและทำความสะอาด"
+        },
+        {
+          "Key Account ID": "63212401",
+          "Key Account": "ค่าจ้างอื่นๆ"
+        },
+        {
+          "Key Account ID": "63221101",
+          "Key Account": "ค่าเครื่องเขียนแบบพิมพ์"
+        },
+        {
+          "Key Account ID": "63231101",
+          "Key Account": "วัสดุสิ้นเปลือง"
+        },
+        {
+          "Key Account ID": "63231301",
+          "Key Account": "ค่าเครื่องมือเครื่องใช้"
+        },
+        {
+          "Key Account ID": "63241101",
+          "Key Account": "ค่าภาษีป้ายและบำรุงท้องที่"
+        },
+        {
+          "Key Account ID": "63251401",
+          "Key Account": "ค่ารับรอง"
+        },
+        {
+          "Key Account ID": "63251501",
+          "Key Account": "ค่าส่งไปรษณีย์"
+        },
+        {
+          "Key Account ID": "63251801",
+          "Key Account": "ค่าธรรมเนียมอื่น"
+        },
+        {
+          "Key Account ID": "63251901",
+          "Key Account": "ค่าใช้จ่ายอื่นเกี่ยวกับรถยนต์"
+        },
+        {
+          "Key Account ID": "63259801",
+          "Key Account": "ค่าใช้จ่ายเบ็ดเตล็ด"
+        },
+        {
+          "Key Account ID": "63261101",
+          "Key Account": "ค่าธรรมเนียมธนาคาร"
+        },
+        {
+          "Key Account ID": "63261401",
+          "Key Account": "ค่าอากรแสตมป์"
+        },
+        {
+          "Key Account ID": "63259901",
+          "Key Account": "ค่าใช้จ่ายอื่น"
+        },
+        {
+          "Key Account ID": "63991101",
+          "Key Account": "ค่าใช้จ่ายต้องห้าม"
+        },
+        {
+          "Key Account ID": "63991201",
+          "Key Account": "ภาษีซื้อไม่ใช้สิทธิ์"
+        }
+      ]
+    },
+    {
+      "Department": "ศูนย์ธุรกิจเชียงใหม่",
+      "Accounts": [
+        {
+          "Key Account ID": "55111501",
+          "Key Account": "ค่าวัสดุสิ้นเปลือง(ต้นทุน)"
+        },
+        {
+          "Key Account ID": "59111301",
+          "Key Account": "ขาดทุนจากสินค้าสูญหาย"
+        },
+        {
+          "Key Account ID": "55111302",
+          "Key Account": "อะไหล่และวัสดุสิ้นเปลืองเครื่องป้อน"
+        },
+        {
+          "Key Account ID": "56111102",
+          "Key Account": "ค่าเช่าอุปกรณ์ประกอบการขายครัว"
+        },
+        {
+          "Key Account ID": "61111102",
+          "Key Account": "เงินเดือน-บริหาร"
+        },
+        {
+          "Key Account ID": "61111301",
+          "Key Account": "ค่าพาหนะ ค่าโทรศัพท์พนักงาน(รายเดือน)-ฝ่ายขาย"
+        },
+        {
+          "Key Account ID": "61111401",
+          "Key Account": "ค่าเบี้ยขยัน"
+        },
+        {
+          "Key Account ID": "61111501",
+          "Key Account": "ค่าล่วงเวลา"
+        },
+        {
+          "Key Account ID": "61121101",
+          "Key Account": "ค่าคอมมิชชั่นพนักงาน"
+        },
+        {
+          "Key Account ID": "61121201",
+          "Key Account": "ค่าเงินรางวัลผลการบริหารศูนย์และสาขา"
+        },
+        {
+          "Key Account ID": "61131101",
+          "Key Account": "ค่าอบรมและสัมนา"
+        },
+        {
+          "Key Account ID": "61141101",
+          "Key Account": "ค่าเงินประกันสังคม"
+        },
+        {
+          "Key Account ID": "61151101",
+          "Key Account": "ค่าเบี้ยเลี้ยงพนักงาน"
+        },
+        {
+          "Key Account ID": "61161103",
+          "Key Account": "ค่าน้ำมันและค่าพาหนะ - (ฝ่ายขาย)"
+        },
+        {
+          "Key Account ID": "61161201",
+          "Key Account": "ค่าใช้จ่ายเดินทางในประเทศ"
+        },
+        {
+          "Key Account ID": "61161401",
+          "Key Account": "ค่าที่พัก"
+        },
+        {
+          "Key Account ID": "61181101",
+          "Key Account": "ค่าสวัสดิการ"
+        },
+        {
+          "Key Account ID": "63111101",
+          "Key Account": "ค่าขนส่ง"
+        },
+        {
+          "Key Account ID": "63131201",
+          "Key Account": "ค่าโฆษณาการตลาด"
+        },
+        {
+          "Key Account ID": "63131202",
+          "Key Account": "ค่าส่งเสริมการขาย"
+        },
+        {
+          "Key Account ID": "63131502",
+          "Key Account": "ค่าสินค้าตัวอย่าง"
+        },
+        {
+          "Key Account ID": "63141201",
+          "Key Account": "ค่าซ่อมแซมอุปกรณ์ประกอบการขาย"
+        },
+        {
+          "Key Account ID": "63151101",
+          "Key Account": "ค่าไฟฟ้า"
+        },
+        {
+          "Key Account ID": "63151102",
+          "Key Account": "ค่าน้ำประปา"
+        },
+        {
+          "Key Account ID": "63151201",
+          "Key Account": "ค่าโทรศัพท์"
+        },
+        {
+          "Key Account ID": "63161101",
+          "Key Account": "ค่าซ่อมแซมและบำรุง"
+        },
+        {
+          "Key Account ID": "63171201",
+          "Key Account": "ค่าเบี้ยประกันรถยนต์"
+        },
+        {
+          "Key Account ID": "63181101",
+          "Key Account": "ค่าเช่าสำนักงาน"
+        },
+        {
+          "Key Account ID": "63212401",
+          "Key Account": "ค่าจ้างอื่นๆ"
+        },
+        {
+          "Key Account ID": "63221101",
+          "Key Account": "ค่าเครื่องเขียนแบบพิมพ์"
+        },
+        {
+          "Key Account ID": "63231101",
+          "Key Account": "วัสดุสิ้นเปลือง"
+        },
+        {
+          "Key Account ID": "63231201",
+          "Key Account": "ค่าวัสดุสิ้นเปลืองคอมพิวเตอร์"
+        },
+        {
+          "Key Account ID": "63241101",
+          "Key Account": "ค่าภาษีป้ายและบำรุงท้องที่"
+        },
+        {
+          "Key Account ID": "63251401",
+          "Key Account": "ค่ารับรอง"
+        },
+        {
+          "Key Account ID": "63251402",
+          "Key Account": "ค่าของขวัญ"
+        },
+        {
+          "Key Account ID": "63251501",
+          "Key Account": "ค่าส่งไปรษณีย์"
+        },
+        {
+          "Key Account ID": "63251801",
+          "Key Account": "ค่าธรรมเนียมอื่น"
+        },
+        {
+          "Key Account ID": "63259801",
+          "Key Account": "ค่าใช้จ่ายเบ็ดเตล็ด"
+        },
+        {
+          "Key Account ID": "63261101",
+          "Key Account": "ค่าธรรมเนียมธนาคาร"
+        },
+        {
+          "Key Account ID": "63971101",
+          "Key Account": "ขาดทุนจากการตัดจำหน่ายทรัพย์สิน"
+        },
+        {
+          "Key Account ID": "63259901",
+          "Key Account": "ค่าใช้จ่ายอื่น"
+        },
+        {
+          "Key Account ID": "63991101",
+          "Key Account": "ค่าใช้จ่ายต้องห้าม"
+        }
+      ]
+    },
+    {
+      "Department": "ศูนย์ธุรกิจพัทยา",
+      "Accounts": [
+        {
+          "Key Account ID": "55111501",
+          "Key Account": "ค่าวัสดุสิ้นเปลือง(ต้นทุน)"
+        },
+        {
+          "Key Account ID": "59111101",
+          "Key Account": "ขาดทุนจากสินค้าเสื่อมสภาพ"
+        },
+        {
+          "Key Account ID": "59111301",
+          "Key Account": "ขาดทุนจากสินค้าสูญหาย"
+        },
+        {
+          "Key Account ID": "55111302",
+          "Key Account": "อะไหล่และวัสดุสิ้นเปลืองเครื่องป้อน"
+        },
+        {
+          "Key Account ID": "56111102",
+          "Key Account": "ค่าเช่าอุปกรณ์ประกอบการขายครัว"
+        },
+        {
+          "Key Account ID": "60111203",
+          "Key Account": "ค่าอะไหล่อุปกรณ์ให้เช่า"
+        },
+        {
+          "Key Account ID": "60111502",
+          "Key Account": "ค่าบริการตรวจเช็คเครื่องล้างจาน"
+        },
+        {
+          "Key Account ID": "61111102",
+          "Key Account": "เงินเดือน-บริหาร"
+        },
+        {
+          "Key Account ID": "61111301",
+          "Key Account": "ค่าพาหนะ ค่าโทรศัพท์พนักงาน(รายเดือน)-ฝ่ายขาย"
+        },
+        {
+          "Key Account ID": "61111401",
+          "Key Account": "ค่าเบี้ยขยัน"
+        },
+        {
+          "Key Account ID": "61111501",
+          "Key Account": "ค่าล่วงเวลา"
+        },
+        {
+          "Key Account ID": "61111701",
+          "Key Account": "ค่าหอพักพนักงาน"
+        },
+        {
+          "Key Account ID": "61121101",
+          "Key Account": "ค่าคอมมิชชั่นพนักงาน"
+        },
+        {
+          "Key Account ID": "61121201",
+          "Key Account": "ค่าเงินรางวัลผลการบริหารศูนย์และสาขา"
+        },
+        {
+          "Key Account ID": "61131101",
+          "Key Account": "ค่าอบรมและสัมนา"
+        },
+        {
+          "Key Account ID": "61141101",
+          "Key Account": "ค่าเงินประกันสังคม"
+        },
+        {
+          "Key Account ID": "61151201",
+          "Key Account": "ค่าเบี้ยเลี้ยงนักศึกษาทวิภาคี"
+        },
+        {
+          "Key Account ID": "61161103",
+          "Key Account": "ค่าน้ำมันและค่าพาหนะ - (ฝ่ายขาย)"
+        },
+        {
+          "Key Account ID": "61161201",
+          "Key Account": "ค่าใช้จ่ายเดินทางในประเทศ"
+        },
+        {
+          "Key Account ID": "61181101",
+          "Key Account": "ค่าสวัสดิการ"
+        },
+        {
+          "Key Account ID": "63111101",
+          "Key Account": "ค่าขนส่ง"
+        },
+        {
+          "Key Account ID": "63131202",
+          "Key Account": "ค่าส่งเสริมการขาย"
+        },
+        {
+          "Key Account ID": "63131502",
+          "Key Account": "ค่าสินค้าตัวอย่าง"
+        },
+        {
+          "Key Account ID": "63141201",
+          "Key Account": "ค่าซ่อมแซมอุปกรณ์ประกอบการขาย"
+        },
+        {
+          "Key Account ID": "63141401",
+          "Key Account": "ค่าตรวจสอบและซ่อมแซมสินค้า"
+        },
+        {
+          "Key Account ID": "63151101",
+          "Key Account": "ค่าไฟฟ้า"
+        },
+        {
+          "Key Account ID": "63151102",
+          "Key Account": "ค่าน้ำประปา"
+        },
+        {
+          "Key Account ID": "63151201",
+          "Key Account": "ค่าโทรศัพท์"
+        },
+        {
+          "Key Account ID": "63161101",
+          "Key Account": "ค่าซ่อมแซมและบำรุง"
+        },
+        {
+          "Key Account ID": "63161201",
+          "Key Account": "ค่าซ่อมแซมและบำรุงรักษารถยนต์"
+        },
+        {
+          "Key Account ID": "63171201",
+          "Key Account": "ค่าเบี้ยประกันรถยนต์"
+        },
+        {
+          "Key Account ID": "63212401",
+          "Key Account": "ค่าจ้างอื่นๆ"
+        },
+        {
+          "Key Account ID": "63212402",
+          "Key Account": "ค่าบริการอื่นๆ"
+        },
+        {
+          "Key Account ID": "63221101",
+          "Key Account": "ค่าเครื่องเขียนแบบพิมพ์"
+        },
+        {
+          "Key Account ID": "63231101",
+          "Key Account": "วัสดุสิ้นเปลือง"
+        },
+        {
+          "Key Account ID": "63231301",
+          "Key Account": "ค่าเครื่องมือเครื่องใช้"
+        },
+        {
+          "Key Account ID": "63241101",
+          "Key Account": "ค่าภาษีป้ายและบำรุงท้องที่"
+        },
+        {
+          "Key Account ID": "63241201",
+          "Key Account": "ค่าภาษีรถยนต์"
+        },
+        {
+          "Key Account ID": "63251401",
+          "Key Account": "ค่ารับรอง"
+        },
+        {
+          "Key Account ID": "63251501",
+          "Key Account": "ค่าส่งไปรษณีย์"
+        },
+        {
+          "Key Account ID": "63251901",
+          "Key Account": "ค่าใช้จ่ายอื่นเกี่ยวกับรถยนต์"
+        },
+        {
+          "Key Account ID": "63259801",
+          "Key Account": "ค่าใช้จ่ายเบ็ดเตล็ด"
+        },
+        {
+          "Key Account ID": "63261101",
+          "Key Account": "ค่าธรรมเนียมธนาคาร"
+        },
+        {
+          "Key Account ID": "63971101",
+          "Key Account": "ขาดทุนจากการตัดจำหน่ายทรัพย์สิน"
+        },
+        {
+          "Key Account ID": "63991101",
+          "Key Account": "ค่าใช้จ่ายต้องห้าม"
+        }
+      ]
+    },
+    {
+      "Department": "ศุนย์ธุรกิจภูเก็ต",
+      "Accounts": [
+        {
+          "Key Account ID": "55111501",
+          "Key Account": "ค่าวัสดุสิ้นเปลือง(ต้นทุน)"
+        },
+        {
+          "Key Account ID": "59111101",
+          "Key Account": "ขาดทุนจากสินค้าเสื่อมสภาพ"
+        },
+        {
+          "Key Account ID": "59111301",
+          "Key Account": "ขาดทุนจากสินค้าสูญหาย"
+        },
+        {
+          "Key Account ID": "55111302",
+          "Key Account": "อะไหล่และวัสดุสิ้นเปลืองเครื่องป้อน"
+        },
+        {
+          "Key Account ID": "56111102",
+          "Key Account": "ค่าเช่าอุปกรณ์ประกอบการขายครัว"
+        },
+        {
+          "Key Account ID": "60111203",
+          "Key Account": "ค่าอะไหล่อุปกรณ์ให้เช่า"
+        },
+        {
+          "Key Account ID": "60111502",
+          "Key Account": "ค่าบริการตรวจเช็คเครื่องล้างจาน"
+        },
+        {
+          "Key Account ID": "60141101",
+          "Key Account": "ต้นทุนบริการHeat Pump"
+        },
+        {
+          "Key Account ID": "61111102",
+          "Key Account": "เงินเดือน-บริหาร"
+        },
+        {
+          "Key Account ID": "61111301",
+          "Key Account": "ค่าพาหนะ ค่าโทรศัพท์พนักงาน(รายเดือน)-ฝ่ายขาย"
+        },
+        {
+          "Key Account ID": "61111401",
+          "Key Account": "ค่าเบี้ยขยัน"
+        },
+        {
+          "Key Account ID": "61111501",
+          "Key Account": "ค่าล่วงเวลา"
+        },
+        {
+          "Key Account ID": "61121101",
+          "Key Account": "ค่าคอมมิชชั่นพนักงาน"
+        },
+        {
+          "Key Account ID": "61141101",
+          "Key Account": "ค่าเงินประกันสังคม"
+        },
+        {
+          "Key Account ID": "61161103",
+          "Key Account": "ค่าน้ำมันและค่าพาหนะ - (ฝ่ายขาย)"
+        },
+        {
+          "Key Account ID": "61161201",
+          "Key Account": "ค่าใช้จ่ายเดินทางในประเทศ"
+        },
+        {
+          "Key Account ID": "61181101",
+          "Key Account": "ค่าสวัสดิการ"
+        },
+        {
+          "Key Account ID": "63111101",
+          "Key Account": "ค่าขนส่ง"
+        },
+        {
+          "Key Account ID": "63131201",
+          "Key Account": "ค่าโฆษณาการตลาด"
+        },
+        {
+          "Key Account ID": "63131202",
+          "Key Account": "ค่าส่งเสริมการขาย"
+        },
+        {
+          "Key Account ID": "63131502",
+          "Key Account": "ค่าสินค้าตัวอย่าง"
+        },
+        {
+          "Key Account ID": "63141201",
+          "Key Account": "ค่าซ่อมแซมอุปกรณ์ประกอบการขาย"
+        },
+        {
+          "Key Account ID": "63151101",
+          "Key Account": "ค่าไฟฟ้า"
+        },
+        {
+          "Key Account ID": "63151102",
+          "Key Account": "ค่าน้ำประปา"
+        },
+        {
+          "Key Account ID": "63151201",
+          "Key Account": "ค่าโทรศัพท์"
+        },
+        {
+          "Key Account ID": "63161101",
+          "Key Account": "ค่าซ่อมแซมและบำรุง"
+        },
+        {
+          "Key Account ID": "63161201",
+          "Key Account": "ค่าซ่อมแซมและบำรุงรักษารถยนต์"
+        },
+        {
+          "Key Account ID": "63171201",
+          "Key Account": "ค่าเบี้ยประกันรถยนต์"
+        },
+        {
+          "Key Account ID": "63181101",
+          "Key Account": "ค่าเช่าสำนักงาน"
+        },
+        {
+          "Key Account ID": "63181102",
+          "Key Account": "ค่าเช่าที่ดิน"
+        },
+        {
+          "Key Account ID": "63181201",
+          "Key Account": "ค่าเช่ายานพาหนะ"
+        },
+        {
+          "Key Account ID": "63212401",
+          "Key Account": "ค่าจ้างอื่นๆ"
+        },
+        {
+          "Key Account ID": "63221101",
+          "Key Account": "ค่าเครื่องเขียนแบบพิมพ์"
+        },
+        {
+          "Key Account ID": "63231101",
+          "Key Account": "วัสดุสิ้นเปลือง"
+        },
+        {
+          "Key Account ID": "63231201",
+          "Key Account": "ค่าวัสดุสิ้นเปลืองคอมพิวเตอร์"
+        },
+        {
+          "Key Account ID": "63231301",
+          "Key Account": "ค่าเครื่องมือเครื่องใช้"
+        },
+        {
+          "Key Account ID": "63241101",
+          "Key Account": "ค่าภาษีป้ายและบำรุงท้องที่"
+        },
+        {
+          "Key Account ID": "63241201",
+          "Key Account": "ค่าภาษีรถยนต์"
+        },
+        {
+          "Key Account ID": "63251401",
+          "Key Account": "ค่ารับรอง"
+        },
+        {
+          "Key Account ID": "63251402",
+          "Key Account": "ค่าของขวัญ"
+        },
+        {
+          "Key Account ID": "63251501",
+          "Key Account": "ค่าส่งไปรษณีย์"
+        },
+        {
+          "Key Account ID": "63251901",
+          "Key Account": "ค่าใช้จ่ายอื่นเกี่ยวกับรถยนต์"
+        },
+        {
+          "Key Account ID": "63261101",
+          "Key Account": "ค่าธรรมเนียมธนาคาร"
+        },
+        {
+          "Key Account ID": "63971101",
+          "Key Account": "ขาดทุนจากการตัดจำหน่ายทรัพย์สิน"
+        },
+        {
+          "Key Account ID": "63991101",
+          "Key Account": "ค่าใช้จ่ายต้องห้าม"
+        }
+      ]
+    },
+    {
+      "Department": "ศูนย์ธุรกิจสมุย ",
+      "Accounts": [
+        {
+          "Key Account ID": "55111501",
+          "Key Account": "ค่าวัสดุสิ้นเปลือง(ต้นทุน)"
+        },
+        {
+          "Key Account ID": "59111101",
+          "Key Account": "ขาดทุนจากสินค้าเสื่อมสภาพ"
+        },
+        {
+          "Key Account ID": "59111301",
+          "Key Account": "ขาดทุนจากสินค้าสูญหาย"
+        },
+        {
+          "Key Account ID": "55111302",
+          "Key Account": "อะไหล่และวัสดุสิ้นเปลืองเครื่องป้อน"
+        },
+        {
+          "Key Account ID": "56111102",
+          "Key Account": "ค่าเช่าอุปกรณ์ประกอบการขายครัว"
+        },
+        {
+          "Key Account ID": "61111102",
+          "Key Account": "เงินเดือน-บริหาร"
+        },
+        {
+          "Key Account ID": "61111301",
+          "Key Account": "ค่าพาหนะ ค่าโทรศัพท์พนักงาน(รายเดือน)-ฝ่ายขาย"
+        },
+        {
+          "Key Account ID": "61111401",
+          "Key Account": "ค่าเบี้ยขยัน"
+        },
+        {
+          "Key Account ID": "61111501",
+          "Key Account": "ค่าล่วงเวลา"
+        },
+        {
+          "Key Account ID": "61121101",
+          "Key Account": "ค่าคอมมิชชั่นพนักงาน"
+        },
+        {
+          "Key Account ID": "61121201",
+          "Key Account": "ค่าเงินรางวัลผลการบริหารศูนย์และสาขา"
+        },
+        {
+          "Key Account ID": "61141101",
+          "Key Account": "ค่าเงินประกันสังคม"
+        },
+        {
+          "Key Account ID": "61151101",
+          "Key Account": "ค่าเบี้ยเลี้ยงพนักงาน"
+        },
+        {
+          "Key Account ID": "61161103",
+          "Key Account": "ค่าน้ำมันและค่าพาหนะ - (ฝ่ายขาย)"
+        },
+        {
+          "Key Account ID": "61161201",
+          "Key Account": "ค่าใช้จ่ายเดินทางในประเทศ"
+        },
+        {
+          "Key Account ID": "61161401",
+          "Key Account": "ค่าที่พัก"
+        },
+        {
+          "Key Account ID": "61181101",
+          "Key Account": "ค่าสวัสดิการ"
+        },
+        {
+          "Key Account ID": "63111101",
+          "Key Account": "ค่าขนส่ง"
+        },
+        {
+          "Key Account ID": "63131202",
+          "Key Account": "ค่าส่งเสริมการขาย"
+        },
+        {
+          "Key Account ID": "63131502",
+          "Key Account": "ค่าสินค้าตัวอย่าง"
+        },
+        {
+          "Key Account ID": "63141201",
+          "Key Account": "ค่าซ่อมแซมอุปกรณ์ประกอบการขาย"
+        },
+        {
+          "Key Account ID": "63151101",
+          "Key Account": "ค่าไฟฟ้า"
+        },
+        {
+          "Key Account ID": "63151102",
+          "Key Account": "ค่าน้ำประปา"
+        },
+        {
+          "Key Account ID": "63151201",
+          "Key Account": "ค่าโทรศัพท์"
+        },
+        {
+          "Key Account ID": "63161101",
+          "Key Account": "ค่าซ่อมแซมและบำรุง"
+        },
+        {
+          "Key Account ID": "63171201",
+          "Key Account": "ค่าเบี้ยประกันรถยนต์"
+        },
+        {
+          "Key Account ID": "63181201",
+          "Key Account": "ค่าเช่ายานพาหนะ"
+        },
+        {
+          "Key Account ID": "63212401",
+          "Key Account": "ค่าจ้างอื่นๆ"
+        },
+        {
+          "Key Account ID": "63212402",
+          "Key Account": "ค่าบริการอื่นๆ"
+        },
+        {
+          "Key Account ID": "63221101",
+          "Key Account": "ค่าเครื่องเขียนแบบพิมพ์"
+        },
+        {
+          "Key Account ID": "63231101",
+          "Key Account": "วัสดุสิ้นเปลือง"
+        },
+        {
+          "Key Account ID": "63231201",
+          "Key Account": "ค่าวัสดุสิ้นเปลืองคอมพิวเตอร์"
+        },
+        {
+          "Key Account ID": "63241101",
+          "Key Account": "ค่าภาษีป้ายและบำรุงท้องที่"
+        },
+        {
+          "Key Account ID": "63241201",
+          "Key Account": "ค่าภาษีรถยนต์"
+        },
+        {
+          "Key Account ID": "63251401",
+          "Key Account": "ค่ารับรอง"
+        },
+        {
+          "Key Account ID": "63251402",
+          "Key Account": "ค่าของขวัญ"
+        },
+        {
+          "Key Account ID": "63251501",
+          "Key Account": "ค่าส่งไปรษณีย์"
+        },
+        {
+          "Key Account ID": "63251901",
+          "Key Account": "ค่าใช้จ่ายอื่นเกี่ยวกับรถยนต์"
+        },
+        {
+          "Key Account ID": "63259801",
+          "Key Account": "ค่าใช้จ่ายเบ็ดเตล็ด"
+        },
+        {
+          "Key Account ID": "63261101",
+          "Key Account": "ค่าธรรมเนียมธนาคาร"
+        },
+        {
+          "Key Account ID": "63259901",
+          "Key Account": "ค่าใช้จ่ายอื่น"
+        },
+        {
+          "Key Account ID": "63991101",
+          "Key Account": "ค่าใช้จ่ายต้องห้าม"
+        }
+      ]
+    },
+    {
+      "Department": "ศูนย์ธุรกิจหาดใหญ่",
+      "Accounts": [
+        {
+          "Key Account ID": "55111501",
+          "Key Account": "ค่าวัสดุสิ้นเปลือง(ต้นทุน)"
+        },
+        {
+          "Key Account ID": "59111101",
+          "Key Account": "ขาดทุนจากสินค้าเสื่อมสภาพ"
+        },
+        {
+          "Key Account ID": "56111102",
+          "Key Account": "ค่าเช่าอุปกรณ์ประกอบการขายครัว"
+        },
+        {
+          "Key Account ID": "61111102",
+          "Key Account": "เงินเดือน-บริหาร"
+        },
+        {
+          "Key Account ID": "61111301",
+          "Key Account": "ค่าพาหนะ ค่าโทรศัพท์พนักงาน(รายเดือน)-ฝ่ายขาย"
+        },
+        {
+          "Key Account ID": "61111401",
+          "Key Account": "ค่าเบี้ยขยัน"
+        },
+        {
+          "Key Account ID": "61111501",
+          "Key Account": "ค่าล่วงเวลา"
+        },
+        {
+          "Key Account ID": "61121101",
+          "Key Account": "ค่าคอมมิชชั่นพนักงาน"
+        },
+        {
+          "Key Account ID": "61131101",
+          "Key Account": "ค่าอบรมและสัมนา"
+        },
+        {
+          "Key Account ID": "61141101",
+          "Key Account": "ค่าเงินประกันสังคม"
+        },
+        {
+          "Key Account ID": "61151101",
+          "Key Account": "ค่าเบี้ยเลี้ยงพนักงาน"
+        },
+        {
+          "Key Account ID": "61161103",
+          "Key Account": "ค่าน้ำมันและค่าพาหนะ - (ฝ่ายขาย)"
+        },
+        {
+          "Key Account ID": "61161201",
+          "Key Account": "ค่าใช้จ่ายเดินทางในประเทศ"
+        },
+        {
+          "Key Account ID": "61181101",
+          "Key Account": "ค่าสวัสดิการ"
+        },
+        {
+          "Key Account ID": "63111101",
+          "Key Account": "ค่าขนส่ง"
+        },
+        {
+          "Key Account ID": "63131202",
+          "Key Account": "ค่าส่งเสริมการขาย"
+        },
+        {
+          "Key Account ID": "63131502",
+          "Key Account": "ค่าสินค้าตัวอย่าง"
+        },
+        {
+          "Key Account ID": "63141201",
+          "Key Account": "ค่าซ่อมแซมอุปกรณ์ประกอบการขาย"
+        },
+        {
+          "Key Account ID": "63141401",
+          "Key Account": "ค่าตรวจสอบและซ่อมแซมสินค้า"
+        },
+        {
+          "Key Account ID": "63151101",
+          "Key Account": "ค่าไฟฟ้า"
+        },
+        {
+          "Key Account ID": "63151201",
+          "Key Account": "ค่าโทรศัพท์"
+        },
+        {
+          "Key Account ID": "63161101",
+          "Key Account": "ค่าซ่อมแซมและบำรุง"
+        },
+        {
+          "Key Account ID": "63171201",
+          "Key Account": "ค่าเบี้ยประกันรถยนต์"
+        },
+        {
+          "Key Account ID": "63181101",
+          "Key Account": "ค่าเช่าสำนักงาน"
+        },
+        {
+          "Key Account ID": "63212401",
+          "Key Account": "ค่าจ้างอื่นๆ"
+        },
+        {
+          "Key Account ID": "63221101",
+          "Key Account": "ค่าเครื่องเขียนแบบพิมพ์"
+        },
+        {
+          "Key Account ID": "63231101",
+          "Key Account": "วัสดุสิ้นเปลือง"
+        },
+        {
+          "Key Account ID": "63231201",
+          "Key Account": "ค่าวัสดุสิ้นเปลืองคอมพิวเตอร์"
+        },
+        {
+          "Key Account ID": "63231301",
+          "Key Account": "ค่าเครื่องมือเครื่องใช้"
+        },
+        {
+          "Key Account ID": "63241101",
+          "Key Account": "ค่าภาษีป้ายและบำรุงท้องที่"
+        },
+        {
+          "Key Account ID": "63251401",
+          "Key Account": "ค่ารับรอง"
+        },
+        {
+          "Key Account ID": "63251501",
+          "Key Account": "ค่าส่งไปรษณีย์"
+        },
+        {
+          "Key Account ID": "63251801",
+          "Key Account": "ค่าธรรมเนียมอื่น"
+        },
+        {
+          "Key Account ID": "63259801",
+          "Key Account": "ค่าใช้จ่ายเบ็ดเตล็ด"
+        },
+        {
+          "Key Account ID": "63261101",
+          "Key Account": "ค่าธรรมเนียมธนาคาร"
+        },
+        {
+          "Key Account ID": "63261401",
+          "Key Account": "ค่าอากรแสตมป์"
+        },
+        {
+          "Key Account ID": "63971101",
+          "Key Account": "ขาดทุนจากการตัดจำหน่ายทรัพย์สิน"
+        },
+        {
+          "Key Account ID": "63259901",
+          "Key Account": "ค่าใช้จ่ายอื่น"
+        },
+        {
+          "Key Account ID": "63991101",
+          "Key Account": "ค่าใช้จ่ายต้องห้าม"
+        },
+        {
+          "Key Account ID": "63991201",
+          "Key Account": "ภาษีซื้อไม่ใช้สิทธิ์"
+        }
+      ]
+    },
+    {
+      "Department": "ศูนย์ธุรกิจกระบี่",
+      "Accounts": [
+        {
+          "Key Account ID": "55111501",
+          "Key Account": "ค่าวัสดุสิ้นเปลือง(ต้นทุน)"
+        },
+        {
+          "Key Account ID": "59111101",
+          "Key Account": "ขาดทุนจากสินค้าเสื่อมสภาพ"
+        },
+        {
+          "Key Account ID": "59111301",
+          "Key Account": "ขาดทุนจากสินค้าสูญหาย"
+        },
+        {
+          "Key Account ID": "55111302",
+          "Key Account": "อะไหล่และวัสดุสิ้นเปลืองเครื่องป้อน"
+        },
+        {
+          "Key Account ID": "56111102",
+          "Key Account": "ค่าเช่าอุปกรณ์ประกอบการขายครัว"
+        },
+        {
+          "Key Account ID": "61111102",
+          "Key Account": "เงินเดือน-บริหาร"
+        },
+        {
+          "Key Account ID": "61111301",
+          "Key Account": "ค่าพาหนะ ค่าโทรศัพท์พนักงาน(รายเดือน)-ฝ่ายขาย"
+        },
+        {
+          "Key Account ID": "61111401",
+          "Key Account": "ค่าเบี้ยขยัน"
+        },
+        {
+          "Key Account ID": "61121101",
+          "Key Account": "ค่าคอมมิชชั่นพนักงาน"
+        },
+        {
+          "Key Account ID": "61121201",
+          "Key Account": "ค่าเงินรางวัลผลการบริหารศูนย์และสาขา"
+        },
+        {
+          "Key Account ID": "61141101",
+          "Key Account": "ค่าเงินประกันสังคม"
+        },
+        {
+          "Key Account ID": "61151101",
+          "Key Account": "ค่าเบี้ยเลี้ยงพนักงาน"
+        },
+        {
+          "Key Account ID": "61161103",
+          "Key Account": "ค่าน้ำมันและค่าพาหนะ - (ฝ่ายขาย)"
+        },
+        {
+          "Key Account ID": "61161201",
+          "Key Account": "ค่าใช้จ่ายเดินทางในประเทศ"
+        },
+        {
+          "Key Account ID": "61161401",
+          "Key Account": "ค่าที่พัก"
+        },
+        {
+          "Key Account ID": "61181101",
+          "Key Account": "ค่าสวัสดิการ"
+        },
+        {
+          "Key Account ID": "63111101",
+          "Key Account": "ค่าขนส่ง"
+        },
+        {
+          "Key Account ID": "63131202",
+          "Key Account": "ค่าส่งเสริมการขาย"
+        },
+        {
+          "Key Account ID": "63131502",
+          "Key Account": "ค่าสินค้าตัวอย่าง"
+        },
+        {
+          "Key Account ID": "63141201",
+          "Key Account": "ค่าซ่อมแซมอุปกรณ์ประกอบการขาย"
+        },
+        {
+          "Key Account ID": "63151101",
+          "Key Account": "ค่าไฟฟ้า"
+        },
+        {
+          "Key Account ID": "63151102",
+          "Key Account": "ค่าน้ำประปา"
+        },
+        {
+          "Key Account ID": "63151201",
+          "Key Account": "ค่าโทรศัพท์"
+        },
+        {
+          "Key Account ID": "63161101",
+          "Key Account": "ค่าซ่อมแซมและบำรุง"
+        },
+        {
+          "Key Account ID": "63171201",
+          "Key Account": "ค่าเบี้ยประกันรถยนต์"
+        },
+        {
+          "Key Account ID": "63181101",
+          "Key Account": "ค่าเช่าสำนักงาน"
+        },
+        {
+          "Key Account ID": "63181201",
+          "Key Account": "ค่าเช่ายานพาหนะ"
+        },
+        {
+          "Key Account ID": "63201401",
+          "Key Account": "ค่าบริการที่จอดรถ"
+        },
+        {
+          "Key Account ID": "63212401",
+          "Key Account": "ค่าจ้างอื่นๆ"
+        },
+        {
+          "Key Account ID": "63221101",
+          "Key Account": "ค่าเครื่องเขียนแบบพิมพ์"
+        },
+        {
+          "Key Account ID": "63231101",
+          "Key Account": "วัสดุสิ้นเปลือง"
+        },
+        {
+          "Key Account ID": "63241101",
+          "Key Account": "ค่าภาษีป้ายและบำรุงท้องที่"
+        },
+        {
+          "Key Account ID": "63251101",
+          "Key Account": "ค่าโฆษณา"
+        },
+        {
+          "Key Account ID": "63251401",
+          "Key Account": "ค่ารับรอง"
+        },
+        {
+          "Key Account ID": "63251402",
+          "Key Account": "ค่าของขวัญ"
+        },
+        {
+          "Key Account ID": "63251501",
+          "Key Account": "ค่าส่งไปรษณีย์"
+        },
+        {
+          "Key Account ID": "63251801",
+          "Key Account": "ค่าธรรมเนียมอื่น"
+        },
+        {
+          "Key Account ID": "63259801",
+          "Key Account": "ค่าใช้จ่ายเบ็ดเตล็ด"
+        },
+        {
+          "Key Account ID": "63261101",
+          "Key Account": "ค่าธรรมเนียมธนาคาร"
+        },
+        {
+          "Key Account ID": "63271101",
+          "Key Account": "ค่าบำบัดน้ำเสียและกำจัดของเสีย"
+        },
+        {
+          "Key Account ID": "63991101",
+          "Key Account": "ค่าใช้จ่ายต้องห้าม"
+        }
+      ]
+    },
+    {
+      "Department": "Building Care",
+      "Accounts": [
+        {
+          "Key Account ID": "55111501",
+          "Key Account": "ค่าวัสดุสิ้นเปลือง(ต้นทุน)"
+        },
+        {
+          "Key Account ID": "59111101",
+          "Key Account": "ขาดทุนจากสินค้าเสื่อมสภาพ"
+        },
+        {
+          "Key Account ID": "59111301",
+          "Key Account": "ขาดทุนจากสินค้าสูญหาย"
+        },
+        {
+          "Key Account ID": "55111302",
+          "Key Account": "อะไหล่และวัสดุสิ้นเปลืองเครื่องป้อน"
+        },
+        {
+          "Key Account ID": "61111102",
+          "Key Account": "เงินเดือน-บริหาร"
+        },
+        {
+          "Key Account ID": "61111301",
+          "Key Account": "ค่าพาหนะ ค่าโทรศัพท์พนักงาน(รายเดือน)-ฝ่ายขาย"
+        },
+        {
+          "Key Account ID": "61111401",
+          "Key Account": "ค่าเบี้ยขยัน"
+        },
+        {
+          "Key Account ID": "61111501",
+          "Key Account": "ค่าล่วงเวลา"
+        },
+        {
+          "Key Account ID": "61121101",
+          "Key Account": "ค่าคอมมิชชั่นพนักงาน"
+        },
+        {
+          "Key Account ID": "61121202",
+          "Key Account": "ค่าเงินรางวัล-ขาย"
+        },
+        {
+          "Key Account ID": "61141101",
+          "Key Account": "ค่าเงินประกันสังคม"
+        },
+        {
+          "Key Account ID": "61151101",
+          "Key Account": "ค่าเบี้ยเลี้ยงพนักงาน"
+        },
+        {
+          "Key Account ID": "61161103",
+          "Key Account": "ค่าน้ำมันและค่าพาหนะ - (ฝ่ายขาย)"
+        },
+        {
+          "Key Account ID": "61161201",
+          "Key Account": "ค่าใช้จ่ายเดินทางในประเทศ"
+        },
+        {
+          "Key Account ID": "61161301",
+          "Key Account": "ค่าใช้จ่ายเดินทางต่างประเทศ"
+        },
+        {
+          "Key Account ID": "61161401",
+          "Key Account": "ค่าที่พัก"
+        },
+        {
+          "Key Account ID": "61181101",
+          "Key Account": "ค่าสวัสดิการ"
+        },
+        {
+          "Key Account ID": "63111101",
+          "Key Account": "ค่าขนส่ง"
+        },
+        {
+          "Key Account ID": "63111202",
+          "Key Account": "ค่าใช้จ่ายส่งออกสินค้า"
+        },
+        {
+          "Key Account ID": "63131201",
+          "Key Account": "ค่าโฆษณาการตลาด"
+        },
+        {
+          "Key Account ID": "63131202",
+          "Key Account": "ค่าส่งเสริมการขาย"
+        },
+        {
+          "Key Account ID": "63131401",
+          "Key Account": "ค่าใช้จ่ายประมาณการรับประกันซ่อม"
+        },
+        {
+          "Key Account ID": "63131502",
+          "Key Account": "ค่าสินค้าตัวอย่าง"
+        },
+        {
+          "Key Account ID": "63141201",
+          "Key Account": "ค่าซ่อมแซมอุปกรณ์ประกอบการขาย"
+        },
+        {
+          "Key Account ID": "63151201",
+          "Key Account": "ค่าโทรศัพท์"
+        },
+        {
+          "Key Account ID": "63171201",
+          "Key Account": "ค่าเบี้ยประกันรถยนต์"
+        },
+        {
+          "Key Account ID": "63181201",
+          "Key Account": "ค่าเช่ายานพาหนะ"
+        },
+        {
+          "Key Account ID": "63212401",
+          "Key Account": "ค่าจ้างอื่นๆ"
+        },
+        {
+          "Key Account ID": "63221101",
+          "Key Account": "ค่าเครื่องเขียนแบบพิมพ์"
+        },
+        {
+          "Key Account ID": "63231101",
+          "Key Account": "วัสดุสิ้นเปลือง"
+        },
+        {
+          "Key Account ID": "63231201",
+          "Key Account": "ค่าวัสดุสิ้นเปลืองคอมพิวเตอร์"
+        },
+        {
+          "Key Account ID": "63251101",
+          "Key Account": "ค่าโฆษณา"
+        },
+        {
+          "Key Account ID": "63251401",
+          "Key Account": "ค่ารับรอง"
+        },
+        {
+          "Key Account ID": "63251402",
+          "Key Account": "ค่าของขวัญ"
+        },
+        {
+          "Key Account ID": "63251501",
+          "Key Account": "ค่าส่งไปรษณีย์"
+        },
+        {
+          "Key Account ID": "63251801",
+          "Key Account": "ค่าธรรมเนียมอื่น"
+        },
+        {
+          "Key Account ID": "63251901",
+          "Key Account": "ค่าใช้จ่ายอื่นเกี่ยวกับรถยนต์"
+        },
+        {
+          "Key Account ID": "63259801",
+          "Key Account": "ค่าใช้จ่ายเบ็ดเตล็ด"
+        },
+        {
+          "Key Account ID": "63261101",
+          "Key Account": "ค่าธรรมเนียมธนาคาร"
+        },
+        {
+          "Key Account ID": "63261201",
+          "Key Account": "ค่าธรรมเนียมเปิด L/C"
+        },
+        {
+          "Key Account ID": "63971101",
+          "Key Account": "ขาดทุนจากการตัดจำหน่ายทรัพย์สิน"
+        },
+        {
+          "Key Account ID": "63991101",
+          "Key Account": "ค่าใช้จ่ายต้องห้าม"
+        }
+      ]
+    },
+    {
+      "Department": "Food Service",
+      "Accounts": [
+        {
+          "Key Account ID": "55111501",
+          "Key Account": "ค่าวัสดุสิ้นเปลือง(ต้นทุน)"
+        },
+        {
+          "Key Account ID": "59111101",
+          "Key Account": "ขาดทุนจากสินค้าเสื่อมสภาพ"
+        },
+        {
+          "Key Account ID": "55111302",
+          "Key Account": "อะไหล่และวัสดุสิ้นเปลืองเครื่องป้อน"
+        },
+        {
+          "Key Account ID": "56111102",
+          "Key Account": "ค่าเช่าอุปกรณ์ประกอบการขายครัว"
+        },
+        {
+          "Key Account ID": "61111102",
+          "Key Account": "เงินเดือน-บริหาร"
+        },
+        {
+          "Key Account ID": "61111301",
+          "Key Account": "ค่าพาหนะ ค่าโทรศัพท์พนักงาน(รายเดือน)-ฝ่ายขาย"
+        },
+        {
+          "Key Account ID": "61111501",
+          "Key Account": "ค่าล่วงเวลา"
+        },
+        {
+          "Key Account ID": "61121101",
+          "Key Account": "ค่าคอมมิชชั่นพนักงาน"
+        },
+        {
+          "Key Account ID": "61131101",
+          "Key Account": "ค่าอบรมและสัมนา"
+        },
+        {
+          "Key Account ID": "61141101",
+          "Key Account": "ค่าเงินประกันสังคม"
+        },
+        {
+          "Key Account ID": "61151101",
+          "Key Account": "ค่าเบี้ยเลี้ยงพนักงาน"
+        },
+        {
+          "Key Account ID": "61161103",
+          "Key Account": "ค่าน้ำมันและค่าพาหนะ - (ฝ่ายขาย)"
+        },
+        {
+          "Key Account ID": "61161201",
+          "Key Account": "ค่าใช้จ่ายเดินทางในประเทศ"
+        },
+        {
+          "Key Account ID": "61161301",
+          "Key Account": "ค่าใช้จ่ายเดินทางต่างประเทศ"
+        },
+        {
+          "Key Account ID": "61181101",
+          "Key Account": "ค่าสวัสดิการ"
+        },
+        {
+          "Key Account ID": "63111101",
+          "Key Account": "ค่าขนส่ง"
+        },
+        {
+          "Key Account ID": "63131201",
+          "Key Account": "ค่าโฆษณาการตลาด"
+        },
+        {
+          "Key Account ID": "63131202",
+          "Key Account": "ค่าส่งเสริมการขาย"
+        },
+        {
+          "Key Account ID": "63131401",
+          "Key Account": "ค่าใช้จ่ายประมาณการรับประกันซ่อม"
+        },
+        {
+          "Key Account ID": "63131502",
+          "Key Account": "ค่าสินค้าตัวอย่าง"
+        },
+        {
+          "Key Account ID": "63141201",
+          "Key Account": "ค่าซ่อมแซมอุปกรณ์ประกอบการขาย"
+        },
+        {
+          "Key Account ID": "63151201",
+          "Key Account": "ค่าโทรศัพท์"
+        },
+        {
+          "Key Account ID": "63181201",
+          "Key Account": "ค่าเช่ายานพาหนะ"
+        },
+        {
+          "Key Account ID": "63212401",
+          "Key Account": "ค่าจ้างอื่นๆ"
+        },
+        {
+          "Key Account ID": "63221101",
+          "Key Account": "ค่าเครื่องเขียนแบบพิมพ์"
+        },
+        {
+          "Key Account ID": "63221301",
+          "Key Account": "ค่าสมาชิกรายปี"
+        },
+        {
+          "Key Account ID": "63231101",
+          "Key Account": "วัสดุสิ้นเปลือง"
+        },
+        {
+          "Key Account ID": "63251401",
+          "Key Account": "ค่ารับรอง"
+        },
+        {
+          "Key Account ID": "63251801",
+          "Key Account": "ค่าธรรมเนียมอื่น"
+        },
+        {
+          "Key Account ID": "63259801",
+          "Key Account": "ค่าใช้จ่ายเบ็ดเตล็ด"
+        },
+        {
+          "Key Account ID": "63261101",
+          "Key Account": "ค่าธรรมเนียมธนาคาร"
+        },
+        {
+          "Key Account ID": "63259901",
+          "Key Account": "ค่าใช้จ่ายอื่น"
+        },
+        {
+          "Key Account ID": "63991101",
+          "Key Account": "ค่าใช้จ่ายต้องห้าม"
+        }
+      ]
+    },
+    {
+      "Department": "Laundry Business",
+      "Accounts": [
+        {
+          "Key Account ID": "55111501",
+          "Key Account": "ค่าวัสดุสิ้นเปลือง(ต้นทุน)"
+        },
+        {
+          "Key Account ID": "59111101",
+          "Key Account": "ขาดทุนจากสินค้าเสื่อมสภาพ"
+        },
+        {
+          "Key Account ID": "55111302",
+          "Key Account": "อะไหล่และวัสดุสิ้นเปลืองเครื่องป้อน"
+        },
+        {
+          "Key Account ID": "60131101",
+          "Key Account": "ต้นทุนบริการซักรีด"
+        },
+        {
+          "Key Account ID": "61111102",
+          "Key Account": "เงินเดือน-บริหาร"
+        },
+        {
+          "Key Account ID": "61111301",
+          "Key Account": "ค่าพาหนะ ค่าโทรศัพท์พนักงาน(รายเดือน)-ฝ่ายขาย"
+        },
+        {
+          "Key Account ID": "61111701",
+          "Key Account": "ค่าหอพักพนักงาน"
+        },
+        {
+          "Key Account ID": "61121101",
+          "Key Account": "ค่าคอมมิชชั่นพนักงาน"
+        },
+        {
+          "Key Account ID": "61141101",
+          "Key Account": "ค่าเงินประกันสังคม"
+        },
+        {
+          "Key Account ID": "61151101",
+          "Key Account": "ค่าเบี้ยเลี้ยงพนักงาน"
+        },
+        {
+          "Key Account ID": "61161103",
+          "Key Account": "ค่าน้ำมันและค่าพาหนะ - (ฝ่ายขาย)"
+        },
+        {
+          "Key Account ID": "61161201",
+          "Key Account": "ค่าใช้จ่ายเดินทางในประเทศ"
+        },
+        {
+          "Key Account ID": "61161401",
+          "Key Account": "ค่าที่พัก"
+        },
+        {
+          "Key Account ID": "61181101",
+          "Key Account": "ค่าสวัสดิการ"
+        },
+        {
+          "Key Account ID": "63111101",
+          "Key Account": "ค่าขนส่ง"
+        },
+        {
+          "Key Account ID": "63131202",
+          "Key Account": "ค่าส่งเสริมการขาย"
+        },
+        {
+          "Key Account ID": "63131502",
+          "Key Account": "ค่าสินค้าตัวอย่าง"
+        },
+        {
+          "Key Account ID": "63141201",
+          "Key Account": "ค่าซ่อมแซมอุปกรณ์ประกอบการขาย"
+        },
+        {
+          "Key Account ID": "63181201",
+          "Key Account": "ค่าเช่ายานพาหนะ"
+        },
+        {
+          "Key Account ID": "63211101",
+          "Key Account": "ค่าบริการส่งเอกสาร"
+        },
+        {
+          "Key Account ID": "63212401",
+          "Key Account": "ค่าจ้างอื่นๆ"
+        },
+        {
+          "Key Account ID": "63221101",
+          "Key Account": "ค่าเครื่องเขียนแบบพิมพ์"
+        },
+        {
+          "Key Account ID": "63221301",
+          "Key Account": "ค่าสมาชิกรายปี"
+        },
+        {
+          "Key Account ID": "63231101",
+          "Key Account": "วัสดุสิ้นเปลือง"
+        },
+        {
+          "Key Account ID": "63231301",
+          "Key Account": "ค่าเครื่องมือเครื่องใช้"
+        },
+        {
+          "Key Account ID": "63251401",
+          "Key Account": "ค่ารับรอง"
+        },
+        {
+          "Key Account ID": "63251501",
+          "Key Account": "ค่าส่งไปรษณีย์"
+        },
+        {
+          "Key Account ID": "63251801",
+          "Key Account": "ค่าธรรมเนียมอื่น"
+        },
+        {
+          "Key Account ID": "63259801",
+          "Key Account": "ค่าใช้จ่ายเบ็ดเตล็ด"
+        },
+        {
+          "Key Account ID": "63261101",
+          "Key Account": "ค่าธรรมเนียมธนาคาร"
+        },
+        {
+          "Key Account ID": "63259901",
+          "Key Account": "ค่าใช้จ่ายอื่น"
+        }
+      ]
+    },
+    {
+      "Department": "QCM",
+      "Accounts": [
+        {
+          "Key Account ID": "55111501",
+          "Key Account": "ค่าวัสดุสิ้นเปลือง(ต้นทุน)"
+        },
+        {
+          "Key Account ID": "60111101",
+          "Key Account": "ต้นทุนเช่าและบริการครัว"
+        },
+        {
+          "Key Account ID": "60111502",
+          "Key Account": "ค่าบริการตรวจเช็คเครื่องล้างจาน"
+        },
+        {
+          "Key Account ID": "61111102",
+          "Key Account": "เงินเดือน-บริหาร"
+        },
+        {
+          "Key Account ID": "61111401",
+          "Key Account": "ค่าเบี้ยขยัน"
+        },
+        {
+          "Key Account ID": "61111501",
+          "Key Account": "ค่าล่วงเวลา"
+        },
+        {
+          "Key Account ID": "61121101",
+          "Key Account": "ค่าคอมมิชชั่นพนักงาน"
+        },
+        {
+          "Key Account ID": "61121203",
+          "Key Account": "ค่าเงินรางวัล-บริหาร"
+        },
+        {
+          "Key Account ID": "61131101",
+          "Key Account": "ค่าอบรมและสัมนา"
+        },
+        {
+          "Key Account ID": "61141101",
+          "Key Account": "ค่าเงินประกันสังคม"
+        },
+        {
+          "Key Account ID": "61151201",
+          "Key Account": "ค่าเบี้ยเลี้ยงนักศึกษาทวิภาคี"
+        },
+        {
+          "Key Account ID": "61161103",
+          "Key Account": "ค่าน้ำมันและค่าพาหนะ - (ฝ่ายขาย)"
+        },
+        {
+          "Key Account ID": "61181101",
+          "Key Account": "ค่าสวัสดิการ"
+        },
+        {
+          "Key Account ID": "63111101",
+          "Key Account": "ค่าขนส่ง"
+        },
+        {
+          "Key Account ID": "63131502",
+          "Key Account": "ค่าสินค้าตัวอย่าง"
+        },
+        {
+          "Key Account ID": "63141201",
+          "Key Account": "ค่าซ่อมแซมอุปกรณ์ประกอบการขาย"
+        },
+        {
+          "Key Account ID": "63151101",
+          "Key Account": "ค่าไฟฟ้า"
+        },
+        {
+          "Key Account ID": "63151201",
+          "Key Account": "ค่าโทรศัพท์"
+        },
+        {
+          "Key Account ID": "63161101",
+          "Key Account": "ค่าซ่อมแซมและบำรุง"
+        },
+        {
+          "Key Account ID": "63171201",
+          "Key Account": "ค่าเบี้ยประกันรถยนต์"
+        },
+        {
+          "Key Account ID": "63212401",
+          "Key Account": "ค่าจ้างอื่นๆ"
+        },
+        {
+          "Key Account ID": "63221101",
+          "Key Account": "ค่าเครื่องเขียนแบบพิมพ์"
+        },
+        {
+          "Key Account ID": "63231101",
+          "Key Account": "วัสดุสิ้นเปลือง"
+        },
+        {
+          "Key Account ID": "63231301",
+          "Key Account": "ค่าเครื่องมือเครื่องใช้"
+        },
+        {
+          "Key Account ID": "63241201",
+          "Key Account": "ค่าภาษีรถยนต์"
+        },
+        {
+          "Key Account ID": "63251501",
+          "Key Account": "ค่าส่งไปรษณีย์"
+        },
+        {
+          "Key Account ID": "63251801",
+          "Key Account": "ค่าธรรมเนียมอื่น"
+        },
+        {
+          "Key Account ID": "63251901",
+          "Key Account": "ค่าใช้จ่ายอื่นเกี่ยวกับรถยนต์"
+        },
+        {
+          "Key Account ID": "63259801",
+          "Key Account": "ค่าใช้จ่ายเบ็ดเตล็ด"
+        },
+        {
+          "Key Account ID": "63261101",
+          "Key Account": "ค่าธรรมเนียมธนาคาร"
+        },
+        {
+          "Key Account ID": "63991201",
+          "Key Account": "ภาษีซื้อไม่ใช้สิทธิ์"
+        }
+      ]
+    },
+    {
+      "Department": "ขายวิศวกรรรม",
+      "Accounts": [
+        {
+          "Key Account ID": "55111501",
+          "Key Account": "ค่าวัสดุสิ้นเปลือง(ต้นทุน)"
+        },
+        {
+          "Key Account ID": "60141101",
+          "Key Account": "ต้นทุนบริการHeat Pump"
+        },
+        {
+          "Key Account ID": "61111102",
+          "Key Account": "เงินเดือน-บริหาร"
+        },
+        {
+          "Key Account ID": "61111301",
+          "Key Account": "ค่าพาหนะ ค่าโทรศัพท์พนักงาน(รายเดือน)-ฝ่ายขาย"
+        },
+        {
+          "Key Account ID": "61111401",
+          "Key Account": "ค่าเบี้ยขยัน"
+        },
+        {
+          "Key Account ID": "61111701",
+          "Key Account": "ค่าหอพักพนักงาน"
+        },
+        {
+          "Key Account ID": "61121101",
+          "Key Account": "ค่าคอมมิชชั่นพนักงาน"
+        },
+        {
+          "Key Account ID": "61131101",
+          "Key Account": "ค่าอบรมและสัมนา"
+        },
+        {
+          "Key Account ID": "61141101",
+          "Key Account": "ค่าเงินประกันสังคม"
+        },
+        {
+          "Key Account ID": "61151101",
+          "Key Account": "ค่าเบี้ยเลี้ยงพนักงาน"
+        },
+        {
+          "Key Account ID": "61161103",
+          "Key Account": "ค่าน้ำมันและค่าพาหนะ - (ฝ่ายขาย)"
+        },
+        {
+          "Key Account ID": "61161201",
+          "Key Account": "ค่าใช้จ่ายเดินทางในประเทศ"
+        },
+        {
+          "Key Account ID": "61161301",
+          "Key Account": "ค่าใช้จ่ายเดินทางต่างประเทศ"
+        },
+        {
+          "Key Account ID": "61161401",
+          "Key Account": "ค่าที่พัก"
+        },
+        {
+          "Key Account ID": "61181101",
+          "Key Account": "ค่าสวัสดิการ"
+        },
+        {
+          "Key Account ID": "63111101",
+          "Key Account": "ค่าขนส่ง"
+        },
+        {
+          "Key Account ID": "63131201",
+          "Key Account": "ค่าโฆษณาการตลาด"
+        },
+        {
+          "Key Account ID": "63141201",
+          "Key Account": "ค่าซ่อมแซมอุปกรณ์ประกอบการขาย"
+        },
+        {
+          "Key Account ID": "63151201",
+          "Key Account": "ค่าโทรศัพท์"
+        },
+        {
+          "Key Account ID": "63191204",
+          "Key Account": "ค่าธรรมเนียมวิชาชีพ"
+        },
+        {
+          "Key Account ID": "63212401",
+          "Key Account": "ค่าจ้างอื่นๆ"
+        },
+        {
+          "Key Account ID": "63221101",
+          "Key Account": "ค่าเครื่องเขียนแบบพิมพ์"
+        },
+        {
+          "Key Account ID": "63231101",
+          "Key Account": "วัสดุสิ้นเปลือง"
+        },
+        {
+          "Key Account ID": "63231301",
+          "Key Account": "ค่าเครื่องมือเครื่องใช้"
+        },
+        {
+          "Key Account ID": "63251401",
+          "Key Account": "ค่ารับรอง"
+        },
+        {
+          "Key Account ID": "63251402",
+          "Key Account": "ค่าของขวัญ"
+        },
+        {
+          "Key Account ID": "63251501",
+          "Key Account": "ค่าส่งไปรษณีย์"
+        },
+        {
+          "Key Account ID": "63261101",
+          "Key Account": "ค่าธรรมเนียมธนาคาร"
+        },
+        {
+          "Key Account ID": "63259901",
+          "Key Account": "ค่าใช้จ่ายอื่น"
+        },
+        {
+          "Key Account ID": "63991101",
+          "Key Account": "ค่าใช้จ่ายต้องห้าม"
+        }
+      ]
+    },
+    {
+      "Department": "ศูนย์รวมช่าง",
+      "Accounts": [
+        {
+          "Key Account ID": "55111501",
+          "Key Account": "ค่าวัสดุสิ้นเปลือง(ต้นทุน)"
+        },
+        {
+          "Key Account ID": "59111101",
+          "Key Account": "ขาดทุนจากสินค้าเสื่อมสภาพ"
+        },
+        {
+          "Key Account ID": "59111301",
+          "Key Account": "ขาดทุนจากสินค้าสูญหาย"
+        },
+        {
+          "Key Account ID": "60111101",
+          "Key Account": "ต้นทุนเช่าและบริการครัว"
+        },
+        {
+          "Key Account ID": "60111501",
+          "Key Account": "ต้นทุนบริการศูนย์รวมช่าง"
+        },
+        {
+          "Key Account ID": "56111102",
+          "Key Account": "ค่าเช่าอุปกรณ์ประกอบการขายครัว"
+        },
+        {
+          "Key Account ID": "58111201",
+          "Key Account": "ค่าใช้จ่ายและบริการด้านพื้น"
+        },
+        {
+          "Key Account ID": "60111202",
+          "Key Account": "ค่าใช้จ่ายในการติดตั้งและถอดลูกค้าเช่า"
+        },
+        {
+          "Key Account ID": "60111207",
+          "Key Account": "ค่าใช้จ่ายซ่อมเครื่องล้างจาน"
+        },
+        {
+          "Key Account ID": "60111502",
+          "Key Account": "ค่าบริการตรวจเช็คเครื่องล้างจาน"
+        },
+        {
+          "Key Account ID": "61111102",
+          "Key Account": "เงินเดือน-บริหาร"
+        },
+        {
+          "Key Account ID": "61111301",
+          "Key Account": "ค่าพาหนะ ค่าโทรศัพท์พนักงาน(รายเดือน)-ฝ่ายขาย"
+        },
+        {
+          "Key Account ID": "61111401",
+          "Key Account": "ค่าเบี้ยขยัน"
+        },
+        {
+          "Key Account ID": "61111501",
+          "Key Account": "ค่าล่วงเวลา"
+        },
+        {
+          "Key Account ID": "61121101",
+          "Key Account": "ค่าคอมมิชชั่นพนักงาน"
+        },
+        {
+          "Key Account ID": "61131101",
+          "Key Account": "ค่าอบรมและสัมนา"
+        },
+        {
+          "Key Account ID": "61141101",
+          "Key Account": "ค่าเงินประกันสังคม"
+        },
+        {
+          "Key Account ID": "61151201",
+          "Key Account": "ค่าเบี้ยเลี้ยงนักศึกษาทวิภาคี"
+        },
+        {
+          "Key Account ID": "61161103",
+          "Key Account": "ค่าน้ำมันและค่าพาหนะ - (ฝ่ายขาย)"
+        },
+        {
+          "Key Account ID": "61161201",
+          "Key Account": "ค่าใช้จ่ายเดินทางในประเทศ"
+        },
+        {
+          "Key Account ID": "61181101",
+          "Key Account": "ค่าสวัสดิการ"
+        },
+        {
+          "Key Account ID": "63111101",
+          "Key Account": "ค่าขนส่ง"
+        },
+        {
+          "Key Account ID": "63131202",
+          "Key Account": "ค่าส่งเสริมการขาย"
+        },
+        {
+          "Key Account ID": "63131401",
+          "Key Account": "ค่าใช้จ่ายประมาณการรับประกันซ่อม"
+        },
+        {
+          "Key Account ID": "63131502",
+          "Key Account": "ค่าสินค้าตัวอย่าง"
+        },
+        {
+          "Key Account ID": "63141201",
+          "Key Account": "ค่าซ่อมแซมอุปกรณ์ประกอบการขาย"
+        },
+        {
+          "Key Account ID": "63151201",
+          "Key Account": "ค่าโทรศัพท์"
+        },
+        {
+          "Key Account ID": "63181201",
+          "Key Account": "ค่าเช่ายานพาหนะ"
+        },
+        {
+          "Key Account ID": "63211101",
+          "Key Account": "ค่าบริการส่งเอกสาร"
+        },
+        {
+          "Key Account ID": "63212401",
+          "Key Account": "ค่าจ้างอื่นๆ"
+        },
+        {
+          "Key Account ID": "63221101",
+          "Key Account": "ค่าเครื่องเขียนแบบพิมพ์"
+        },
+        {
+          "Key Account ID": "63231101",
+          "Key Account": "วัสดุสิ้นเปลือง"
+        },
+        {
+          "Key Account ID": "63231301",
+          "Key Account": "ค่าเครื่องมือเครื่องใช้"
+        },
+        {
+          "Key Account ID": "63251401",
+          "Key Account": "ค่ารับรอง"
+        },
+        {
+          "Key Account ID": "63251402",
+          "Key Account": "ค่าของขวัญ"
+        },
+        {
+          "Key Account ID": "63251501",
+          "Key Account": "ค่าส่งไปรษณีย์"
+        },
+        {
+          "Key Account ID": "63251801",
+          "Key Account": "ค่าธรรมเนียมอื่น"
+        },
+        {
+          "Key Account ID": "63259801",
+          "Key Account": "ค่าใช้จ่ายเบ็ดเตล็ด"
+        },
+        {
+          "Key Account ID": "63261101",
+          "Key Account": "ค่าธรรมเนียมธนาคาร"
+        },
+        {
+          "Key Account ID": "63261401",
+          "Key Account": "ค่าอากรแสตมป์"
+        },
+        {
+          "Key Account ID": "63971101",
+          "Key Account": "ขาดทุนจากการตัดจำหน่ายทรัพย์สิน"
+        },
+        {
+          "Key Account ID": "63991101",
+          "Key Account": "ค่าใช้จ่ายต้องห้าม"
+        }
+      ]
+    },
+    {
+      "Department": "Digital",
+      "Accounts": [
+        {
+          "Key Account ID": "59111101",
+          "Key Account": "ขาดทุนจากสินค้าเสื่อมสภาพ"
+        },
+        {
+          "Key Account ID": "59111301",
+          "Key Account": "ขาดทุนจากสินค้าสูญหาย"
+        },
+        {
+          "Key Account ID": "61111102",
+          "Key Account": "เงินเดือน-บริหาร"
+        },
+        {
+          "Key Account ID": "61111301",
+          "Key Account": "ค่าพาหนะ ค่าโทรศัพท์พนักงาน(รายเดือน)-ฝ่ายขาย"
+        },
+        {
+          "Key Account ID": "61111401",
+          "Key Account": "ค่าเบี้ยขยัน"
+        },
+        {
+          "Key Account ID": "61121101",
+          "Key Account": "ค่าคอมมิชชั่นพนักงาน"
+        },
+        {
+          "Key Account ID": "61131201",
+          "Key Account": "ค่าใช้จ่ายเพื่อการศึกษาหรือเพื่อการกีฬา"
+        },
+        {
+          "Key Account ID": "61141101",
+          "Key Account": "ค่าเงินประกันสังคม"
+        },
+        {
+          "Key Account ID": "61151101",
+          "Key Account": "ค่าเบี้ยเลี้ยงพนักงาน"
+        },
+        {
+          "Key Account ID": "61161103",
+          "Key Account": "ค่าน้ำมันและค่าพาหนะ - (ฝ่ายขาย)"
+        },
+        {
+          "Key Account ID": "61161201",
+          "Key Account": "ค่าใช้จ่ายเดินทางในประเทศ"
+        },
+        {
+          "Key Account ID": "61181101",
+          "Key Account": "ค่าสวัสดิการ"
+        },
+        {
+          "Key Account ID": "63111101",
+          "Key Account": "ค่าขนส่ง"
+        },
+        {
+          "Key Account ID": "63131201",
+          "Key Account": "ค่าโฆษณาการตลาด"
+        },
+        {
+          "Key Account ID": "63131202",
+          "Key Account": "ค่าส่งเสริมการขาย"
+        },
+        {
+          "Key Account ID": "63131502",
+          "Key Account": "ค่าสินค้าตัวอย่าง"
+        },
+        {
+          "Key Account ID": "63151201",
+          "Key Account": "ค่าโทรศัพท์"
+        },
+        {
+          "Key Account ID": "63212401",
+          "Key Account": "ค่าจ้างอื่นๆ"
+        },
+        {
+          "Key Account ID": "63221101",
+          "Key Account": "ค่าเครื่องเขียนแบบพิมพ์"
+        },
+        {
+          "Key Account ID": "63231101",
+          "Key Account": "วัสดุสิ้นเปลือง"
+        },
+        {
+          "Key Account ID": "63251401",
+          "Key Account": "ค่ารับรอง"
+        },
+        {
+          "Key Account ID": "63251501",
+          "Key Account": "ค่าส่งไปรษณีย์"
+        },
+        {
+          "Key Account ID": "63252001",
+          "Key Account": "ค่าชดเชยความเสียหายจากสินค้า"
+        },
+        {
+          "Key Account ID": "63261101",
+          "Key Account": "ค่าธรรมเนียมธนาคาร"
+        },
+        {
+          "Key Account ID": "63259901",
+          "Key Account": "ค่าใช้จ่ายอื่น"
+        }
+      ]
+    },
+    {
+      "Department": "MIS",
+      "Accounts": [
+        {
+          "Key Account ID": "59111301",
+          "Key Account": "ขาดทุนจากสินค้าสูญหาย"
+        },
+        {
+          "Key Account ID": "60161201",
+          "Key Account": "เงินเดือน-โลจีสติกส์"
+        },
+        {
+          "Key Account ID": "61111102",
+          "Key Account": "เงินเดือน-บริหาร"
+        },
+        {
+          "Key Account ID": "61111302",
+          "Key Account": "ค่าพาหนะ ค่าโทรศัพท์พนักงาน(รายเดือน)-ฝ่ายบริหาร"
+        },
+        {
+          "Key Account ID": "61111401",
+          "Key Account": "ค่าเบี้ยขยัน"
+        },
+        {
+          "Key Account ID": "61131101",
+          "Key Account": "ค่าอบรมและสัมนา"
+        },
+        {
+          "Key Account ID": "61141101",
+          "Key Account": "ค่าเงินประกันสังคม"
+        },
+        {
+          "Key Account ID": "61151101",
+          "Key Account": "ค่าเบี้ยเลี้ยงพนักงาน"
+        },
+        {
+          "Key Account ID": "61151201",
+          "Key Account": "ค่าเบี้ยเลี้ยงนักศึกษาทวิภาคี"
+        },
+        {
+          "Key Account ID": "61161101",
+          "Key Account": "ค่าน้ำมันและค่าพาหนะ"
+        },
+        {
+          "Key Account ID": "61161201",
+          "Key Account": "ค่าใช้จ่ายเดินทางในประเทศ"
+        },
+        {
+          "Key Account ID": "61161401",
+          "Key Account": "ค่าที่พัก"
+        },
+        {
+          "Key Account ID": "61181101",
+          "Key Account": "ค่าสวัสดิการ"
+        },
+        {
+          "Key Account ID": "63111101",
+          "Key Account": "ค่าขนส่ง"
+        },
+        {
+          "Key Account ID": "63151201",
+          "Key Account": "ค่าโทรศัพท์"
+        },
+        {
+          "Key Account ID": "63161101",
+          "Key Account": "ค่าซ่อมแซมและบำรุง"
+        },
+        {
+          "Key Account ID": "63191204",
+          "Key Account": "ค่าธรรมเนียมวิชาชีพ"
+        },
+        {
+          "Key Account ID": "63212301",
+          "Key Account": "ค่าจ้างทำของ"
+        },
+        {
+          "Key Account ID": "63212401",
+          "Key Account": "ค่าจ้างอื่นๆ"
+        },
+        {
+          "Key Account ID": "63212402",
+          "Key Account": "ค่าบริการอื่นๆ"
+        },
+        {
+          "Key Account ID": "63221101",
+          "Key Account": "ค่าเครื่องเขียนแบบพิมพ์"
+        },
+        {
+          "Key Account ID": "63221301",
+          "Key Account": "ค่าสมาชิกรายปี"
+        },
+        {
+          "Key Account ID": "63231101",
+          "Key Account": "วัสดุสิ้นเปลือง"
+        },
+        {
+          "Key Account ID": "63231201",
+          "Key Account": "ค่าวัสดุสิ้นเปลืองคอมพิวเตอร์"
+        },
+        {
+          "Key Account ID": "63251401",
+          "Key Account": "ค่ารับรอง"
+        },
+        {
+          "Key Account ID": "63251501",
+          "Key Account": "ค่าส่งไปรษณีย์"
+        },
+        {
+          "Key Account ID": "63251701",
+          "Key Account": "ค่าใช้จ่ายอื่นผู้สอบบัญชี"
+        },
+        {
+          "Key Account ID": "63251801",
+          "Key Account": "ค่าธรรมเนียมอื่น"
+        },
+        {
+          "Key Account ID": "63261101",
+          "Key Account": "ค่าธรรมเนียมธนาคาร"
+        },
+        {
+          "Key Account ID": "63971101",
+          "Key Account": "ขาดทุนจากการตัดจำหน่ายทรัพย์สิน"
+        },
+        {
+          "Key Account ID": "63259901",
+          "Key Account": "ค่าใช้จ่ายอื่น"
+        }
+      ]
+    },
+    {
+      "Department": "InnuScience",
+      "Accounts": [
+        {
+          "Key Account ID": "55111302",
+          "Key Account": "อะไหล่และวัสดุสิ้นเปลืองเครื่องป้อน"
+        },
+        {
+          "Key Account ID": "56111102",
+          "Key Account": "ค่าเช่าอุปกรณ์ประกอบการขายครัว"
+        },
+        {
+          "Key Account ID": "61121101",
+          "Key Account": "ค่าคอมมิชชั่นพนักงาน"
+        },
+        {
+          "Key Account ID": "61131101",
+          "Key Account": "ค่าอบรมและสัมนา"
+        },
+        {
+          "Key Account ID": "61151101",
+          "Key Account": "ค่าเบี้ยเลี้ยงพนักงาน"
+        },
+        {
+          "Key Account ID": "61161103",
+          "Key Account": "ค่าน้ำมันและค่าพาหนะ - (ฝ่ายขาย)"
+        },
+        {
+          "Key Account ID": "61161201",
+          "Key Account": "ค่าใช้จ่ายเดินทางในประเทศ"
+        },
+        {
+          "Key Account ID": "61161401",
+          "Key Account": "ค่าที่พัก"
+        },
+        {
+          "Key Account ID": "61181101",
+          "Key Account": "ค่าสวัสดิการ"
+        },
+        {
+          "Key Account ID": "63111101",
+          "Key Account": "ค่าขนส่ง"
+        },
+        {
+          "Key Account ID": "63131201",
+          "Key Account": "ค่าโฆษณาการตลาด"
+        },
+        {
+          "Key Account ID": "63131202",
+          "Key Account": "ค่าส่งเสริมการขาย"
+        },
+        {
+          "Key Account ID": "63131502",
+          "Key Account": "ค่าสินค้าตัวอย่าง"
+        },
+        {
+          "Key Account ID": "63151201",
+          "Key Account": "ค่าโทรศัพท์"
+        },
+        {
+          "Key Account ID": "63211101",
+          "Key Account": "ค่าบริการส่งเอกสาร"
+        },
+        {
+          "Key Account ID": "63212401",
+          "Key Account": "ค่าจ้างอื่นๆ"
+        },
+        {
+          "Key Account ID": "63212402",
+          "Key Account": "ค่าบริการอื่นๆ"
+        },
+        {
+          "Key Account ID": "63221101",
+          "Key Account": "ค่าเครื่องเขียนแบบพิมพ์"
+        },
+        {
+          "Key Account ID": "63231101",
+          "Key Account": "วัสดุสิ้นเปลือง"
+        },
+        {
+          "Key Account ID": "63251301",
+          "Key Account": "เงินบริจาค"
+        },
+        {
+          "Key Account ID": "63251201",
+          "Key Account": "ค่าสิทธิบัตร"
+        },
+        {
+          "Key Account ID": "63251401",
+          "Key Account": "ค่ารับรอง"
+        },
+        {
+          "Key Account ID": "63251501",
+          "Key Account": "ค่าส่งไปรษณีย์"
+        },
+        {
+          "Key Account ID": "63259801",
+          "Key Account": "ค่าใช้จ่ายเบ็ดเตล็ด"
+        }
+      ]
+    },
+    {
+      "Department": "ทดสอบและพัฒนา",
+      "Accounts": [
+        {
+          "Key Account ID": "55111302",
+          "Key Account": "อะไหล่และวัสดุสิ้นเปลืองเครื่องป้อน"
+        },
+        {
+          "Key Account ID": "61111102",
+          "Key Account": "เงินเดือน-บริหาร"
+        },
+        {
+          "Key Account ID": "61111302",
+          "Key Account": "ค่าพาหนะ ค่าโทรศัพท์พนักงาน(รายเดือน)-ฝ่ายบริหาร"
+        },
+        {
+          "Key Account ID": "61111401",
+          "Key Account": "ค่าเบี้ยขยัน"
+        },
+        {
+          "Key Account ID": "61111501",
+          "Key Account": "ค่าล่วงเวลา"
+        },
+        {
+          "Key Account ID": "61111701",
+          "Key Account": "ค่าหอพักพนักงาน"
+        },
+        {
+          "Key Account ID": "61121101",
+          "Key Account": "ค่าคอมมิชชั่นพนักงาน"
+        },
+        {
+          "Key Account ID": "61131101",
+          "Key Account": "ค่าอบรมและสัมนา"
+        },
+        {
+          "Key Account ID": "61131201",
+          "Key Account": "ค่าใช้จ่ายเพื่อการศึกษาหรือเพื่อการกีฬา"
+        },
+        {
+          "Key Account ID": "61141101",
+          "Key Account": "ค่าเงินประกันสังคม"
+        },
+        {
+          "Key Account ID": "61151101",
+          "Key Account": "ค่าเบี้ยเลี้ยงพนักงาน"
+        },
+        {
+          "Key Account ID": "61151201",
+          "Key Account": "ค่าเบี้ยเลี้ยงนักศึกษาทวิภาคี"
+        },
+        {
+          "Key Account ID": "61161103",
+          "Key Account": "ค่าน้ำมันและค่าพาหนะ - (ฝ่ายขาย)"
+        },
+        {
+          "Key Account ID": "61161101",
+          "Key Account": "ค่าน้ำมันและค่าพาหนะ"
+        },
+        {
+          "Key Account ID": "61161201",
+          "Key Account": "ค่าใช้จ่ายเดินทางในประเทศ"
+        },
+        {
+          "Key Account ID": "61161401",
+          "Key Account": "ค่าที่พัก"
+        },
+        {
+          "Key Account ID": "61181101",
+          "Key Account": "ค่าสวัสดิการ"
+        },
+        {
+          "Key Account ID": "63111101",
+          "Key Account": "ค่าขนส่ง"
+        },
+        {
+          "Key Account ID": "63131202",
+          "Key Account": "ค่าส่งเสริมการขาย"
+        },
+        {
+          "Key Account ID": "63131502",
+          "Key Account": "ค่าสินค้าตัวอย่าง"
+        },
+        {
+          "Key Account ID": "63141201",
+          "Key Account": "ค่าซ่อมแซมอุปกรณ์ประกอบการขาย"
+        },
+        {
+          "Key Account ID": "63151201",
+          "Key Account": "ค่าโทรศัพท์"
+        },
+        {
+          "Key Account ID": "63161201",
+          "Key Account": "ค่าซ่อมแซมและบำรุงรักษารถยนต์"
+        },
+        {
+          "Key Account ID": "63171201",
+          "Key Account": "ค่าเบี้ยประกันรถยนต์"
+        },
+        {
+          "Key Account ID": "63181101",
+          "Key Account": "ค่าเช่าสำนักงาน"
+        },
+        {
+          "Key Account ID": "63181201",
+          "Key Account": "ค่าเช่ายานพาหนะ"
+        },
+        {
+          "Key Account ID": "63212402",
+          "Key Account": "ค่าบริการอื่นๆ"
+        },
+        {
+          "Key Account ID": "63221101",
+          "Key Account": "ค่าเครื่องเขียนแบบพิมพ์"
+        },
+        {
+          "Key Account ID": "63221301",
+          "Key Account": "ค่าสมาชิกรายปี"
+        },
+        {
+          "Key Account ID": "63231101",
+          "Key Account": "วัสดุสิ้นเปลือง"
+        },
+        {
+          "Key Account ID": "63231201",
+          "Key Account": "ค่าวัสดุสิ้นเปลืองคอมพิวเตอร์"
+        },
+        {
+          "Key Account ID": "63231301",
+          "Key Account": "ค่าเครื่องมือเครื่องใช้"
+        },
+        {
+          "Key Account ID": "63241201",
+          "Key Account": "ค่าภาษีรถยนต์"
+        },
+        {
+          "Key Account ID": "63251401",
+          "Key Account": "ค่ารับรอง"
+        },
+        {
+          "Key Account ID": "63251501",
+          "Key Account": "ค่าส่งไปรษณีย์"
+        },
+        {
+          "Key Account ID": "63251801",
+          "Key Account": "ค่าธรรมเนียมอื่น"
+        },
+        {
+          "Key Account ID": "63251901",
+          "Key Account": "ค่าใช้จ่ายอื่นเกี่ยวกับรถยนต์"
+        },
+        {
+          "Key Account ID": "63259801",
+          "Key Account": "ค่าใช้จ่ายเบ็ดเตล็ด"
+        },
+        {
+          "Key Account ID": "63261101",
+          "Key Account": "ค่าธรรมเนียมธนาคาร"
+        },
+        {
+          "Key Account ID": "63971101",
+          "Key Account": "ขาดทุนจากการตัดจำหน่ายทรัพย์สิน"
+        },
+        {
+          "Key Account ID": "63259901",
+          "Key Account": "ค่าใช้จ่ายอื่น"
+        }
+      ]
+    },
+    {
+      "Department": "GA",
+      "Accounts": [
+        {
+          "Key Account ID": "55111302",
+          "Key Account": "อะไหล่และวัสดุสิ้นเปลืองเครื่องป้อน"
+        },
+        {
+          "Key Account ID": "61121202",
+          "Key Account": "ค่าเงินรางวัล-ขาย"
+        },
+        {
+          "Key Account ID": "61131101",
+          "Key Account": "ค่าอบรมและสัมนา"
+        },
+        {
+          "Key Account ID": "61151101",
+          "Key Account": "ค่าเบี้ยเลี้ยงพนักงาน"
+        },
+        {
+          "Key Account ID": "61151201",
+          "Key Account": "ค่าเบี้ยเลี้ยงนักศึกษาทวิภาคี"
+        },
+        {
+          "Key Account ID": "61161101",
+          "Key Account": "ค่าน้ำมันและค่าพาหนะ"
+        },
+        {
+          "Key Account ID": "61161201",
+          "Key Account": "ค่าใช้จ่ายเดินทางในประเทศ"
+        },
+        {
+          "Key Account ID": "61181101",
+          "Key Account": "ค่าสวัสดิการ"
+        },
+        {
+          "Key Account ID": "63111101",
+          "Key Account": "ค่าขนส่ง"
+        },
+        {
+          "Key Account ID": "63151101",
+          "Key Account": "ค่าไฟฟ้า"
+        },
+        {
+          "Key Account ID": "63151102",
+          "Key Account": "ค่าน้ำประปา"
+        },
+        {
+          "Key Account ID": "63151201",
+          "Key Account": "ค่าโทรศัพท์"
+        },
+        {
+          "Key Account ID": "63161101",
+          "Key Account": "ค่าซ่อมแซมและบำรุง"
+        },
+        {
+          "Key Account ID": "63181201",
+          "Key Account": "ค่าเช่ายานพาหนะ"
+        },
+        {
+          "Key Account ID": "63191204",
+          "Key Account": "ค่าธรรมเนียมวิชาชีพ"
+        },
+        {
+          "Key Account ID": "63211301",
+          "Key Account": "ค่ารักษาความปลอดภัยและทำความสะอาด"
+        },
+        {
+          "Key Account ID": "63212401",
+          "Key Account": "ค่าจ้างอื่นๆ"
+        },
+        {
+          "Key Account ID": "63212402",
+          "Key Account": "ค่าบริการอื่นๆ"
+        },
+        {
+          "Key Account ID": "63221101",
+          "Key Account": "ค่าเครื่องเขียนแบบพิมพ์"
+        },
+        {
+          "Key Account ID": "63231101",
+          "Key Account": "วัสดุสิ้นเปลือง"
+        },
+        {
+          "Key Account ID": "63231201",
+          "Key Account": "ค่าวัสดุสิ้นเปลืองคอมพิวเตอร์"
+        },
+        {
+          "Key Account ID": "63241201",
+          "Key Account": "ค่าภาษีรถยนต์"
+        },
+        {
+          "Key Account ID": "63251401",
+          "Key Account": "ค่ารับรอง"
+        },
+        {
+          "Key Account ID": "63251501",
+          "Key Account": "ค่าส่งไปรษณีย์"
+        },
+        {
+          "Key Account ID": "63251801",
+          "Key Account": "ค่าธรรมเนียมอื่น"
+        },
+        {
+          "Key Account ID": "63259901",
+          "Key Account": "ค่าใช้จ่ายอื่น"
+        },
+        {
+          "Key Account ID": "63991101",
+          "Key Account": "ค่าใช้จ่ายต้องห้าม"
+        }
+      ]
+    },
+    {
+      "Department": "HR",
+      "Accounts": [
+        {
+          "Key Account ID": "55111302",
+          "Key Account": "อะไหล่และวัสดุสิ้นเปลืองเครื่องป้อน"
+        },
+        {
+          "Key Account ID": "61111102",
+          "Key Account": "เงินเดือน-บริหาร"
+        },
+        {
+          "Key Account ID": "61111302",
+          "Key Account": "ค่าพาหนะ ค่าโทรศัพท์พนักงาน(รายเดือน)-ฝ่ายบริหาร"
+        },
+        {
+          "Key Account ID": "61111401",
+          "Key Account": "ค่าเบี้ยขยัน"
+        },
+        {
+          "Key Account ID": "61121202",
+          "Key Account": "ค่าเงินรางวัล-ขาย"
+        },
+        {
+          "Key Account ID": "61131101",
+          "Key Account": "ค่าอบรมและสัมนา"
+        },
+        {
+          "Key Account ID": "61131201",
+          "Key Account": "ค่าใช้จ่ายเพื่อการศึกษาหรือเพื่อการกีฬา"
+        },
+        {
+          "Key Account ID": "61141101",
+          "Key Account": "ค่าเงินประกันสังคม"
+        },
+        {
+          "Key Account ID": "61141201",
+          "Key Account": "ค่าเงินกองทุนสำรองเลี้ยงชีพ"
+        },
+        {
+          "Key Account ID": "61151101",
+          "Key Account": "ค่าเบี้ยเลี้ยงพนักงาน"
+        },
+        {
+          "Key Account ID": "61151201",
+          "Key Account": "ค่าเบี้ยเลี้ยงนักศึกษาทวิภาคี"
+        },
+        {
+          "Key Account ID": "61151301",
+          "Key Account": "ค่าเบี้ยเลี้ยงนักศึกษาสหกิจ"
+        },
+        {
+          "Key Account ID": "61161101",
+          "Key Account": "ค่าน้ำมันและค่าพาหนะ"
+        },
+        {
+          "Key Account ID": "61161201",
+          "Key Account": "ค่าใช้จ่ายเดินทางในประเทศ"
+        },
+        {
+          "Key Account ID": "61181101",
+          "Key Account": "ค่าสวัสดิการ"
+        },
+        {
+          "Key Account ID": "63111101",
+          "Key Account": "ค่าขนส่ง"
+        },
+        {
+          "Key Account ID": "63131202",
+          "Key Account": "ค่าส่งเสริมการขาย"
+        },
+        {
+          "Key Account ID": "63131502",
+          "Key Account": "ค่าสินค้าตัวอย่าง"
+        },
+        {
+          "Key Account ID": "63151102",
+          "Key Account": "ค่าน้ำประปา"
+        },
+        {
+          "Key Account ID": "63151201",
+          "Key Account": "ค่าโทรศัพท์"
+        },
+        {
+          "Key Account ID": "63161101",
+          "Key Account": "ค่าซ่อมแซมและบำรุง"
+        },
+        {
+          "Key Account ID": "63171101",
+          "Key Account": "ค่าเบี้ยประกันภัย"
+        },
+        {
+          "Key Account ID": "63191204",
+          "Key Account": "ค่าธรรมเนียมวิชาชีพ"
+        },
+        {
+          "Key Account ID": "63212401",
+          "Key Account": "ค่าจ้างอื่นๆ"
+        },
+        {
+          "Key Account ID": "63212402",
+          "Key Account": "ค่าบริการอื่นๆ"
+        },
+        {
+          "Key Account ID": "63221101",
+          "Key Account": "ค่าเครื่องเขียนแบบพิมพ์"
+        },
+        {
+          "Key Account ID": "63221301",
+          "Key Account": "ค่าสมาชิกรายปี"
+        },
+        {
+          "Key Account ID": "63231101",
+          "Key Account": "วัสดุสิ้นเปลือง"
+        },
+        {
+          "Key Account ID": "63231201",
+          "Key Account": "ค่าวัสดุสิ้นเปลืองคอมพิวเตอร์"
+        },
+        {
+          "Key Account ID": "63231301",
+          "Key Account": "ค่าเครื่องมือเครื่องใช้"
+        },
+        {
+          "Key Account ID": "63241201",
+          "Key Account": "ค่าภาษีรถยนต์"
+        },
+        {
+          "Key Account ID": "63251101",
+          "Key Account": "ค่าโฆษณา"
+        },
+        {
+          "Key Account ID": "63251301",
+          "Key Account": "เงินบริจาค"
+        },
+        {
+          "Key Account ID": "63251401",
+          "Key Account": "ค่ารับรอง"
+        },
+        {
+          "Key Account ID": "63251501",
+          "Key Account": "ค่าส่งไปรษณีย์"
+        },
+        {
+          "Key Account ID": "63251801",
+          "Key Account": "ค่าธรรมเนียมอื่น"
+        },
+        {
+          "Key Account ID": "63259801",
+          "Key Account": "ค่าใช้จ่ายเบ็ดเตล็ด"
+        },
+        {
+          "Key Account ID": "63261101",
+          "Key Account": "ค่าธรรมเนียมธนาคาร"
+        },
+        {
+          "Key Account ID": "63259901",
+          "Key Account": "ค่าใช้จ่ายอื่น"
+        },
+        {
+          "Key Account ID": "63991101",
+          "Key Account": "ค่าใช้จ่ายต้องห้าม"
+        }
+      ]
+    },
+    {
+      "Department": "สาขากาญจนบุรี",
+      "Accounts": [
+        {
+          "Key Account ID": "56111102",
+          "Key Account": "ค่าเช่าอุปกรณ์ประกอบการขายครัว"
+        },
+        {
+          "Key Account ID": "61111102",
+          "Key Account": "เงินเดือน-บริหาร"
+        },
+        {
+          "Key Account ID": "61111301",
+          "Key Account": "ค่าพาหนะ ค่าโทรศัพท์พนักงาน(รายเดือน)-ฝ่ายขาย"
+        },
+        {
+          "Key Account ID": "61111401",
+          "Key Account": "ค่าเบี้ยขยัน"
+        },
+        {
+          "Key Account ID": "61121101",
+          "Key Account": "ค่าคอมมิชชั่นพนักงาน"
+        },
+        {
+          "Key Account ID": "61121201",
+          "Key Account": "ค่าเงินรางวัลผลการบริหารศูนย์และสาขา"
+        },
+        {
+          "Key Account ID": "61141101",
+          "Key Account": "ค่าเงินประกันสังคม"
+        },
+        {
+          "Key Account ID": "61151101",
+          "Key Account": "ค่าเบี้ยเลี้ยงพนักงาน"
+        },
+        {
+          "Key Account ID": "61161103",
+          "Key Account": "ค่าน้ำมันและค่าพาหนะ - (ฝ่ายขาย)"
+        },
+        {
+          "Key Account ID": "61161201",
+          "Key Account": "ค่าใช้จ่ายเดินทางในประเทศ"
+        },
+        {
+          "Key Account ID": "61161401",
+          "Key Account": "ค่าที่พัก"
+        },
+        {
+          "Key Account ID": "61181101",
+          "Key Account": "ค่าสวัสดิการ"
+        },
+        {
+          "Key Account ID": "63111101",
+          "Key Account": "ค่าขนส่ง"
+        },
+        {
+          "Key Account ID": "63131201",
+          "Key Account": "ค่าโฆษณาการตลาด"
+        },
+        {
+          "Key Account ID": "63131202",
+          "Key Account": "ค่าส่งเสริมการขาย"
+        },
+        {
+          "Key Account ID": "63131502",
+          "Key Account": "ค่าสินค้าตัวอย่าง"
+        },
+        {
+          "Key Account ID": "63151101",
+          "Key Account": "ค่าไฟฟ้า"
+        },
+        {
+          "Key Account ID": "63151201",
+          "Key Account": "ค่าโทรศัพท์"
+        },
+        {
+          "Key Account ID": "63181101",
+          "Key Account": "ค่าเช่าสำนักงาน"
+        },
+        {
+          "Key Account ID": "63181201",
+          "Key Account": "ค่าเช่ายานพาหนะ"
+        },
+        {
+          "Key Account ID": "63212401",
+          "Key Account": "ค่าจ้างอื่นๆ"
+        },
+        {
+          "Key Account ID": "63221101",
+          "Key Account": "ค่าเครื่องเขียนแบบพิมพ์"
+        },
+        {
+          "Key Account ID": "63231101",
+          "Key Account": "วัสดุสิ้นเปลือง"
+        },
+        {
+          "Key Account ID": "63231201",
+          "Key Account": "ค่าวัสดุสิ้นเปลืองคอมพิวเตอร์"
+        },
+        {
+          "Key Account ID": "63241101",
+          "Key Account": "ค่าภาษีป้ายและบำรุงท้องที่"
+        },
+        {
+          "Key Account ID": "63251101",
+          "Key Account": "ค่าโฆษณา"
+        },
+        {
+          "Key Account ID": "63251401",
+          "Key Account": "ค่ารับรอง"
+        },
+        {
+          "Key Account ID": "63251501",
+          "Key Account": "ค่าส่งไปรษณีย์"
+        },
+        {
+          "Key Account ID": "63251801",
+          "Key Account": "ค่าธรรมเนียมอื่น"
+        },
+        {
+          "Key Account ID": "63259801",
+          "Key Account": "ค่าใช้จ่ายเบ็ดเตล็ด"
+        },
+        {
+          "Key Account ID": "63261101",
+          "Key Account": "ค่าธรรมเนียมธนาคาร"
+        },
+        {
+          "Key Account ID": "63261401",
+          "Key Account": "ค่าอากรแสตมป์"
+        },
+        {
+          "Key Account ID": "63991301",
+          "Key Account": "ค่าเบี้ยปรับเงินเพิ่ม"
+        }
+      ]
+    },
+    {
+      "Department": "จัดซื้อ",
+      "Accounts": [
+        {
+          "Key Account ID": "61111102",
+          "Key Account": "เงินเดือน-บริหาร"
+        },
+        {
+          "Key Account ID": "61111302",
+          "Key Account": "ค่าพาหนะ ค่าโทรศัพท์พนักงาน(รายเดือน)-ฝ่ายบริหาร"
+        },
+        {
+          "Key Account ID": "61111401",
+          "Key Account": "ค่าเบี้ยขยัน"
+        },
+        {
+          "Key Account ID": "61131101",
+          "Key Account": "ค่าอบรมและสัมนา"
+        },
+        {
+          "Key Account ID": "61131201",
+          "Key Account": "ค่าใช้จ่ายเพื่อการศึกษาหรือเพื่อการกีฬา"
+        },
+        {
+          "Key Account ID": "61141101",
+          "Key Account": "ค่าเงินประกันสังคม"
+        },
+        {
+          "Key Account ID": "61161101",
+          "Key Account": "ค่าน้ำมันและค่าพาหนะ"
+        },
+        {
+          "Key Account ID": "61161201",
+          "Key Account": "ค่าใช้จ่ายเดินทางในประเทศ"
+        },
+        {
+          "Key Account ID": "61161301",
+          "Key Account": "ค่าใช้จ่ายเดินทางต่างประเทศ"
+        },
+        {
+          "Key Account ID": "61181101",
+          "Key Account": "ค่าสวัสดิการ"
+        },
+        {
+          "Key Account ID": "63111101",
+          "Key Account": "ค่าขนส่ง"
+        },
+        {
+          "Key Account ID": "63181201",
+          "Key Account": "ค่าเช่ายานพาหนะ"
+        },
+        {
+          "Key Account ID": "63211101",
+          "Key Account": "ค่าบริการส่งเอกสาร"
+        },
+        {
+          "Key Account ID": "63221101",
+          "Key Account": "ค่าเครื่องเขียนแบบพิมพ์"
+        },
+        {
+          "Key Account ID": "63231201",
+          "Key Account": "ค่าวัสดุสิ้นเปลืองคอมพิวเตอร์"
+        },
+        {
+          "Key Account ID": "63231301",
+          "Key Account": "ค่าเครื่องมือเครื่องใช้"
+        },
+        {
+          "Key Account ID": "63251401",
+          "Key Account": "ค่ารับรอง"
+        },
+        {
+          "Key Account ID": "63251501",
+          "Key Account": "ค่าส่งไปรษณีย์"
+        },
+        {
+          "Key Account ID": "63259801",
+          "Key Account": "ค่าใช้จ่ายเบ็ดเตล็ด"
+        },
+        {
+          "Key Account ID": "63261201",
+          "Key Account": "ค่าธรรมเนียมเปิด L/C"
+        }
+      ]
+    },
+    {
+      "Department": "Showroom",
+      "Accounts": [
+        {
+          "Key Account ID": "61111102",
+          "Key Account": "เงินเดือน-บริหาร"
+        },
+        {
+          "Key Account ID": "61121101",
+          "Key Account": "ค่าคอมมิชชั่นพนักงาน"
+        },
+        {
+          "Key Account ID": "61131101",
+          "Key Account": "ค่าอบรมและสัมนา"
+        },
+        {
+          "Key Account ID": "61141101",
+          "Key Account": "ค่าเงินประกันสังคม"
+        },
+        {
+          "Key Account ID": "61151101",
+          "Key Account": "ค่าเบี้ยเลี้ยงพนักงาน"
+        },
+        {
+          "Key Account ID": "61161103",
+          "Key Account": "ค่าน้ำมันและค่าพาหนะ - (ฝ่ายขาย)"
+        },
+        {
+          "Key Account ID": "61161201",
+          "Key Account": "ค่าใช้จ่ายเดินทางในประเทศ"
+        },
+        {
+          "Key Account ID": "63131201",
+          "Key Account": "ค่าโฆษณาการตลาด"
+        },
+        {
+          "Key Account ID": "63131202",
+          "Key Account": "ค่าส่งเสริมการขาย"
+        },
+        {
+          "Key Account ID": "63131502",
+          "Key Account": "ค่าสินค้าตัวอย่าง"
+        },
+        {
+          "Key Account ID": "63151201",
+          "Key Account": "ค่าโทรศัพท์"
+        },
+        {
+          "Key Account ID": "63221101",
+          "Key Account": "ค่าเครื่องเขียนแบบพิมพ์"
+        },
+        {
+          "Key Account ID": "63231101",
+          "Key Account": "วัสดุสิ้นเปลือง"
+        },
+        {
+          "Key Account ID": "63231301",
+          "Key Account": "ค่าเครื่องมือเครื่องใช้"
+        },
+        {
+          "Key Account ID": "63251401",
+          "Key Account": "ค่ารับรอง"
+        },
+        {
+          "Key Account ID": "63251801",
+          "Key Account": "ค่าธรรมเนียมอื่น"
+        }
+      ]
+    },
+    {
+      "Department": "MBR",
+      "Accounts": [
+        {
+          "Key Account ID": "61111102",
+          "Key Account": "เงินเดือน-บริหาร"
+        },
+        {
+          "Key Account ID": "61121101",
+          "Key Account": "ค่าคอมมิชชั่นพนักงาน"
+        },
+        {
+          "Key Account ID": "61131101",
+          "Key Account": "ค่าอบรมและสัมนา"
+        },
+        {
+          "Key Account ID": "61151101",
+          "Key Account": "ค่าเบี้ยเลี้ยงพนักงาน"
+        },
+        {
+          "Key Account ID": "61161103",
+          "Key Account": "ค่าน้ำมันและค่าพาหนะ - (ฝ่ายขาย)"
+        },
+        {
+          "Key Account ID": "61161201",
+          "Key Account": "ค่าใช้จ่ายเดินทางในประเทศ"
+        },
+        {
+          "Key Account ID": "61161301",
+          "Key Account": "ค่าใช้จ่ายเดินทางต่างประเทศ"
+        },
+        {
+          "Key Account ID": "61161401",
+          "Key Account": "ค่าที่พัก"
+        },
+        {
+          "Key Account ID": "61181101",
+          "Key Account": "ค่าสวัสดิการ"
+        },
+        {
+          "Key Account ID": "63111101",
+          "Key Account": "ค่าขนส่ง"
+        },
+        {
+          "Key Account ID": "63131201",
+          "Key Account": "ค่าโฆษณาการตลาด"
+        },
+        {
+          "Key Account ID": "63131202",
+          "Key Account": "ค่าส่งเสริมการขาย"
+        },
+        {
+          "Key Account ID": "63131502",
+          "Key Account": "ค่าสินค้าตัวอย่าง"
+        },
+        {
+          "Key Account ID": "63181201",
+          "Key Account": "ค่าเช่ายานพาหนะ"
+        },
+        {
+          "Key Account ID": "63212401",
+          "Key Account": "ค่าจ้างอื่นๆ"
+        },
+        {
+          "Key Account ID": "63212402",
+          "Key Account": "ค่าบริการอื่นๆ"
+        },
+        {
+          "Key Account ID": "63221101",
+          "Key Account": "ค่าเครื่องเขียนแบบพิมพ์"
+        },
+        {
+          "Key Account ID": "63231101",
+          "Key Account": "วัสดุสิ้นเปลือง"
+        },
+        {
+          "Key Account ID": "63251201",
+          "Key Account": "ค่าสิทธิบัตร"
+        },
+        {
+          "Key Account ID": "63251401",
+          "Key Account": "ค่ารับรอง"
+        },
+        {
+          "Key Account ID": "63991101",
+          "Key Account": "ค่าใช้จ่ายต้องห้าม"
+        }
+      ]
+    },
+    {
+      "Department": "การตลาด",
+      "Accounts": [
+        {
+          "Key Account ID": "61111102",
+          "Key Account": "เงินเดือน-บริหาร"
+        },
+        {
+          "Key Account ID": "61111301",
+          "Key Account": "ค่าพาหนะ ค่าโทรศัพท์พนักงาน(รายเดือน)-ฝ่ายขาย"
+        },
+        {
+          "Key Account ID": "61111401",
+          "Key Account": "ค่าเบี้ยขยัน"
+        },
+        {
+          "Key Account ID": "61111501",
+          "Key Account": "ค่าล่วงเวลา"
+        },
+        {
+          "Key Account ID": "61111701",
+          "Key Account": "ค่าหอพักพนักงาน"
+        },
+        {
+          "Key Account ID": "61121101",
+          "Key Account": "ค่าคอมมิชชั่นพนักงาน"
+        },
+        {
+          "Key Account ID": "61131101",
+          "Key Account": "ค่าอบรมและสัมนา"
+        },
+        {
+          "Key Account ID": "61131201",
+          "Key Account": "ค่าใช้จ่ายเพื่อการศึกษาหรือเพื่อการกีฬา"
+        },
+        {
+          "Key Account ID": "61141101",
+          "Key Account": "ค่าเงินประกันสังคม"
+        },
+        {
+          "Key Account ID": "61151101",
+          "Key Account": "ค่าเบี้ยเลี้ยงพนักงาน"
+        },
+        {
+          "Key Account ID": "61151201",
+          "Key Account": "ค่าเบี้ยเลี้ยงนักศึกษาทวิภาคี"
+        },
+        {
+          "Key Account ID": "61161103",
+          "Key Account": "ค่าน้ำมันและค่าพาหนะ - (ฝ่ายขาย)"
+        },
+        {
+          "Key Account ID": "61161201",
+          "Key Account": "ค่าใช้จ่ายเดินทางในประเทศ"
+        },
+        {
+          "Key Account ID": "61161301",
+          "Key Account": "ค่าใช้จ่ายเดินทางต่างประเทศ"
+        },
+        {
+          "Key Account ID": "61161401",
+          "Key Account": "ค่าที่พัก"
+        },
+        {
+          "Key Account ID": "61181101",
+          "Key Account": "ค่าสวัสดิการ"
+        },
+        {
+          "Key Account ID": "63111101",
+          "Key Account": "ค่าขนส่ง"
+        },
+        {
+          "Key Account ID": "63131201",
+          "Key Account": "ค่าโฆษณาการตลาด"
+        },
+        {
+          "Key Account ID": "63131202",
+          "Key Account": "ค่าส่งเสริมการขาย"
+        },
+        {
+          "Key Account ID": "63131301",
+          "Key Account": "ค่าส่งเสริมการขายค่าถัง"
+        },
+        {
+          "Key Account ID": "63131502",
+          "Key Account": "ค่าสินค้าตัวอย่าง"
+        },
+        {
+          "Key Account ID": "63141201",
+          "Key Account": "ค่าซ่อมแซมอุปกรณ์ประกอบการขาย"
+        },
+        {
+          "Key Account ID": "63151101",
+          "Key Account": "ค่าไฟฟ้า"
+        },
+        {
+          "Key Account ID": "63151201",
+          "Key Account": "ค่าโทรศัพท์"
+        },
+        {
+          "Key Account ID": "63181201",
+          "Key Account": "ค่าเช่ายานพาหนะ"
+        },
+        {
+          "Key Account ID": "63212401",
+          "Key Account": "ค่าจ้างอื่นๆ"
+        },
+        {
+          "Key Account ID": "63212402",
+          "Key Account": "ค่าบริการอื่นๆ"
+        },
+        {
+          "Key Account ID": "63221101",
+          "Key Account": "ค่าเครื่องเขียนแบบพิมพ์"
+        },
+        {
+          "Key Account ID": "63221301",
+          "Key Account": "ค่าสมาชิกรายปี"
+        },
+        {
+          "Key Account ID": "63231101",
+          "Key Account": "วัสดุสิ้นเปลือง"
+        },
+        {
+          "Key Account ID": "63231201",
+          "Key Account": "ค่าวัสดุสิ้นเปลืองคอมพิวเตอร์"
+        },
+        {
+          "Key Account ID": "63231301",
+          "Key Account": "ค่าเครื่องมือเครื่องใช้"
+        },
+        {
+          "Key Account ID": "63251101",
+          "Key Account": "ค่าโฆษณา"
+        },
+        {
+          "Key Account ID": "63251201",
+          "Key Account": "ค่าสิทธิบัตร"
+        },
+        {
+          "Key Account ID": "63251401",
+          "Key Account": "ค่ารับรอง"
+        },
+        {
+          "Key Account ID": "63251402",
+          "Key Account": "ค่าของขวัญ"
+        },
+        {
+          "Key Account ID": "63251501",
+          "Key Account": "ค่าส่งไปรษณีย์"
+        },
+        {
+          "Key Account ID": "63251801",
+          "Key Account": "ค่าธรรมเนียมอื่น"
+        },
+        {
+          "Key Account ID": "63261101",
+          "Key Account": "ค่าธรรมเนียมธนาคาร"
+        },
+        {
+          "Key Account ID": "63259901",
+          "Key Account": "ค่าใช้จ่ายอื่น"
+        },
+        {
+          "Key Account ID": "63991101",
+          "Key Account": "ค่าใช้จ่ายต้องห้าม"
+        }
+      ]
+    },
+    {
+      "Department": "ประสานงานขาย",
+      "Accounts": [
+        {
+          "Key Account ID": "61111102",
+          "Key Account": "เงินเดือน-บริหาร"
+        },
+        {
+          "Key Account ID": "61111302",
+          "Key Account": "ค่าพาหนะ ค่าโทรศัพท์พนักงาน(รายเดือน)-ฝ่ายบริหาร"
+        },
+        {
+          "Key Account ID": "61111401",
+          "Key Account": "ค่าเบี้ยขยัน"
+        },
+        {
+          "Key Account ID": "61111501",
+          "Key Account": "ค่าล่วงเวลา"
+        },
+        {
+          "Key Account ID": "61141101",
+          "Key Account": "ค่าเงินประกันสังคม"
+        },
+        {
+          "Key Account ID": "61161201",
+          "Key Account": "ค่าใช้จ่ายเดินทางในประเทศ"
+        },
+        {
+          "Key Account ID": "61181101",
+          "Key Account": "ค่าสวัสดิการ"
+        },
+        {
+          "Key Account ID": "63111101",
+          "Key Account": "ค่าขนส่ง"
+        },
+        {
+          "Key Account ID": "63151201",
+          "Key Account": "ค่าโทรศัพท์"
+        },
+        {
+          "Key Account ID": "63212401",
+          "Key Account": "ค่าจ้างอื่นๆ"
+        },
+        {
+          "Key Account ID": "63221101",
+          "Key Account": "ค่าเครื่องเขียนแบบพิมพ์"
+        },
+        {
+          "Key Account ID": "63231101",
+          "Key Account": "วัสดุสิ้นเปลือง"
+        },
+        {
+          "Key Account ID": "63231201",
+          "Key Account": "ค่าวัสดุสิ้นเปลืองคอมพิวเตอร์"
+        },
+        {
+          "Key Account ID": "63251501",
+          "Key Account": "ค่าส่งไปรษณีย์"
+        }
+      ]
+    },
+    {
+      "Department": "วิจัยและพัฒนาเครื่องจักร",
+      "Accounts": [
+        {
+          "Key Account ID": "61111102",
+          "Key Account": "เงินเดือน-บริหาร"
+        },
+        {
+          "Key Account ID": "61111501",
+          "Key Account": "ค่าล่วงเวลา"
+        },
+        {
+          "Key Account ID": "61111701",
+          "Key Account": "ค่าหอพักพนักงาน"
+        },
+        {
+          "Key Account ID": "61121101",
+          "Key Account": "ค่าคอมมิชชั่นพนักงาน"
+        },
+        {
+          "Key Account ID": "61131101",
+          "Key Account": "ค่าอบรมและสัมนา"
+        },
+        {
+          "Key Account ID": "61141101",
+          "Key Account": "ค่าเงินประกันสังคม"
+        },
+        {
+          "Key Account ID": "61151101",
+          "Key Account": "ค่าเบี้ยเลี้ยงพนักงาน"
+        },
+        {
+          "Key Account ID": "61161101",
+          "Key Account": "ค่าน้ำมันและค่าพาหนะ"
+        },
+        {
+          "Key Account ID": "61161201",
+          "Key Account": "ค่าใช้จ่ายเดินทางในประเทศ"
+        },
+        {
+          "Key Account ID": "61161401",
+          "Key Account": "ค่าที่พัก"
+        },
+        {
+          "Key Account ID": "61181101",
+          "Key Account": "ค่าสวัสดิการ"
+        },
+        {
+          "Key Account ID": "63111101",
+          "Key Account": "ค่าขนส่ง"
+        },
+        {
+          "Key Account ID": "63131202",
+          "Key Account": "ค่าส่งเสริมการขาย"
+        },
+        {
+          "Key Account ID": "63131502",
+          "Key Account": "ค่าสินค้าตัวอย่าง"
+        },
+        {
+          "Key Account ID": "63151101",
+          "Key Account": "ค่าไฟฟ้า"
+        },
+        {
+          "Key Account ID": "63161101",
+          "Key Account": "ค่าซ่อมแซมและบำรุง"
+        },
+        {
+          "Key Account ID": "63231101",
+          "Key Account": "วัสดุสิ้นเปลือง"
+        },
+        {
+          "Key Account ID": "63231301",
+          "Key Account": "ค่าเครื่องมือเครื่องใช้"
+        },
+        {
+          "Key Account ID": "63251401",
+          "Key Account": "ค่ารับรอง"
+        },
+        {
+          "Key Account ID": "63251501",
+          "Key Account": "ค่าส่งไปรษณีย์"
+        },
+        {
+          "Key Account ID": "63251601",
+          "Key Account": "ค่าใช้จ่ายในการวิจัยและพัฒนาธุรกิจ"
+        },
+        {
+          "Key Account ID": "63251801",
+          "Key Account": "ค่าธรรมเนียมอื่น"
+        }
+      ]
+    },
+    {
+      "Department": "การเงิน",
+      "Accounts": [
+        {
+          "Key Account ID": "61111102",
+          "Key Account": "เงินเดือน-บริหาร"
+        },
+        {
+          "Key Account ID": "61111302",
+          "Key Account": "ค่าพาหนะ ค่าโทรศัพท์พนักงาน(รายเดือน)-ฝ่ายบริหาร"
+        },
+        {
+          "Key Account ID": "61111401",
+          "Key Account": "ค่าเบี้ยขยัน"
+        },
+        {
+          "Key Account ID": "61111501",
+          "Key Account": "ค่าล่วงเวลา"
+        },
+        {
+          "Key Account ID": "61121101",
+          "Key Account": "ค่าคอมมิชชั่นพนักงาน"
+        },
+        {
+          "Key Account ID": "61131101",
+          "Key Account": "ค่าอบรมและสัมนา"
+        },
+        {
+          "Key Account ID": "61141101",
+          "Key Account": "ค่าเงินประกันสังคม"
+        },
+        {
+          "Key Account ID": "61151101",
+          "Key Account": "ค่าเบี้ยเลี้ยงพนักงาน"
+        },
+        {
+          "Key Account ID": "61151201",
+          "Key Account": "ค่าเบี้ยเลี้ยงนักศึกษาทวิภาคี"
+        },
+        {
+          "Key Account ID": "61161101",
+          "Key Account": "ค่าน้ำมันและค่าพาหนะ"
+        },
+        {
+          "Key Account ID": "61161201",
+          "Key Account": "ค่าใช้จ่ายเดินทางในประเทศ"
+        },
+        {
+          "Key Account ID": "61161401",
+          "Key Account": "ค่าที่พัก"
+        },
+        {
+          "Key Account ID": "61181101",
+          "Key Account": "ค่าสวัสดิการ"
+        },
+        {
+          "Key Account ID": "63111101",
+          "Key Account": "ค่าขนส่ง"
+        },
+        {
+          "Key Account ID": "63131202",
+          "Key Account": "ค่าส่งเสริมการขาย"
+        },
+        {
+          "Key Account ID": "63151201",
+          "Key Account": "ค่าโทรศัพท์"
+        },
+        {
+          "Key Account ID": "63161101",
+          "Key Account": "ค่าซ่อมแซมและบำรุง"
+        },
+        {
+          "Key Account ID": "63191204",
+          "Key Account": "ค่าธรรมเนียมวิชาชีพ"
+        },
+        {
+          "Key Account ID": "63211101",
+          "Key Account": "ค่าบริการส่งเอกสาร"
+        },
+        {
+          "Key Account ID": "63212301",
+          "Key Account": "ค่าจ้างทำของ"
+        },
+        {
+          "Key Account ID": "63212401",
+          "Key Account": "ค่าจ้างอื่นๆ"
+        },
+        {
+          "Key Account ID": "63221101",
+          "Key Account": "ค่าเครื่องเขียนแบบพิมพ์"
+        },
+        {
+          "Key Account ID": "63231101",
+          "Key Account": "วัสดุสิ้นเปลือง"
+        },
+        {
+          "Key Account ID": "63231201",
+          "Key Account": "ค่าวัสดุสิ้นเปลืองคอมพิวเตอร์"
+        },
+        {
+          "Key Account ID": "63251301",
+          "Key Account": "เงินบริจาค"
+        },
+        {
+          "Key Account ID": "63251401",
+          "Key Account": "ค่ารับรอง"
+        },
+        {
+          "Key Account ID": "63251402",
+          "Key Account": "ค่าของขวัญ"
+        },
+        {
+          "Key Account ID": "63251501",
+          "Key Account": "ค่าส่งไปรษณีย์"
+        },
+        {
+          "Key Account ID": "63251801",
+          "Key Account": "ค่าธรรมเนียมอื่น"
+        },
+        {
+          "Key Account ID": "63259801",
+          "Key Account": "ค่าใช้จ่ายเบ็ดเตล็ด"
+        },
+        {
+          "Key Account ID": "63261101",
+          "Key Account": "ค่าธรรมเนียมธนาคาร"
+        },
+        {
+          "Key Account ID": "63261201",
+          "Key Account": "ค่าธรรมเนียมเปิด L/C"
+        },
+        {
+          "Key Account ID": "63261401",
+          "Key Account": "ค่าอากรแสตมป์"
+        },
+        {
+          "Key Account ID": "71111101",
+          "Key Account": "เงินกู้ยืมธนาคาร (Loan)"
+        },
+        {
+          "Key Account ID": "71111201",
+          "Key Account": "เงินเบิกเกินบัญชี (OD)"
+        },
+        {
+          "Key Account ID": "71111301",
+          "Key Account": "Trust Receipt (TR)"
+        },
+        {
+          "Key Account ID": "71111401",
+          "Key Account": "Promissory note (PN)"
+        },
+        {
+          "Key Account ID": "63259901",
+          "Key Account": "ค่าใช้จ่ายอื่น"
+        },
+        {
+          "Key Account ID": "63991101",
+          "Key Account": "ค่าใช้จ่ายต้องห้าม"
+        }
+      ]
+    },
+    {
+      "Department": "บริหารทรัพย์สิน",
+      "Accounts": [
+        {
+          "Key Account ID": "61111102",
+          "Key Account": "เงินเดือน-บริหาร"
+        },
+        {
+          "Key Account ID": "61111302",
+          "Key Account": "ค่าพาหนะ ค่าโทรศัพท์พนักงาน(รายเดือน)-ฝ่ายบริหาร"
+        },
+        {
+          "Key Account ID": "61111401",
+          "Key Account": "ค่าเบี้ยขยัน"
+        },
+        {
+          "Key Account ID": "61111501",
+          "Key Account": "ค่าล่วงเวลา"
+        },
+        {
+          "Key Account ID": "61131101",
+          "Key Account": "ค่าอบรมและสัมนา"
+        },
+        {
+          "Key Account ID": "61141101",
+          "Key Account": "ค่าเงินประกันสังคม"
+        },
+        {
+          "Key Account ID": "61151101",
+          "Key Account": "ค่าเบี้ยเลี้ยงพนักงาน"
+        },
+        {
+          "Key Account ID": "61161101",
+          "Key Account": "ค่าน้ำมันและค่าพาหนะ"
+        },
+        {
+          "Key Account ID": "61161201",
+          "Key Account": "ค่าใช้จ่ายเดินทางในประเทศ"
+        },
+        {
+          "Key Account ID": "61161401",
+          "Key Account": "ค่าที่พัก"
+        },
+        {
+          "Key Account ID": "61181101",
+          "Key Account": "ค่าสวัสดิการ"
+        },
+        {
+          "Key Account ID": "63111101",
+          "Key Account": "ค่าขนส่ง"
+        },
+        {
+          "Key Account ID": "63161101",
+          "Key Account": "ค่าซ่อมแซมและบำรุง"
+        },
+        {
+          "Key Account ID": "63171101",
+          "Key Account": "ค่าเบี้ยประกันภัย"
+        },
+        {
+          "Key Account ID": "63171201",
+          "Key Account": "ค่าเบี้ยประกันรถยนต์"
+        },
+        {
+          "Key Account ID": "63181101",
+          "Key Account": "ค่าเช่าสำนักงาน"
+        },
+        {
+          "Key Account ID": "63181102",
+          "Key Account": "ค่าเช่าที่ดิน"
+        },
+        {
+          "Key Account ID": "63201401",
+          "Key Account": "ค่าบริการที่จอดรถ"
+        },
+        {
+          "Key Account ID": "63212401",
+          "Key Account": "ค่าจ้างอื่นๆ"
+        },
+        {
+          "Key Account ID": "63212402",
+          "Key Account": "ค่าบริการอื่นๆ"
+        },
+        {
+          "Key Account ID": "63221101",
+          "Key Account": "ค่าเครื่องเขียนแบบพิมพ์"
+        },
+        {
+          "Key Account ID": "63231101",
+          "Key Account": "วัสดุสิ้นเปลือง"
+        },
+        {
+          "Key Account ID": "63231201",
+          "Key Account": "ค่าวัสดุสิ้นเปลืองคอมพิวเตอร์"
+        },
+        {
+          "Key Account ID": "63231301",
+          "Key Account": "ค่าเครื่องมือเครื่องใช้"
+        },
+        {
+          "Key Account ID": "63241101",
+          "Key Account": "ค่าภาษีป้ายและบำรุงท้องที่"
+        },
+        {
+          "Key Account ID": "63241201",
+          "Key Account": "ค่าภาษีรถยนต์"
+        },
+        {
+          "Key Account ID": "63251401",
+          "Key Account": "ค่ารับรอง"
+        },
+        {
+          "Key Account ID": "63251501",
+          "Key Account": "ค่าส่งไปรษณีย์"
+        },
+        {
+          "Key Account ID": "63251801",
+          "Key Account": "ค่าธรรมเนียมอื่น"
+        },
+        {
+          "Key Account ID": "63251901",
+          "Key Account": "ค่าใช้จ่ายอื่นเกี่ยวกับรถยนต์"
+        },
+        {
+          "Key Account ID": "63259801",
+          "Key Account": "ค่าใช้จ่ายเบ็ดเตล็ด"
+        },
+        {
+          "Key Account ID": "63259901",
+          "Key Account": "ค่าใช้จ่ายอื่น"
+        },
+        {
+          "Key Account ID": "63991101",
+          "Key Account": "ค่าใช้จ่ายต้องห้าม"
+        }
+      ]
+    },
+    {
+      "Department": "บัญชี",
+      "Accounts": [
+        {
+          "Key Account ID": "61111102",
+          "Key Account": "เงินเดือน-บริหาร"
+        },
+        {
+          "Key Account ID": "61111302",
+          "Key Account": "ค่าพาหนะ ค่าโทรศัพท์พนักงาน(รายเดือน)-ฝ่ายบริหาร"
+        },
+        {
+          "Key Account ID": "61111401",
+          "Key Account": "ค่าเบี้ยขยัน"
+        },
+        {
+          "Key Account ID": "61111501",
+          "Key Account": "ค่าล่วงเวลา"
+        },
+        {
+          "Key Account ID": "61111701",
+          "Key Account": "ค่าหอพักพนักงาน"
+        },
+        {
+          "Key Account ID": "61131101",
+          "Key Account": "ค่าอบรมและสัมนา"
+        },
+        {
+          "Key Account ID": "61141101",
+          "Key Account": "ค่าเงินประกันสังคม"
+        },
+        {
+          "Key Account ID": "61151101",
+          "Key Account": "ค่าเบี้ยเลี้ยงพนักงาน"
+        },
+        {
+          "Key Account ID": "61151201",
+          "Key Account": "ค่าเบี้ยเลี้ยงนักศึกษาทวิภาคี"
+        },
+        {
+          "Key Account ID": "61161101",
+          "Key Account": "ค่าน้ำมันและค่าพาหนะ"
+        },
+        {
+          "Key Account ID": "61161201",
+          "Key Account": "ค่าใช้จ่ายเดินทางในประเทศ"
+        },
+        {
+          "Key Account ID": "61161401",
+          "Key Account": "ค่าที่พัก"
+        },
+        {
+          "Key Account ID": "61181101",
+          "Key Account": "ค่าสวัสดิการ"
+        },
+        {
+          "Key Account ID": "63111101",
+          "Key Account": "ค่าขนส่ง"
+        },
+        {
+          "Key Account ID": "63131502",
+          "Key Account": "ค่าสินค้าตัวอย่าง"
+        },
+        {
+          "Key Account ID": "63151201",
+          "Key Account": "ค่าโทรศัพท์"
+        },
+        {
+          "Key Account ID": "63161101",
+          "Key Account": "ค่าซ่อมแซมและบำรุง"
+        },
+        {
+          "Key Account ID": "63191101",
+          "Key Account": "ค่าสอบบัญชี"
+        },
+        {
+          "Key Account ID": "63191204",
+          "Key Account": "ค่าธรรมเนียมวิชาชีพ"
+        },
+        {
+          "Key Account ID": "63212401",
+          "Key Account": "ค่าจ้างอื่นๆ"
+        },
+        {
+          "Key Account ID": "63221101",
+          "Key Account": "ค่าเครื่องเขียนแบบพิมพ์"
+        },
+        {
+          "Key Account ID": "63231101",
+          "Key Account": "วัสดุสิ้นเปลือง"
+        },
+        {
+          "Key Account ID": "63231201",
+          "Key Account": "ค่าวัสดุสิ้นเปลืองคอมพิวเตอร์"
+        },
+        {
+          "Key Account ID": "63251401",
+          "Key Account": "ค่ารับรอง"
+        },
+        {
+          "Key Account ID": "63251402",
+          "Key Account": "ค่าของขวัญ"
+        },
+        {
+          "Key Account ID": "63251501",
+          "Key Account": "ค่าส่งไปรษณีย์"
+        },
+        {
+          "Key Account ID": "63251701",
+          "Key Account": "ค่าใช้จ่ายอื่นผู้สอบบัญชี"
+        },
+        {
+          "Key Account ID": "63251801",
+          "Key Account": "ค่าธรรมเนียมอื่น"
+        },
+        {
+          "Key Account ID": "63259801",
+          "Key Account": "ค่าใช้จ่ายเบ็ดเตล็ด"
+        },
+        {
+          "Key Account ID": "63261101",
+          "Key Account": "ค่าธรรมเนียมธนาคาร"
+        },
+        {
+          "Key Account ID": "63971101",
+          "Key Account": "ขาดทุนจากการตัดจำหน่ายทรัพย์สิน"
+        },
+        {
+          "Key Account ID": "63259901",
+          "Key Account": "ค่าใช้จ่ายอื่น"
+        },
+        {
+          "Key Account ID": "63991101",
+          "Key Account": "ค่าใช้จ่ายต้องห้าม"
+        }
+      ]
+    },
+    {
+      "Department": "สำนักบริหาร",
+      "Accounts": [
+        {
+          "Key Account ID": "61111102",
+          "Key Account": "เงินเดือน-บริหาร"
+        },
+        {
+          "Key Account ID": "61111302",
+          "Key Account": "ค่าพาหนะ ค่าโทรศัพท์พนักงาน(รายเดือน)-ฝ่ายบริหาร"
+        },
+        {
+          "Key Account ID": "61111401",
+          "Key Account": "ค่าเบี้ยขยัน"
+        },
+        {
+          "Key Account ID": "61121101",
+          "Key Account": "ค่าคอมมิชชั่นพนักงาน"
+        },
+        {
+          "Key Account ID": "61131101",
+          "Key Account": "ค่าอบรมและสัมนา"
+        },
+        {
+          "Key Account ID": "61141101",
+          "Key Account": "ค่าเงินประกันสังคม"
+        },
+        {
+          "Key Account ID": "61151101",
+          "Key Account": "ค่าเบี้ยเลี้ยงพนักงาน"
+        },
+        {
+          "Key Account ID": "61161101",
+          "Key Account": "ค่าน้ำมันและค่าพาหนะ"
+        },
+        {
+          "Key Account ID": "61161201",
+          "Key Account": "ค่าใช้จ่ายเดินทางในประเทศ"
+        },
+        {
+          "Key Account ID": "61161301",
+          "Key Account": "ค่าใช้จ่ายเดินทางต่างประเทศ"
+        },
+        {
+          "Key Account ID": "61161401",
+          "Key Account": "ค่าที่พัก"
+        },
+        {
+          "Key Account ID": "61181101",
+          "Key Account": "ค่าสวัสดิการ"
+        },
+        {
+          "Key Account ID": "62111101",
+          "Key Account": "ค่าเบี้ยประชุม"
+        },
+        {
+          "Key Account ID": "62111201",
+          "Key Account": "ค่าตอบแทนกรรมการ"
+        },
+        {
+          "Key Account ID": "63111101",
+          "Key Account": "ค่าขนส่ง"
+        },
+        {
+          "Key Account ID": "63131202",
+          "Key Account": "ค่าส่งเสริมการขาย"
+        },
+        {
+          "Key Account ID": "63131502",
+          "Key Account": "ค่าสินค้าตัวอย่าง"
+        },
+        {
+          "Key Account ID": "63151201",
+          "Key Account": "ค่าโทรศัพท์"
+        },
+        {
+          "Key Account ID": "63161101",
+          "Key Account": "ค่าซ่อมแซมและบำรุง"
+        },
+        {
+          "Key Account ID": "63161201",
+          "Key Account": "ค่าซ่อมแซมและบำรุงรักษารถยนต์"
+        },
+        {
+          "Key Account ID": "63171101",
+          "Key Account": "ค่าเบี้ยประกันภัย"
+        },
+        {
+          "Key Account ID": "63191202",
+          "Key Account": "ค่าที่ปรึกษาทางการเงิน"
+        },
+        {
+          "Key Account ID": "63191204",
+          "Key Account": "ค่าธรรมเนียมวิชาชีพ"
+        },
+        {
+          "Key Account ID": "63212401",
+          "Key Account": "ค่าจ้างอื่นๆ"
+        },
+        {
+          "Key Account ID": "63221101",
+          "Key Account": "ค่าเครื่องเขียนแบบพิมพ์"
+        },
+        {
+          "Key Account ID": "63221201",
+          "Key Account": "ค่าหนังสือพิมพ์และวารสาร"
+        },
+        {
+          "Key Account ID": "63221301",
+          "Key Account": "ค่าสมาชิกรายปี"
+        },
+        {
+          "Key Account ID": "63231101",
+          "Key Account": "วัสดุสิ้นเปลือง"
+        },
+        {
+          "Key Account ID": "63231201",
+          "Key Account": "ค่าวัสดุสิ้นเปลืองคอมพิวเตอร์"
+        },
+        {
+          "Key Account ID": "63241201",
+          "Key Account": "ค่าภาษีรถยนต์"
+        },
+        {
+          "Key Account ID": "63251101",
+          "Key Account": "ค่าโฆษณา"
+        },
+        {
+          "Key Account ID": "63251301",
+          "Key Account": "เงินบริจาค"
+        },
+        {
+          "Key Account ID": "63251401",
+          "Key Account": "ค่ารับรอง"
+        },
+        {
+          "Key Account ID": "63251501",
+          "Key Account": "ค่าส่งไปรษณีย์"
+        },
+        {
+          "Key Account ID": "63251801",
+          "Key Account": "ค่าธรรมเนียมอื่น"
+        },
+        {
+          "Key Account ID": "63251901",
+          "Key Account": "ค่าใช้จ่ายอื่นเกี่ยวกับรถยนต์"
+        },
+        {
+          "Key Account ID": "63259801",
+          "Key Account": "ค่าใช้จ่ายเบ็ดเตล็ด"
+        },
+        {
+          "Key Account ID": "63971101",
+          "Key Account": "ขาดทุนจากการตัดจำหน่ายทรัพย์สิน"
+        },
+        {
+          "Key Account ID": "63259901",
+          "Key Account": "ค่าใช้จ่ายอื่น"
+        },
+        {
+          "Key Account ID": "63991101",
+          "Key Account": "ค่าใช้จ่ายต้องห้าม"
+        },
+        {
+          "Key Account ID": "63991201",
+          "Key Account": "ภาษีซื้อไม่ใช้สิทธิ์"
+        }
+      ]
+    },
+    {
+      "Department": "Customer Service",
+      "Accounts": [
+        {
+          "Key Account ID": "61111401",
+          "Key Account": "ค่าเบี้ยขยัน"
+        },
+        {
+          "Key Account ID": "61121101",
+          "Key Account": "ค่าคอมมิชชั่นพนักงาน"
+        },
+        {
+          "Key Account ID": "61131101",
+          "Key Account": "ค่าอบรมและสัมนา"
+        },
+        {
+          "Key Account ID": "61161201",
+          "Key Account": "ค่าใช้จ่ายเดินทางในประเทศ"
+        },
+        {
+          "Key Account ID": "61181101",
+          "Key Account": "ค่าสวัสดิการ"
+        },
+        {
+          "Key Account ID": "63111101",
+          "Key Account": "ค่าขนส่ง"
+        },
+        {
+          "Key Account ID": "63131502",
+          "Key Account": "ค่าสินค้าตัวอย่าง"
+        },
+        {
+          "Key Account ID": "63151201",
+          "Key Account": "ค่าโทรศัพท์"
+        },
+        {
+          "Key Account ID": "63212401",
+          "Key Account": "ค่าจ้างอื่นๆ"
+        },
+        {
+          "Key Account ID": "63221101",
+          "Key Account": "ค่าเครื่องเขียนแบบพิมพ์"
+        },
+        {
+          "Key Account ID": "63231101",
+          "Key Account": "วัสดุสิ้นเปลือง"
+        },
+        {
+          "Key Account ID": "63259801",
+          "Key Account": "ค่าใช้จ่ายเบ็ดเตล็ด"
+        },
+        {
+          "Key Account ID": "63261101",
+          "Key Account": "ค่าธรรมเนียมธนาคาร"
+        },
+        {
+          "Key Account ID": "63971101",
+          "Key Account": "ขาดทุนจากการตัดจำหน่ายทรัพย์สิน"
+        }
+      ]
+    },
+    {
+      "Department": "สือสารองค์กร",
+      "Accounts": [
+        {
+          "Key Account ID": "61121203",
+          "Key Account": "ค่าเงินรางวัล-บริหาร"
+        },
+        {
+          "Key Account ID": "61161101",
+          "Key Account": "ค่าน้ำมันและค่าพาหนะ"
+        },
+        {
+          "Key Account ID": "61161201",
+          "Key Account": "ค่าใช้จ่ายเดินทางในประเทศ"
+        },
+        {
+          "Key Account ID": "63111101",
+          "Key Account": "ค่าขนส่ง"
+        },
+        {
+          "Key Account ID": "63131202",
+          "Key Account": "ค่าส่งเสริมการขาย"
+        },
+        {
+          "Key Account ID": "63212401",
+          "Key Account": "ค่าจ้างอื่นๆ"
+        },
+        {
+          "Key Account ID": "63231301",
+          "Key Account": "ค่าเครื่องมือเครื่องใช้"
+        },
+        {
+          "Key Account ID": "63251401",
+          "Key Account": "ค่ารับรอง"
+        },
+        {
+          "Key Account ID": "63259801",
+          "Key Account": "ค่าใช้จ่ายเบ็ดเตล็ด"
+        }
+      ]
+    },
+    {
+      "Department": "ตรวจสอบภายใน",
+      "Accounts": [
+        {
+          "Key Account ID": "61131101",
+          "Key Account": "ค่าอบรมและสัมนา"
+        },
+        {
+          "Key Account ID": "61151101",
+          "Key Account": "ค่าเบี้ยเลี้ยงพนักงาน"
+        },
+        {
+          "Key Account ID": "61161101",
+          "Key Account": "ค่าน้ำมันและค่าพาหนะ"
+        },
+        {
+          "Key Account ID": "61181101",
+          "Key Account": "ค่าสวัสดิการ"
+        },
+        {
+          "Key Account ID": "63111101",
+          "Key Account": "ค่าขนส่ง"
+        },
+        {
+          "Key Account ID": "63212401",
+          "Key Account": "ค่าจ้างอื่นๆ"
+        },
+        {
+          "Key Account ID": "63221101",
+          "Key Account": "ค่าเครื่องเขียนแบบพิมพ์"
+        },
+        {
+          "Key Account ID": "63221301",
+          "Key Account": "ค่าสมาชิกรายปี"
+        },
+        {
+          "Key Account ID": "63251401",
+          "Key Account": "ค่ารับรอง"
+        },
+        {
+          "Key Account ID": "63259901",
+          "Key Account": "ค่าใช้จ่ายอื่น"
+        }
+      ]
+    }
+  ]

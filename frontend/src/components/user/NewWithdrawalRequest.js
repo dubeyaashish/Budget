@@ -9,23 +9,25 @@ import withdrawalService from '../../services/withdrawalService';
 import LoadingSpinner from '../common/LoadingSpinner';
 import AlertMessage from '../common/AlertMessage';
 import { formatCurrency } from '../../utils/formatCurrency';
+// Import the department accounts data directly
+import departmentAccountsData from '../../data/departmentAccounts.json';
 
 const NewWithdrawalRequest = () => {
   const { currentUser } = useContext(AuthContext);
-  const { accountsWithUsage, groupedAccounts } = useContext(KeyAccountContext);
+  const { accountsWithUsage, keyAccounts } = useContext(KeyAccountContext);
   
   const [formData, setFormData] = useState({
     department_id: '',
     category_id: '',
-    key_account_id: '',
-    amount: '',
     reason: ''
   });
   
+  // Array of account entries, each with account_id and amount
+  const [accountEntries, setAccountEntries] = useState([]);
+  
   const [departments, setDepartments] = useState([]);
   const [categories, setCategories] = useState([]);
-  const [availableBudget, setAvailableBudget] = useState(null);
-  const [accountType, setAccountType] = useState('');
+  const [availableAccounts, setAvailableAccounts] = useState([]);
   const [isLoading, setIsLoading] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [error, setError] = useState(null);
@@ -40,8 +42,6 @@ const NewWithdrawalRequest = () => {
         const departmentsData = await departmentService.getAllDepartments();
         const categoriesData = await categoryService.getAllCategories();
         
-        // Filter departments to only include user's department if needed
-        // For now, assuming users can request from any department
         setDepartments(departmentsData);
         setCategories(categoriesData);
         
@@ -63,33 +63,70 @@ const NewWithdrawalRequest = () => {
     fetchData();
   }, [currentUser]);
 
+  // When department changes, populate account entries with department-specific accounts
   useEffect(() => {
-    // Clear account when account type changes
-    if (accountType) {
-      setFormData(prev => ({
-        ...prev,
-        key_account_id: ''
-      }));
+    if (formData.department_id) {
+      populateDepartmentAccounts(formData.department_id);
+    } else {
+      setAccountEntries([]);
     }
-  }, [accountType]);
+  }, [formData.department_id, departments, keyAccounts]);
 
-  useEffect(() => {
-    const checkBudget = async () => {
-      if (formData.key_account_id) {
-        try {
-          const budget = await withdrawalService.checkAvailableBudget(formData.key_account_id);
-          setAvailableBudget(budget);
-        } catch (err) {
-          console.error('Error checking budget:', err);
-          setAvailableBudget(null);
-        }
+  // Load department-specific accounts and set them as entries
+  const populateDepartmentAccounts = (departmentId) => {
+    try {
+      // Get department name
+      const department = departments.find(d => d.id === parseInt(departmentId));
+      if (!department) return;
+      
+      // Find department in the imported JSON data
+      const deptData = departmentAccountsData.find(d => 
+        d.Department === department.name || 
+        (department.name && department.name.includes(d.Department))
+      );
+      
+      if (deptData && deptData.Accounts) {
+        // Transform to account entries
+        const entries = deptData.Accounts.map(acc => ({
+          key_account_id: acc["Key Account ID"],
+          key_account_name: acc["Key Account"],
+          amount: '',
+          available: getAvailableAmount(acc["Key Account ID"])
+        }));
+        
+        setAccountEntries(entries);
       } else {
-        setAvailableBudget(null);
+        setAccountEntries([]);
       }
-    };
-
-    checkBudget();
-  }, [formData.key_account_id]);
+      
+      // Set all available accounts for dropdown
+      setAvailableAccounts(keyAccounts.map(account => ({
+        id: account.id,
+        name: account.name,
+        available: getAvailableAmount(account.id)
+      })));
+      
+    } catch (err) {
+      console.error('Error loading department accounts:', err);
+      setAccountEntries([]);
+    }
+  };
+  
+  // Helper to get available amount for an account
+  const getAvailableAmount = (accountId) => {
+    const account = keyAccounts.find(a => a.id === accountId);
+    const accountWithUsage = accountsWithUsage.find(a => a.id === accountId);
+    
+    if (accountWithUsage && accountWithUsage.available_amount !== undefined) {
+      return accountWithUsage.available_amount;
+    }
+    
+    if (account) {
+      return account.total_budget - (account.used_amount || 0);
+    }
+    
+    return 0;
+  };
 
   const handleChange = (e) => {
     const { name, value } = e.target;
@@ -98,18 +135,78 @@ const NewWithdrawalRequest = () => {
       [name]: value
     });
   };
+  
+  // Handle changes to account amount
+  const handleAccountAmountChange = (index, value) => {
+    const updatedEntries = [...accountEntries];
+    updatedEntries[index].amount = value;
+    setAccountEntries(updatedEntries);
+  };
+  
+  // Remove an account entry
+  const removeAccountEntry = (index) => {
+    const updatedEntries = [...accountEntries];
+    updatedEntries.splice(index, 1);
+    setAccountEntries(updatedEntries);
+  };
+  
+  // Add a new empty account entry
+  const addAccountEntry = () => {
+    if (availableAccounts.length === 0) return;
+    
+    setAccountEntries([
+      ...accountEntries,
+      {
+        key_account_id: '',
+        key_account_name: '',
+        amount: '',
+        available: 0
+      }
+    ]);
+  };
+  
+  // Handle account selection change
+  const handleAccountChange = (index, accountId) => {
+    const account = availableAccounts.find(a => a.id === accountId);
+    if (!account) return;
+    
+    const updatedEntries = [...accountEntries];
+    updatedEntries[index] = {
+      ...updatedEntries[index],
+      key_account_id: account.id,
+      key_account_name: account.name,
+      available: account.available
+    };
+    
+    setAccountEntries(updatedEntries);
+  };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
     
-    // Validate form
-    if (!formData.department_id || !formData.key_account_id || !formData.amount || !formData.reason) {
-      setError('Please fill in all fields');
+    // Validate the form
+    if (!formData.department_id || !formData.reason) {
+      setError('Please fill in all required fields');
       return;
     }
     
-    if (availableBudget && parseFloat(formData.amount) > availableBudget.available_amount) {
-      setError(`Amount exceeds available budget of ${formatCurrency(availableBudget.available_amount)}`);
+    // Check if we have any valid account entries
+    const validEntries = accountEntries.filter(entry => 
+      entry.key_account_id && entry.amount && parseFloat(entry.amount) > 0
+    );
+    
+    if (validEntries.length === 0) {
+      setError('Please add at least one account with a valid amount');
+      return;
+    }
+    
+    // Check if any amount exceeds available budget
+    const invalidEntry = accountEntries.find(entry => 
+      entry.amount && parseFloat(entry.amount) > entry.available
+    );
+    
+    if (invalidEntry) {
+      setError(`Amount for account ${invalidEntry.key_account_name} exceeds available budget of ${formatCurrency(invalidEntry.available)}`);
       return;
     }
     
@@ -117,24 +214,32 @@ const NewWithdrawalRequest = () => {
       setIsSubmitting(true);
       setError(null);
       
-      await withdrawalService.createWithdrawalRequest({
-        department_id: formData.department_id,
-        category_id: formData.category_id,
-        key_account_id: formData.key_account_id,
-        amount: parseFloat(formData.amount),
-        reason: formData.reason
-      });
+      // Process one entry at a time sequentially instead of using Promise.all
+      for (const entry of validEntries) {
+        const payload = {
+          department_id: parseInt(formData.department_id),
+          category_id: formData.category_id ? parseInt(formData.category_id) : null,
+          key_account_id: entry.key_account_id,
+          amount: parseFloat(entry.amount),
+          reason: formData.reason
+        };
+        
+        // Log the payload for debugging
+        console.log('Sending withdrawal request:', payload);
+        
+        // Send each request individually and wait for it to complete
+        await withdrawalService.createWithdrawalRequest(payload);
+      }
       
-      setSuccess('Withdrawal request submitted successfully!');
+      setSuccess(`${validEntries.length} withdrawal request(s) submitted successfully!`);
       
       // Reset form
       setFormData({
         department_id: currentUser.department || '',
         category_id: '',
-        key_account_id: '',
-        amount: '',
         reason: ''
       });
+      setAccountEntries([]);
       
       // Redirect to withdrawal history after 2 seconds
       setTimeout(() => {
@@ -142,18 +247,12 @@ const NewWithdrawalRequest = () => {
       }, 2000);
       
     } catch (err) {
-      console.error('Error submitting withdrawal request:', err);
-      setError(err.response?.data?.message || 'Failed to submit withdrawal request');
+      console.error('Error submitting withdrawal requests:', err);
+      setError(err.response?.data?.message || 'Failed to submit withdrawal requests');
     } finally {
       setIsSubmitting(false);
     }
   };
-
-  // Get account types from grouped accounts
-  const accountTypes = Object.keys(groupedAccounts).sort();
-
-  // Filter accounts based on selected account type
-  const filteredAccounts = accountType ? groupedAccounts[accountType] || [] : [];
 
   if (isLoading) {
     return (
@@ -175,13 +274,13 @@ const NewWithdrawalRequest = () => {
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
             <div>
               <label htmlFor="department_id" className="block text-sm font-medium text-gray-700">
-                Department
+                Department <span className="text-red-500">*</span>
               </label>
               <select
                 id="department_id"
                 name="department_id"
                 className="mt-1 block w-full pl-3 pr-10 py-2 text-base border-gray-300 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm rounded-md"
-                value={formData.department_id}
+                value={formData.department_id || ''}
                 onChange={handleChange}
                 required
               >
@@ -193,101 +292,144 @@ const NewWithdrawalRequest = () => {
                 ))}
               </select>
             </div>
-        
             
             <div>
-              <label htmlFor="account_type" className="block text-sm font-medium text-gray-700">
-                Account Type
+              <label htmlFor="category_id" className="block text-sm font-medium text-gray-700">
+                Category
               </label>
               <select
-                id="account_type"
-                name="account_type"
+                id="category_id"
+                name="category_id"
                 className="mt-1 block w-full pl-3 pr-10 py-2 text-base border-gray-300 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm rounded-md"
-                value={accountType}
-                onChange={(e) => setAccountType(e.target.value)}
-                required
+                value={formData.category_id || ''}
+                onChange={handleChange}
               >
-                <option value="">Select Account Type</option>
-                {accountTypes.map(type => (
-                  <option key={type} value={type}>
-                    {type}
+                <option value="">Select Category</option>
+                {categories.map(category => (
+                  <option key={category.id} value={category.id}>
+                    {category.name}
                   </option>
                 ))}
               </select>
             </div>
             
-            <div>
-              <label htmlFor="key_account_id" className="block text-sm font-medium text-gray-700">
-                Key Account
-              </label>
-              <select
-                id="key_account_id"
-                name="key_account_id"
-                className="mt-1 block w-full pl-3 pr-10 py-2 text-base border-gray-300 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm rounded-md"
-                value={formData.key_account_id}
-                onChange={handleChange}
-                required
-                disabled={!accountType}
-              >
-                <option value="">Select Key Account</option>
-                {filteredAccounts.map(account => {
-                  const accountWithUsage = accountsWithUsage.find(a => a.id === account.id) || {};
-                  const availableAmount = (accountWithUsage.available_amount !== undefined) 
-                    ? accountWithUsage.available_amount 
-                    : account.total_budget - (account.used_amount || 0);
-                  
-                  return (
-                    <option key={account.id} value={account.id}>
-                      {account.id} - {account.name} ({formatCurrency(availableAmount)} available)
-                    </option>
-                  );
-                })}
-              </select>
-            </div>
-            
-            <div>
-              <label htmlFor="amount" className="block text-sm font-medium text-gray-700">
-                Amount
-              </label>
-              <div className="mt-1 relative rounded-md shadow-sm">
-                <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                  <span className="text-gray-500 sm:text-sm">฿</span>
-                </div>
-                <input
-                  type="number"
-                  name="amount"
-                  id="amount"
-                  className="mt-1 focus:ring-indigo-500 focus:border-indigo-500 block w-full pl-7 pr-12 sm:text-sm border-gray-300 rounded-md"
-                  placeholder="0.00"
-                  step="0.01"
-                  min="0"
-                  value={formData.amount}
-                  onChange={handleChange}
-                  required
-                />
-              </div>
-              {availableBudget && (
-                <p className="mt-2 text-sm text-gray-500">
-                  Available Budget: {formatCurrency(availableBudget.available_amount)}
-                </p>
-              )}
-            </div>
-            
             <div className="md:col-span-2">
               <label htmlFor="reason" className="block text-sm font-medium text-gray-700">
-                Reason
+                Reason <span className="text-red-500">*</span>
               </label>
               <textarea
                 id="reason"
                 name="reason"
                 rows={4}
                 className="mt-1 focus:ring-indigo-500 focus:border-indigo-500 block w-full sm:text-sm border-gray-300 rounded-md"
-                placeholder="Please provide a detailed reason for this withdrawal request"
+                placeholder="Please provide a detailed reason for these withdrawal requests"
                 value={formData.reason}
                 onChange={handleChange}
                 required
               />
             </div>
+          </div>
+          
+          {/* Account entries section */}
+          <div className="mt-8 mb-6">
+            <div className="flex justify-between items-center mb-4">
+              <h2 className="text-lg font-medium text-gray-900">Account Entries</h2>
+              <button
+                type="button"
+                onClick={addAccountEntry}
+                className="inline-flex items-center px-3 py-1 border border-transparent text-sm font-medium rounded-md text-indigo-700 bg-indigo-100 hover:bg-indigo-200 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500"
+              >
+                <svg className="h-4 w-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6"></path>
+                </svg>
+                Add Account
+              </button>
+            </div>
+            
+            {accountEntries.length > 0 ? (
+              <div className="space-y-4 mb-6">
+                {accountEntries.map((entry, index) => (
+                  <div key={index} className="flex items-start space-x-4 p-4 border border-gray-200 rounded-lg bg-gray-50">
+                    <div className="flex-grow">
+                      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <div>
+                          <label htmlFor={`account-${index}`} className="block text-sm font-medium text-gray-700">
+                            Key Account <span className="text-red-500">*</span>
+                          </label>
+                          {entry.key_account_id && entry.key_account_name ? (
+                            // Show as text if pre-populated from department
+                            <div className="mt-1 text-sm text-gray-900 py-2 px-3 bg-gray-100 border border-gray-300 rounded-md">
+                              {entry.key_account_id} - {entry.key_account_name}
+                            </div>
+                          ) : (
+                            // Show as dropdown if added manually
+                            <select
+                              id={`account-${index}`}
+                              value={entry.key_account_id || ''}
+                              onChange={(e) => handleAccountChange(index, e.target.value)}
+                              className="mt-1 block w-full pl-3 pr-10 py-2 text-base border-gray-300 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm rounded-md"
+                              required
+                            >
+                              <option value="">Select Account</option>
+                              {availableAccounts.map(account => (
+                                <option key={account.id} value={account.id}>
+                                  {account.id} - {account.name}
+                                </option>
+                              ))}
+                            </select>
+                          )}
+                        </div>
+                        
+                        <div>
+                          <label htmlFor={`amount-${index}`} className="block text-sm font-medium text-gray-700">
+                            Amount <span className="text-red-500">*</span>
+                          </label>
+                          <div className="mt-1 relative rounded-md shadow-sm">
+                            <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                              <span className="text-gray-500 sm:text-sm">฿</span>
+                            </div>
+                            <input
+                              type="number"
+                              id={`amount-${index}`}
+                              value={entry.amount}
+                              onChange={(e) => handleAccountAmountChange(index, e.target.value)}
+                              className="focus:ring-indigo-500 focus:border-indigo-500 block w-full pl-7 pr-12 sm:text-sm border-gray-300 rounded-md"
+                              placeholder="0.00"
+                              step="0.01"
+                              min="0"
+                              required
+                            />
+                          </div>
+                          {entry.available !== undefined && (
+                            <p className="mt-1 text-xs text-gray-500">
+                              Available: {formatCurrency(entry.available)}
+                            </p>
+                          )}
+                        </div>
+                      </div>
+                    </div>
+                    
+                    <button
+                      type="button"
+                      onClick={() => removeAccountEntry(index)}
+                      className="inline-flex items-center p-1 border border-transparent rounded-full text-red-500 hover:bg-red-100 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500"
+                    >
+                      <svg className="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M6 18L18 6M6 6l12 12"></path>
+                      </svg>
+                    </button>
+                  </div>
+                ))}
+              </div>
+            ) : formData.department_id ? (
+              <div className="text-center py-8 bg-gray-50 rounded-lg border border-gray-200">
+                <p className="text-gray-500">No accounts added yet. Select a department and accounts will be pre-populated, or click "Add Account" to add one manually.</p>
+              </div>
+            ) : (
+              <div className="text-center py-8 bg-gray-50 rounded-lg border border-gray-200">
+                <p className="text-gray-500">Please select a department to see available accounts.</p>
+              </div>
+            )}
           </div>
           
           <div className="flex justify-end">
@@ -300,10 +442,10 @@ const NewWithdrawalRequest = () => {
             </button>
             <button
               type="submit"
-              disabled={isSubmitting}
+              disabled={isSubmitting || accountEntries.length === 0}
               className="inline-flex justify-center py-2 px-4 border border-transparent shadow-sm text-sm font-medium rounded-md text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500"
             >
-              {isSubmitting ? <LoadingSpinner /> : 'Submit Request'}
+              {isSubmitting ? <LoadingSpinner /> : 'Submit Requests'}
             </button>
           </div>
         </form>
