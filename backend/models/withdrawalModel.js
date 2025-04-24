@@ -1,3 +1,4 @@
+// backend/models/withdrawalModel.js
 const db = require('../config/db');
 
 /**
