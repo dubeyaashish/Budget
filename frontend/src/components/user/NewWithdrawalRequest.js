@@ -103,7 +103,7 @@ const NewWithdrawalRequest = () => {
     e.preventDefault();
     
     // Validate form
-    if (!formData.department_id || !formData.category_id || !formData.key_account_id || !formData.amount || !formData.reason) {
+    if (!formData.department_id || !formData.key_account_id || !formData.amount || !formData.reason) {
       setError('Please fill in all fields');
       return;
     }
@@ -193,27 +193,7 @@ const NewWithdrawalRequest = () => {
                 ))}
               </select>
             </div>
-            
-            <div>
-              <label htmlFor="category_id" className="block text-sm font-medium text-gray-700">
-                Category
-              </label>
-              <select
-                id="category_id"
-                name="category_id"
-                className="mt-1 block w-full pl-3 pr-10 py-2 text-base border-gray-300 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm rounded-md"
-                value={formData.category_id}
-                onChange={handleChange}
-                required
-              >
-                <option value="">Select Category</option>
-                {categories.map(cat => (
-                  <option key={cat.id} value={cat.id}>
-                    {cat.name}
-                  </option>
-                ))}
-              </select>
-            </div>
+        
             
             <div>
               <label htmlFor="account_type" className="block text-sm font-medium text-gray-700">

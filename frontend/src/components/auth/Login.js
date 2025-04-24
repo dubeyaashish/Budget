@@ -1,5 +1,6 @@
+// frontend/src/components/auth/Login.js
 import React, { useState, useContext } from 'react';
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import { AuthContext } from '../../context/AuthContext';
 import AlertMessage from '../common/AlertMessage';
 import LoadingSpinner from '../common/LoadingSpinner';
@@ -9,8 +10,8 @@ const Login = () => {
     email: '',
     password: ''
   });
-
   const { login, isLoading, error, setError } = useContext(AuthContext);
+  const navigate = useNavigate();
 
   const handleChange = (e) => {
     setFormData({
@@ -21,18 +22,24 @@ const Login = () => {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    
-    // Validate form
+
     if (!formData.email || !formData.password) {
       setError('Please fill in all fields');
       return;
     }
-    
-    await login(formData.email, formData.password);
+
+    const response = await login(formData.email, formData.password);
+    if (response.success) {
+      // Check role and redirect accordingly
+      if (response.role === 'admin') {
+        navigate('/admin/dashboard');
+      } else {
+        navigate('/dashboard');
+      }
+    }
   };
 
   return (
-    // This div now takes the full width of the screen
     <div className="w-full min-h-screen flex items-center justify-center bg-gray-50 py-12 px-4 sm:px-6 lg:px-8">
       <div className="max-w-md w-full space-y-8 bg-white p-10 rounded-lg shadow-md">
         <div>
@@ -46,13 +53,15 @@ const Login = () => {
             </Link>
           </p>
         </div>
-        
+
         {error && <AlertMessage type="error" message={error} />}
-        
+
         <form className="mt-8 space-y-6" onSubmit={handleSubmit}>
           <div className="rounded-md shadow-sm -space-y-px">
             <div>
-              <label htmlFor="email" className="sr-only">Email address</label>
+              <label htmlFor="email" className="sr-only">
+                Email address
+              </label>
               <input
                 id="email"
                 name="email"
@@ -66,7 +75,9 @@ const Login = () => {
               />
             </div>
             <div>
-              <label htmlFor="password" className="sr-only">Password</label>
+              <label htmlFor="password" className="sr-only">
+                Password
+              </label>
               <input
                 id="password"
                 name="password"
@@ -80,7 +91,7 @@ const Login = () => {
               />
             </div>
           </div>
-  
+
           <div>
             <button
               type="submit"
@@ -94,6 +105,6 @@ const Login = () => {
       </div>
     </div>
   );
-}
+};
 
 export default Login;

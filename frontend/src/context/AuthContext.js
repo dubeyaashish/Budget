@@ -30,24 +30,25 @@ export const AuthProvider = ({ children }) => {
       const response = await authService.login(email, password);
       
       if (response && response.token) {
+        const userData = {
+          ...response.user,
+          role: response.role
+        };
+        
         localStorage.setItem('token', response.token);
-        localStorage.setItem('user', JSON.stringify(response.user));
-        setCurrentUser(response.user);
+        localStorage.setItem('user', JSON.stringify(userData));
+        setCurrentUser(userData);
         
-        // Redirect based on role
-        if (response.role === 'admin') {
-          navigate('/admin/dashboard');
-        } else {
-          navigate('/dashboard');
-        }
-        
-        return true;
+        return {
+          success: true,
+          role: response.role
+        };
       }
-      
-      return false;
+      return { success: false };
     } catch (err) {
-      setError(err.response?.data?.message || 'Login failed');
-      return false;
+      console.error('Login error:', err);
+      setError(err.response?.data?.message || 'Failed to login');
+      return { success: false };
     } finally {
       setIsLoading(false);
     }

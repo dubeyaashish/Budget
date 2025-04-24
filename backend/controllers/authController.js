@@ -179,7 +179,7 @@ exports.login = (req, res) => {
         // Generate JWT token
         const token = generateToken({ id: user.id, role: user.role });
         
-        console.log('[LOGIN] success for:', email);
+        console.log('[LOGIN] success for:', email, 'role:', user.role);
         res.json({ 
           token, 
           role: user.role,
@@ -188,7 +188,8 @@ exports.login = (req, res) => {
             name: user.name,
             surname: user.surname,
             email: user.email,
-            employeeId: user.employee_id
+            employeeId: user.employee_id,
+            role: user.role
           }
         });
       });
