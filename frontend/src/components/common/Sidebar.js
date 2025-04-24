@@ -6,10 +6,8 @@ const Sidebar = () => {
   const { currentUser } = useContext(AuthContext);
   const location = useLocation();
 
-  // Return null if user is not logged in
-  if (!currentUser) return null;
-
-  const isAdmin = currentUser.role === 'admin';
+  // Get links based on user role
+  const isAdmin = currentUser && currentUser.role === 'admin';
 
   const adminLinks = [
     { to: '/admin/dashboard', label: 'Dashboard', icon: 'home' },

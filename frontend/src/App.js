@@ -1,4 +1,4 @@
-// frontend/src/App.js
+// frontend/src/App.js - Updated
 import React from 'react';
 import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
 import { AuthProvider } from './context/AuthContext';
@@ -37,20 +37,23 @@ function App() {
           <Header />
           
           <main className="flex-grow flex">
-            <Sidebar />
+            {/* Sidebar is now only rendered inside protected routes */}
             
             <Routes>
-              {/* Public routes */}
+              {/* Public routes - No sidebar for these */}
               <Route path="/login" element={<Login />} />
               <Route path="/register" element={<Register />} />
               <Route path="/verify-otp" element={<VerifyOTP />} />
               
-              {/* Regular user routes */}
+              {/* Regular user routes - With sidebar */}
               <Route 
                 path="/dashboard" 
                 element={
                   <ProtectedRoute>
-                    <UserDashboard />
+                    <div className="flex w-full">
+                      <Sidebar />
+                      <UserDashboard />
+                    </div>
                   </ProtectedRoute>
                 } 
               />
@@ -58,7 +61,10 @@ function App() {
                 path="/new-withdrawal" 
                 element={
                   <ProtectedRoute>
-                    <NewWithdrawalRequest />
+                    <div className="flex w-full">
+                      <Sidebar />
+                      <NewWithdrawalRequest />
+                    </div>
                   </ProtectedRoute>
                 } 
               />
@@ -66,17 +72,23 @@ function App() {
                 path="/withdrawal-history" 
                 element={
                   <ProtectedRoute>
-                    <WithdrawalHistory />
+                    <div className="flex w-full">
+                      <Sidebar />
+                      <WithdrawalHistory />
+                    </div>
                   </ProtectedRoute>
                 } 
               />
               
-              {/* Admin routes */}
+              {/* Admin routes - With sidebar */}
               <Route 
                 path="/admin/dashboard" 
                 element={
                   <ProtectedRoute requireAdmin={true}>
-                    <AdminDashboard />
+                    <div className="flex w-full">
+                      <Sidebar />
+                      <AdminDashboard />
+                    </div>
                   </ProtectedRoute>
                 } 
               />
@@ -84,7 +96,10 @@ function App() {
                 path="/admin/departments" 
                 element={
                   <ProtectedRoute requireAdmin={true}>
-                    <DepartmentManagement />
+                    <div className="flex w-full">
+                      <Sidebar />
+                      <DepartmentManagement />
+                    </div>
                   </ProtectedRoute>
                 } 
               />
@@ -92,7 +107,10 @@ function App() {
                 path="/admin/categories" 
                 element={
                   <ProtectedRoute requireAdmin={true}>
-                    <CategoryManagement />
+                    <div className="flex w-full">
+                      <Sidebar />
+                      <CategoryManagement />
+                    </div>
                   </ProtectedRoute>
                 } 
               />
@@ -100,7 +118,10 @@ function App() {
                 path="/admin/budget-limits" 
                 element={
                   <ProtectedRoute requireAdmin={true}>
-                    <BudgetLimits />
+                    <div className="flex w-full">
+                      <Sidebar />
+                      <BudgetLimits />
+                    </div>
                   </ProtectedRoute>
                 } 
               />
@@ -108,7 +129,10 @@ function App() {
                 path="/admin/withdrawals" 
                 element={
                   <ProtectedRoute requireAdmin={true}>
-                    <WithdrawalApproval />
+                    <div className="flex w-full">
+                      <Sidebar />
+                      <WithdrawalApproval />
+                    </div>
                   </ProtectedRoute>
                 } 
               />
@@ -116,7 +140,10 @@ function App() {
                 path="/admin/withdrawals/:id" 
                 element={
                   <ProtectedRoute requireAdmin={true}>
-                    <WithdrawalApproval />
+                    <div className="flex w-full">
+                      <Sidebar />
+                      <WithdrawalApproval />
+                    </div>
                   </ProtectedRoute>
                 } 
               />
@@ -124,7 +151,10 @@ function App() {
                 path="/admin/users" 
                 element={
                   <ProtectedRoute requireAdmin={true}>
-                    <UserManagement />
+                    <div className="flex w-full">
+                      <Sidebar />
+                      <UserManagement />
+                    </div>
                   </ProtectedRoute>
                 } 
               />
