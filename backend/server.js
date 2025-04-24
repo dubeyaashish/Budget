@@ -12,6 +12,7 @@ const departmentRoutes = require('./routes/departmentRoutes');
 const categoryRoutes = require('./routes/categoryRoutes');
 const budgetRoutes = require('./routes/budgetRoutes');
 const withdrawalRoutes = require('./routes/withdrawalRoutes');
+const keyAccountRoutes = require('./routes/keyAccountRoutes');
 
 // Initialize express app
 const app = express();
@@ -30,6 +31,7 @@ app.use('/api/departments', departmentRoutes);
 app.use('/api/categories', categoryRoutes);
 app.use('/api/budgets', budgetRoutes);
 app.use('/api/withdrawals', withdrawalRoutes);
+app.use('/api/key-accounts', keyAccountRoutes);
 
 // Serve static files in production
 if (process.env.NODE_ENV === 'production') {

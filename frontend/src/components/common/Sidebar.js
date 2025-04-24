@@ -1,3 +1,4 @@
+// frontend/src/components/common/Sidebar.js
 import React, { useContext } from 'react';
 import { Link, useLocation } from 'react-router-dom';
 import { AuthContext } from '../../context/AuthContext';
@@ -11,17 +12,21 @@ const Sidebar = () => {
 
   const adminLinks = [
     { to: '/admin/dashboard', label: 'Dashboard', icon: 'home' },
+    { to: '/admin/key-accounts', label: 'Key Accounts', icon: 'money-bill' },
+    { to: '/admin/key-account-allocation', label: 'Budget Allocation', icon: 'wallet' },
+    { to: '/admin/withdrawals', label: 'Withdrawal Requests', icon: 'file-invoice-dollar' },
     { to: '/admin/departments', label: 'Departments', icon: 'building' },
     { to: '/admin/categories', label: 'Categories', icon: 'tag' },
-    { to: '/admin/budget-limits', label: 'Budget Limits', icon: 'money-bill' },
-    { to: '/admin/withdrawals', label: 'Withdrawal Requests', icon: 'file-invoice-dollar' },
-    { to: '/admin/users', label: 'User Management', icon: 'users' }
+    { to: '/admin/budget-limits', label: 'Budget Limits', icon: 'chart-pie' },
+    { to: '/admin/users', label: 'User Management', icon: 'users' },
+    { to: '/admin/reports/departments', label: 'Spending Reports', icon: 'chart-bar' }
   ];
 
   const userLinks = [
     { to: '/dashboard', label: 'Dashboard', icon: 'home' },
     { to: '/new-withdrawal', label: 'New Withdrawal', icon: 'plus-circle' },
-    { to: '/withdrawal-history', label: 'Withdrawal History', icon: 'history' }
+    { to: '/withdrawal-history', label: 'Withdrawal History', icon: 'history' },
+    { to: '/revision-requests', label: 'Revision Requests', icon: 'edit' }
   ];
 
   const links = isAdmin ? adminLinks : userLinks;
@@ -32,10 +37,14 @@ const Sidebar = () => {
       case 'building': return 'fas fa-building';
       case 'tag': return 'fas fa-tag';
       case 'money-bill': return 'fas fa-money-bill-wave';
+      case 'wallet': return 'fas fa-wallet';
       case 'file-invoice-dollar': return 'fas fa-file-invoice-dollar';
       case 'users': return 'fas fa-users';
       case 'plus-circle': return 'fas fa-plus-circle';
       case 'history': return 'fas fa-history';
+      case 'edit': return 'fas fa-edit';
+      case 'chart-pie': return 'fas fa-chart-pie';
+      case 'chart-bar': return 'fas fa-chart-bar';
       default: return 'fas fa-link';
     }
   };

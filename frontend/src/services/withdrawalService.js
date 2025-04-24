@@ -1,3 +1,4 @@
+// frontend/src/services/withdrawalService.js
 import api from './api';
 
 const withdrawalService = {
@@ -15,6 +16,16 @@ const withdrawalService = {
   getUserWithdrawalRequests: async () => {
     try {
       const response = await api.get('/withdrawals/user');
+      return response;
+    } catch (error) {
+      throw error;
+    }
+  },
+
+  // Get user revision requests
+  getUserRevisionRequests: async () => {
+    try {
+      const response = await api.get('/withdrawals/revisions');
       return response;
     } catch (error) {
       throw error;
@@ -41,6 +52,16 @@ const withdrawalService = {
     }
   },
 
+  // Get withdrawal request by ID
+  getWithdrawalRequestById: async (requestId) => {
+    try {
+      const response = await api.get(`/withdrawals/${requestId}`);
+      return response;
+    } catch (error) {
+      throw error;
+    }
+  },
+
   // Approve withdrawal request
   approveWithdrawalRequest: async (requestId) => {
     try {
@@ -61,10 +82,45 @@ const withdrawalService = {
     }
   },
 
-  // Check available budget
-  checkAvailableBudget: async (departmentId, categoryId) => {
+  // Request revision of withdrawal request
+  requestRevision: async (requestId, feedback, suggestedAmount = null) => {
     try {
-      const response = await api.get(`/withdrawals/check-budget/${departmentId}/${categoryId}`);
+      const data = { feedback };
+      if (suggestedAmount !== null) {
+        data.suggestedAmount = suggestedAmount;
+      }
+      
+      const response = await api.put(`/withdrawals/${requestId}/revision`, data);
+      return response;
+    } catch (error) {
+      throw error;
+    }
+  },
+
+  // Submit revised request
+  submitRevision: async (requestId, updateData) => {
+    try {
+      const response = await api.put(`/withdrawals/${requestId}/update`, updateData);
+      return response;
+    } catch (error) {
+      throw error;
+    }
+  },
+
+  // Check available budget
+  checkAvailableBudget: async (accountId) => {
+    try {
+      const response = await api.get(`/withdrawals/check-budget/${accountId}`);
+      return response;
+    } catch (error) {
+      throw error;
+    }
+  },
+
+  // Get department spending summary
+  getDepartmentSpendingSummary: async (departmentId) => {
+    try {
+      const response = await api.get(`/withdrawals/summary/department/${departmentId}`);
       return response;
     } catch (error) {
       throw error;

@@ -1,5 +1,6 @@
 // backend/controllers/withdrawalController.js
 const withdrawalModel = require('../models/withdrawalModel');
+const keyAccountModel = require('../models/keyAccountModel');
 
 /**
  * Create withdrawal request
@@ -8,16 +9,16 @@ const withdrawalModel = require('../models/withdrawalModel');
 exports.createWithdrawalRequest = async (req, res) => {
   try {
     const userId = req.user.id;
-    const { department_id, category_id, amount, reason } = req.body;
+    const { department_id, category_id, key_account_id, amount, reason } = req.body;
     
-    if (!department_id || !category_id || !amount || !reason) {
+    if (!department_id || !category_id || !key_account_id || !amount || !reason) {
       return res.status(400).json({ 
-        message: 'Department, category, amount, and reason are required.' 
+        message: 'Department, category, account, amount, and reason are required.' 
       });
     }
     
     // Check available budget first
-    const budget = await withdrawalModel.checkAvailableBudget(userId, department_id, category_id);
+    const budget = await withdrawalModel.checkAvailableBudget(key_account_id);
     
     if (budget.available_amount < amount) {
       return res.status(400).json({ 
@@ -30,6 +31,7 @@ exports.createWithdrawalRequest = async (req, res) => {
       user_id: userId,
       department_id,
       category_id,
+      key_account_id,
       amount,
       reason
     });
@@ -60,6 +62,21 @@ exports.getUserWithdrawalRequests = async (req, res) => {
 };
 
 /**
+ * Get user requests requiring revision
+ * GET /api/withdrawals/revisions
+ */
+exports.getUserRevisionRequests = async (req, res) => {
+  try {
+    const userId = req.user.id;
+    const requests = await withdrawalModel.getRevisionRequests(userId);
+    res.json(requests);
+  } catch (error) {
+    console.error('Error getting revision requests:', error);
+    res.status(500).json({ message: 'Server error fetching revision requests.' });
+  }
+};
+
+/**
  * Get all pending withdrawal requests (admin only)
  * GET /api/withdrawals/pending
  */
@@ -72,7 +89,7 @@ exports.getAllPendingRequests = async (req, res) => {
       });
     }
     
-    const requests = await withdrawalModel.getPendingWithdrawalRequests();
+    const requests = await withdrawalModel.getAllPendingRequests();
     res.json(requests);
   } catch (error) {
     console.error('Error getting pending withdrawal requests:', error);
@@ -88,13 +105,49 @@ exports.getDepartmentPendingRequests = async (req, res) => {
   try {
     const departmentId = req.params.departmentId;
     
-    // TODO: Check if user belongs to department or is admin
+    // Only admin or users from this department can view
+    if (req.user.role !== 'admin' && req.user.department !== parseInt(departmentId)) {
+      return res.status(403).json({ 
+        message: 'Access denied. You can only view your department\'s requests.' 
+      });
+    }
     
     const requests = await withdrawalModel.getDepartmentPendingRequests(departmentId);
     res.json(requests);
   } catch (error) {
     console.error('Error getting department pending requests:', error);
     res.status(500).json({ message: 'Server error fetching department pending requests.' });
+  }
+};
+
+/**
+ * Get withdrawal request by ID
+ * GET /api/withdrawals/:id
+ */
+exports.getWithdrawalRequestById = async (req, res) => {
+  try {
+    const requestId = req.params.id;
+    const request = await withdrawalModel.getWithdrawalRequestById(requestId);
+    
+    if (!request) {
+      return res.status(404).json({ message: 'Withdrawal request not found.' });
+    }
+    
+    // Only admin or request creator can view details
+    if (req.user.role !== 'admin' && req.user.id !== request.user_id) {
+      return res.status(403).json({ 
+        message: 'Access denied. You can only view your own requests.' 
+      });
+    }
+    
+    // Get revision history if any
+    const revisionHistory = await withdrawalModel.getRevisionHistory(requestId);
+    request.revisions = revisionHistory;
+    
+    res.json(request);
+  } catch (error) {
+    console.error('Error getting withdrawal request:', error);
+    res.status(500).json({ message: 'Server error fetching withdrawal request.' });
   }
 };
 
@@ -158,19 +211,122 @@ exports.rejectWithdrawalRequest = async (req, res) => {
 };
 
 /**
+ * Request revision of withdrawal request
+ * PUT /api/withdrawals/:id/revision
+ */
+exports.requestRevision = async (req, res) => {
+  try {
+    const requestId = req.params.id;
+    const adminId = req.user.id;
+    const { feedback, suggestedAmount } = req.body;
+    
+    if (!feedback) {
+      return res.status(400).json({ message: 'Feedback is required for revision.' });
+    }
+    
+    // Only admin can request revisions
+    if (req.user.role !== 'admin') {
+      return res.status(403).json({ 
+        message: 'Access denied. Admin rights required to request revisions.' 
+      });
+    }
+    
+    await withdrawalModel.requestRevision(
+      requestId, 
+      adminId, 
+      feedback, 
+      suggestedAmount ? parseFloat(suggestedAmount) : null
+    );
+    
+    res.json({
+      message: 'Revision requested successfully'
+    });
+  } catch (error) {
+    console.error('Error requesting revision:', error);
+    res.status(500).json({ message: 'Server error requesting revision.' });
+  }
+};
+
+/**
+ * Submit revised request
+ * PUT /api/withdrawals/:id/update
+ */
+exports.submitRevision = async (req, res) => {
+  try {
+    const requestId = req.params.id;
+    const userId = req.user.id;
+    const { amount, reason, category_id, key_account_id } = req.body;
+    
+    if (!amount || !reason || !category_id || !key_account_id) {
+      return res.status(400).json({ 
+        message: 'Amount, reason, category, and account are required.' 
+      });
+    }
+    
+    // Check available budget
+    const budget = await withdrawalModel.checkAvailableBudget(key_account_id);
+    
+    if (budget.available_amount < parseFloat(amount)) {
+      return res.status(400).json({ 
+        message: `Insufficient budget. Available: ${budget.available_amount}`,
+        budget
+      });
+    }
+    
+    await withdrawalModel.submitRevision(requestId, userId, {
+      amount: parseFloat(amount),
+      reason,
+      category_id,
+      key_account_id
+    });
+    
+    res.json({
+      message: 'Revision submitted successfully'
+    });
+  } catch (error) {
+    console.error('Error submitting revision:', error);
+    res.status(500).json({ 
+      message: error.message || 'Server error submitting revision.'
+    });
+  }
+};
+
+/**
  * Check available budget
- * GET /api/withdrawals/check-budget/:departmentId/:categoryId
+ * GET /api/withdrawals/check-budget/:accountId
  */
 exports.checkAvailableBudget = async (req, res) => {
   try {
-    const userId = req.user.id;
-    const { departmentId, categoryId } = req.params;
+    const accountId = req.params.accountId;
     
-    const budget = await withdrawalModel.checkAvailableBudget(userId, departmentId, categoryId);
+    const budget = await withdrawalModel.checkAvailableBudget(accountId);
     
     res.json(budget);
   } catch (error) {
     console.error('Error checking available budget:', error);
     res.status(500).json({ message: 'Server error checking available budget.' });
+  }
+};
+
+/**
+ * Get department spending summary
+ * GET /api/withdrawals/summary/department/:departmentId
+ */
+exports.getDepartmentSpendingSummary = async (req, res) => {
+  try {
+    const departmentId = req.params.departmentId;
+    
+    // Only admin or users from this department can view
+    if (req.user.role !== 'admin' && req.user.department !== parseInt(departmentId)) {
+      return res.status(403).json({ 
+        message: 'Access denied. You can only view your department\'s spending.' 
+      });
+    }
+    
+    const summary = await withdrawalModel.getDepartmentSpendingSummary(departmentId);
+    res.json(summary);
+  } catch (error) {
+    console.error('Error getting department spending summary:', error);
+    res.status(500).json({ message: 'Server error fetching department spending summary.' });
   }
 };

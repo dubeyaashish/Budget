@@ -1,6 +1,8 @@
 // frontend/src/components/user/NewWithdrawalRequest.js
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useContext } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { AuthContext } from '../../context/AuthContext';
+import { KeyAccountContext } from '../../context/KeyAccountContext';
 import departmentService from '../../services/departmentService';
 import categoryService from '../../services/categoryService';
 import withdrawalService from '../../services/withdrawalService';
@@ -9,15 +11,21 @@ import AlertMessage from '../common/AlertMessage';
 import { formatCurrency } from '../../utils/formatCurrency';
 
 const NewWithdrawalRequest = () => {
+  const { currentUser } = useContext(AuthContext);
+  const { accountsWithUsage, groupedAccounts } = useContext(KeyAccountContext);
+  
   const [formData, setFormData] = useState({
     department_id: '',
     category_id: '',
+    key_account_id: '',
     amount: '',
     reason: ''
   });
+  
   const [departments, setDepartments] = useState([]);
   const [categories, setCategories] = useState([]);
   const [availableBudget, setAvailableBudget] = useState(null);
+  const [accountType, setAccountType] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [error, setError] = useState(null);
@@ -32,8 +40,18 @@ const NewWithdrawalRequest = () => {
         const departmentsData = await departmentService.getAllDepartments();
         const categoriesData = await categoryService.getAllCategories();
         
+        // Filter departments to only include user's department if needed
+        // For now, assuming users can request from any department
         setDepartments(departmentsData);
         setCategories(categoriesData);
+        
+        // If user has a default department, select it
+        if (currentUser.department) {
+          setFormData(prev => ({
+            ...prev,
+            department_id: currentUser.department
+          }));
+        }
       } catch (err) {
         console.error('Error fetching data:', err);
         setError('Failed to load departments and categories');
@@ -43,16 +61,23 @@ const NewWithdrawalRequest = () => {
     };
 
     fetchData();
-  }, []);
+  }, [currentUser]);
+
+  useEffect(() => {
+    // Clear account when account type changes
+    if (accountType) {
+      setFormData(prev => ({
+        ...prev,
+        key_account_id: ''
+      }));
+    }
+  }, [accountType]);
 
   useEffect(() => {
     const checkBudget = async () => {
-      if (formData.department_id && formData.category_id) {
+      if (formData.key_account_id) {
         try {
-          const budget = await withdrawalService.checkAvailableBudget(
-            formData.department_id, 
-            formData.category_id
-          );
+          const budget = await withdrawalService.checkAvailableBudget(formData.key_account_id);
           setAvailableBudget(budget);
         } catch (err) {
           console.error('Error checking budget:', err);
@@ -64,7 +89,7 @@ const NewWithdrawalRequest = () => {
     };
 
     checkBudget();
-  }, [formData.department_id, formData.category_id]);
+  }, [formData.key_account_id]);
 
   const handleChange = (e) => {
     const { name, value } = e.target;
@@ -78,7 +103,7 @@ const NewWithdrawalRequest = () => {
     e.preventDefault();
     
     // Validate form
-    if (!formData.department_id || !formData.category_id || !formData.amount || !formData.reason) {
+    if (!formData.department_id || !formData.category_id || !formData.key_account_id || !formData.amount || !formData.reason) {
       setError('Please fill in all fields');
       return;
     }
@@ -95,6 +120,7 @@ const NewWithdrawalRequest = () => {
       await withdrawalService.createWithdrawalRequest({
         department_id: formData.department_id,
         category_id: formData.category_id,
+        key_account_id: formData.key_account_id,
         amount: parseFloat(formData.amount),
         reason: formData.reason
       });
@@ -103,8 +129,9 @@ const NewWithdrawalRequest = () => {
       
       // Reset form
       setFormData({
-        department_id: '',
+        department_id: currentUser.department || '',
         category_id: '',
+        key_account_id: '',
         amount: '',
         reason: ''
       });
@@ -121,6 +148,12 @@ const NewWithdrawalRequest = () => {
       setIsSubmitting(false);
     }
   };
+
+  // Get account types from grouped accounts
+  const accountTypes = Object.keys(groupedAccounts).sort();
+
+  // Filter accounts based on selected account type
+  const filteredAccounts = accountType ? groupedAccounts[accountType] || [] : [];
 
   if (isLoading) {
     return (
@@ -139,7 +172,7 @@ const NewWithdrawalRequest = () => {
       
       <div className="bg-white rounded-lg shadow p-6">
         <form onSubmit={handleSubmit}>
-          <div className="grid grid-cols-1 gap-6 mb-6">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
             <div>
               <label htmlFor="department_id" className="block text-sm font-medium text-gray-700">
                 Department
@@ -183,6 +216,56 @@ const NewWithdrawalRequest = () => {
             </div>
             
             <div>
+              <label htmlFor="account_type" className="block text-sm font-medium text-gray-700">
+                Account Type
+              </label>
+              <select
+                id="account_type"
+                name="account_type"
+                className="mt-1 block w-full pl-3 pr-10 py-2 text-base border-gray-300 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm rounded-md"
+                value={accountType}
+                onChange={(e) => setAccountType(e.target.value)}
+                required
+              >
+                <option value="">Select Account Type</option>
+                {accountTypes.map(type => (
+                  <option key={type} value={type}>
+                    {type}
+                  </option>
+                ))}
+              </select>
+            </div>
+            
+            <div>
+              <label htmlFor="key_account_id" className="block text-sm font-medium text-gray-700">
+                Key Account
+              </label>
+              <select
+                id="key_account_id"
+                name="key_account_id"
+                className="mt-1 block w-full pl-3 pr-10 py-2 text-base border-gray-300 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm rounded-md"
+                value={formData.key_account_id}
+                onChange={handleChange}
+                required
+                disabled={!accountType}
+              >
+                <option value="">Select Key Account</option>
+                {filteredAccounts.map(account => {
+                  const accountWithUsage = accountsWithUsage.find(a => a.id === account.id) || {};
+                  const availableAmount = (accountWithUsage.available_amount !== undefined) 
+                    ? accountWithUsage.available_amount 
+                    : account.total_budget - (account.used_amount || 0);
+                  
+                  return (
+                    <option key={account.id} value={account.id}>
+                      {account.id} - {account.name} ({formatCurrency(availableAmount)} available)
+                    </option>
+                  );
+                })}
+              </select>
+            </div>
+            
+            <div>
               <label htmlFor="amount" className="block text-sm font-medium text-gray-700">
                 Amount
               </label>
@@ -210,7 +293,7 @@ const NewWithdrawalRequest = () => {
               )}
             </div>
             
-            <div>
+            <div className="md:col-span-2">
               <label htmlFor="reason" className="block text-sm font-medium text-gray-700">
                 Reason
               </label>
