@@ -17,16 +17,15 @@ import VerifyOTP from './components/auth/VerifyOTP';
 
 // User components
 import UserDashboard from './components/user/Dashboard';
-import NewWithdrawalRequest from './components/user/NewWithdrawalRequest';
-import WithdrawalHistory from './components/user/WithdrawalHistory';
+import NewCreditRequest from './components/user/NewCreditRequest';
+import CreditHistory from './components/user/CreditHistory';
 import RevisionRequests from './components/user/RevisionRequests';
 
 // Admin components
 import AdminDashboard from './components/admin/Dashboard';
 import DepartmentManagement from './components/admin/DepartmentManagement';
-import CategoryManagement from './components/admin/CategoryManagement';
 import BudgetLimits from './components/admin/BudgetLimits';
-import WithdrawalApproval from './components/admin/WithdrawalApproval';
+import CreditApproval from './components/admin/CreditApproval';
 import UserManagement from './components/admin/UserManagement';
 import KeyAccountManagement from './components/admin/KeyAccountManagement';
 import KeyAccountAllocation from './components/admin/KeyAccountAllocation';
@@ -64,23 +63,23 @@ function App() {
                   } 
                 />
                 <Route 
-                  path="/new-withdrawal" 
+                  path="/new-credit" 
                   element={
                     <ProtectedRoute>
                       <div className="flex w-full">
                         <Sidebar />
-                        <NewWithdrawalRequest />
+                        <NewCreditRequest />
                       </div>
                     </ProtectedRoute>
                   } 
                 />
                 <Route 
-                  path="/withdrawal-history" 
+                  path="/Credit-history" 
                   element={
                     <ProtectedRoute>
                       <div className="flex w-full">
                         <Sidebar />
-                        <WithdrawalHistory />
+                        <CreditHistory />
                       </div>
                     </ProtectedRoute>
                   } 
@@ -121,17 +120,6 @@ function App() {
                   } 
                 />
                 <Route 
-                  path="/admin/categories" 
-                  element={
-                    <ProtectedRoute requireAdmin={true}>
-                      <div className="flex w-full">
-                        <Sidebar />
-                        <CategoryManagement />
-                      </div>
-                    </ProtectedRoute>
-                  } 
-                />
-                <Route 
                   path="/admin/budget-limits" 
                   element={
                     <ProtectedRoute requireAdmin={true}>
@@ -165,23 +153,23 @@ function App() {
                   } 
                 />
                 <Route 
-                  path="/admin/withdrawals" 
+                  path="/admin/credit" 
                   element={
                     <ProtectedRoute requireAdmin={true}>
                       <div className="flex w-full">
                         <Sidebar />
-                        <WithdrawalApproval />
+                        <CreditApproval />
                       </div>
                     </ProtectedRoute>
                   } 
                 />
                 <Route 
-                  path="/admin/withdrawals/:id" 
+                  path="/admin/credit/:id" 
                   element={
                     <ProtectedRoute requireAdmin={true}>
                       <div className="flex w-full">
                         <Sidebar />
-                        <WithdrawalApproval />
+                        <CreditApproval />
                       </div>
                     </ProtectedRoute>
                   } 

@@ -1,8 +1,8 @@
 // frontend/src/components/admin/Dashboard.js
-import React, { useState, useEffect, useContext } from 'react';
+import React, { useState, useEffect, useContext, useCallback } from 'react';
 import { Link } from 'react-router-dom';
 import { KeyAccountContext } from '../../context/KeyAccountContext';
-import withdrawalService from '../../services/withdrawalService';
+import withdrawalService from '../../services/creditService';
 import departmentService from '../../services/departmentService';
 import LoadingSpinner from '../common/LoadingSpinner';
 import AlertMessage from '../common/AlertMessage';
@@ -21,47 +21,47 @@ const AdminDashboard = () => {
     totalBudget:     0,
     totalUsed:       0
   });
-  const [topAccounts, setTopAccounts]     = useState([]);
-  const [topDepartments, setTopDepartments] = useState([]);
+  const [topAccounts, setTopAccounts] = useState([]);
 
-  // 1) Fetch the core dashboard data once on mount
-  useEffect(() => {
-    const fetchDashboardData = async () => {
-      setIsLoading(true);
-      try {
-        const [pendingRequests, departments, budgetSummary] = await Promise.all([
-          withdrawalService.getAllPendingRequests(),
-          departmentService.getAllDepartments(),
-          getBudgetSummary()
-        ]);
+  // Fetch all dashboard data
+  const fetchDashboardData = useCallback(async () => {
+    setIsLoading(true);
+    setError(null);
 
-        setDashboardData({
-          pendingRequests: pendingRequests.slice(0, 5),
-          departments:     departments.length,
-          pendingCount:    pendingRequests.length,
-          revisionCount:   0, // replace with real endpoint when available
-          // safe-guard null summary:
-          totalBudget: budgetSummary?.total_allocated ?? 0,
-          totalUsed:   budgetSummary?.total_used     ?? 0
-        });
-      } catch (err) {
-        console.error('Error fetching dashboard data:', err);
-        setError('Failed to load dashboard data');
-      } finally {
-        setIsLoading(false);
-      }
-    };
+    try {
+      const [pendingRequests, departments, budgetSummary] = await Promise.all([
+        withdrawalService.getAllPendingRequests(),
+        departmentService.getAllDepartments(),
+        getBudgetSummary()
+      ]);
 
-    fetchDashboardData();
+      setDashboardData({
+        pendingRequests: pendingRequests.slice(0, 5),
+        departments:     departments.length,
+        pendingCount:    pendingRequests.length,
+        revisionCount:   0, // TODO: hook up real revision count endpoint
+        totalBudget:     budgetSummary?.total_allocated ?? 0,
+        totalUsed:       budgetSummary?.total_used     ?? 0
+      });
+    } catch (err) {
+      console.error('Error fetching dashboard data:', err);
+      setError('Failed to load dashboard data');
+    } finally {
+      setIsLoading(false);
+    }
   }, [getBudgetSummary]);
 
-  // 2) Recompute topAccounts whenever the raw data changes
+  // On mount, load dashboard
   useEffect(() => {
-    setTopAccounts(
-      [...accountsWithUsage]
-        .sort((a, b) => b.used_amount - a.used_amount)
-        .slice(0, 5)
-    );
+    fetchDashboardData();
+  }, [fetchDashboardData]);
+
+  // Recompute top accounts whenever usage changes
+  useEffect(() => {
+    const sorted = [...accountsWithUsage]
+      .sort((a, b) => b.used_amount - a.used_amount)
+      .slice(0, 5);
+    setTopAccounts(sorted);
   }, [accountsWithUsage]);
 
   if (isLoading) {
@@ -72,8 +72,9 @@ const AdminDashboard = () => {
     );
   }
 
-  const usagePercentage = dashboardData.totalBudget > 0
-    ? (dashboardData.totalUsed / dashboardData.totalBudget) * 100
+  const { totalBudget, totalUsed, pendingCount, pendingRequests, departments, revisionCount } = dashboardData;
+  const usagePercentage = totalBudget > 0
+    ? (totalUsed / totalBudget) * 100
     : 0;
 
   return (
@@ -84,75 +85,80 @@ const AdminDashboard = () => {
 
       {/* Summary cards */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
-        <Card title="Pending Requests" value={dashboardData.pendingCount} link="/admin/withdrawals" />
-        <Card title="Revision Requests" value={dashboardData.revisionCount} link="/admin/withdrawals" />
-        <Card title="Departments" value={dashboardData.departments} link="/admin/departments" />
-        <Card title="Total Budget" value={formatCurrency(dashboardData.totalBudget)} link="/admin/key-account-allocation" />
+        <Card title="Pending Requests" value={pendingCount} link="/admin/withdrawals" />
+        <Card title="Revision Requests" value={revisionCount} link="/admin/withdrawals" />
+        <Card title="Departments" value={departments} link="/admin/departments" />
+        <Card title="Total Budget" value={formatCurrency(totalBudget)} link="/admin/key-account-allocation" />
       </div>
 
       {/* Usage & Top Accounts */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8">
         <UsagePanel
-          used={dashboardData.totalUsed}
-          total={dashboardData.totalBudget}
+          used={totalUsed}
+          total={totalBudget}
           percentage={usagePercentage}
         />
         <TopAccountsPanel accounts={topAccounts} />
       </div>
 
-      {/* Recent pending requests table */}
-      <RecentRequestsTable requests={dashboardData.pendingRequests} />
+      {/* Recent pending requests */}
+      <RecentRequestsTable requests={pendingRequests} />
     </div>
   );
 };
 
-// Helper sub-components to keep the file DRY
+// --- Helper components ---
 
-const Card = ({ title, value, link }) => (
-  <div className="bg-white rounded-lg shadow p-6">
-    <h2 className="text-lg font-medium text-gray-900 mb-2">{title}</h2>
-    <p className="text-3xl font-bold text-indigo-600">{value}</p>
-    <Link to={link} className="mt-3 text-sm text-indigo-600 block">
-      View all
-    </Link>
-  </div>
-);
+function Card({ title, value, link }) {
+  return (
+    <div className="bg-white rounded-lg shadow p-6">
+      <h2 className="text-lg font-medium text-gray-900 mb-2">{title}</h2>
+      <p className="text-3xl font-bold text-indigo-600">{value}</p>
+      <Link to={link} className="mt-3 text-sm text-indigo-600 block">
+        View all
+      </Link>
+    </div>
+  );
+}
 
-const UsagePanel = ({ used, total, percentage }) => (
-  <div className="bg-white rounded-lg shadow">
-    <div className="p-6 border-b border-gray-200">
-      <h2 className="text-lg font-medium text-gray-900">Overall Budget Usage</h2>
+function UsagePanel({ used, total, percentage }) {
+  return (
+    <div className="bg-white rounded-lg shadow">
+      <div className="p-6 border-b border-gray-200">
+        <h2 className="text-lg font-medium text-gray-900">Overall Budget Usage</h2>
+      </div>
+      <div className="p-6">
+        <div className="flex justify-between mb-2">
+          <span>Used: {formatCurrency(used)}</span>
+          <span>Total: {formatCurrency(total)}</span>
+        </div>
+        <div className="w-full bg-gray-200 rounded-full h-4">
+          <div
+            className={`h-4 rounded-full ${
+              percentage > 90 ? 'bg-red-500' :
+              percentage > 70 ? 'bg-yellow-500' :
+              'bg-green-500'
+            }`}
+            style={{ width: `${Math.min(percentage, 100)}%` }}
+          />
+        </div>
+        <div className="mt-2 text-right text-sm text-gray-500">
+          {Math.round(percentage)}% used
+        </div>
+      </div>
     </div>
-    <div className="p-6">
-      <div className="flex justify-between mb-2">
-        <span>Used: {formatCurrency(used)}</span>
-        <span>Total: {formatCurrency(total)}</span>
-      </div>
-      <div className="w-full bg-gray-200 rounded-full h-4">
-        <div
-          className={`h-4 rounded-full ${
-            percentage > 90 ? 'bg-red-500' :
-            percentage > 70 ? 'bg-yellow-500' :
-            'bg-green-500'
-          }`}
-          style={{ width: `${Math.min(percentage, 100)}%` }}
-        />
-      </div>
-      <div className="mt-2 text-right text-sm text-gray-500">
-        {Math.round(percentage)}% used
-      </div>
-    </div>
-  </div>
-);
+  );
+}
 
-const TopAccountsPanel = ({ accounts }) => (
-  <div className="bg-white rounded-lg shadow">
-    <div className="p-6 border-b border-gray-200">
-      <h2 className="text-lg font-medium text-gray-900">Top Accounts by Usage</h2>
-    </div>
-    <div className="p-6 space-y-4">
-      {accounts.length
-        ? accounts.map(acc => {
+function TopAccountsPanel({ accounts }) {
+  return (
+    <div className="bg-white rounded-lg shadow">
+      <div className="p-6 border-b border-gray-200">
+        <h2 className="text-lg font-medium text-gray-900">Top Accounts by Usage</h2>
+      </div>
+      <div className="p-6 space-y-4">
+        {accounts.length > 0 ? (
+          accounts.map(acc => {
             const pct = acc.total_budget
               ? (acc.used_amount / acc.total_budget) * 100
               : 0;
@@ -179,64 +185,71 @@ const TopAccountsPanel = ({ accounts }) => (
               </div>
             );
           })
-        : <p className="text-gray-500">No account usage data available.</p>}
-      <div className="mt-4">
-        <Link to="/admin/key-accounts" className="text-indigo-600 hover:underline">
-          Manage key accounts →
-        </Link>
+        ) : (
+          <p className="text-gray-500">No account usage data available.</p>
+        )}
+        <div className="mt-4">
+          <Link to="/admin/key-accounts" className="text-indigo-600 hover:underline">
+            Manage key accounts →
+          </Link>
+        </div>
       </div>
     </div>
-  </div>
-);
+  );
+}
 
-const RecentRequestsTable = ({ requests }) => (
-  <div className="bg-white rounded-lg shadow">
-    <div className="p-6 border-b border-gray-200 flex justify-between items-center">
-      <h2 className="text-lg font-medium text-gray-900">Recent Pending Withdrawal Requests</h2>
-      <Link to="/admin/withdrawals" className="text-indigo-600 hover:underline">View all</Link>
-    </div>
-    <div className="p-6 overflow-x-auto">
-      {requests.length ? (
-        <table className="min-w-full divide-y divide-gray-200">
-          <thead className="bg-gray-50">
-            <tr>
-              {['Date','User','Dept','Account','Amount','Actions'].map(h => (
-                <th
-                  key={h}
-                  className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
-                >
-                  {h}
-                </th>
-              ))}
-            </tr>
-          </thead>
-          <tbody className="bg-white divide-y divide-gray-200">
-            {requests.map(r => (
-              <tr key={r.id}>
-                <td className="px-6 py-4 text-sm text-gray-500">
-                  {new Date(r.created_at).toLocaleDateString()}
-                </td>
-                <td className="px-6 py-4 text-sm text-gray-500">{r.requester_name}</td>
-                <td className="px-6 py-4 text-sm text-gray-500">{r.department_name}</td>
-                <td className="px-6 py-4 text-sm text-gray-500">{r.account_name}</td>
-                <td className="px-6 py-4 text-sm text-gray-500">{formatCurrency(r.amount)}</td>
-                <td className="px-6 py-4 text-sm">
-                  <Link
-                    to={`/admin/withdrawals/${r.id}`}
-                    className="text-indigo-600 hover:underline"
+function RecentRequestsTable({ requests }) {
+  return (
+    <div className="bg-white rounded-lg shadow">
+      <div className="p-6 border-b border-gray-200 flex justify-between items-center">
+        <h2 className="text-lg font-medium text-gray-900">Recent Pending Withdrawal Requests</h2>
+        <Link to="/admin/withdrawals" className="text-indigo-600 hover:underline">
+          View all
+        </Link>
+      </div>
+      <div className="p-6 overflow-x-auto">
+        {requests.length > 0 ? (
+          <table className="min-w-full divide-y divide-gray-200">
+            <thead className="bg-gray-50">
+              <tr>
+                {['Date','User','Dept','Account','Amount','Actions'].map(h => (
+                  <th
+                    key={h}
+                    className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
                   >
-                    Review
-                  </Link>
-                </td>
+                    {h}
+                  </th>
+                ))}
               </tr>
-            ))}
-          </tbody>
-        </table>
-      ) : (
-        <p className="text-gray-500">No pending withdrawal requests found.</p>
-      )}
+            </thead>
+            <tbody className="bg-white divide-y divide-gray-200">
+              {requests.map(r => (
+                <tr key={r.id}>
+                  <td className="px-6 py-4 text-sm text-gray-500">
+                    {new Date(r.created_at).toLocaleDateString('en-Gb')}
+                  </td>
+                  <td className="px-6 py-4 text-sm text-gray-500">{r.requester_name}</td>
+                  <td className="px-6 py-4 text-sm text-gray-500">{r.department_name}</td>
+                  <td className="px-6 py-4 text-sm text-gray-500">{r.account_name}</td>
+                  <td className="px-6 py-4 text-sm text-gray-500">{formatCurrency(r.amount)}</td>
+                  <td className="px-6 py-4 text-sm">
+                    <Link
+                      to={`/admin/withdrawals/${r.id}`}
+                      className="text-indigo-600 hover:underline"
+                    >
+                      Review
+                    </Link>
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        ) : (
+          <p className="text-gray-500">No pending withdrawal requests found.</p>
+        )}
+      </div>
     </div>
-  </div>
-);
+  );
+}
 
 export default AdminDashboard;

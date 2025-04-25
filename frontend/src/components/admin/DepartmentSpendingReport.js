@@ -2,7 +2,7 @@
 import React, { useState, useEffect } from 'react';
 import departmentService from '../../services/departmentService';
 import keyAccountService from '../../services/keyAccountService';
-import withdrawalService from '../../services/withdrawalService';
+import withdrawalService from '../../services/creditService';
 import LoadingSpinner from '../common/LoadingSpinner';
 import AlertMessage from '../common/AlertMessage';
 import { formatCurrency } from '../../utils/formatCurrency';

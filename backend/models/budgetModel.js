@@ -7,12 +7,11 @@ const db = require('../config/db');
  */
 exports.getAllBudgetLimits = () => {
   const query = `
-    SELECT bl.*, d.name as department_name, c.name as category_name
+    SELECT bl.*, d.name as department_name
     FROM budget_limits bl
     JOIN budget_departments d ON bl.department_id = d.id
-    JOIN budget_categories c ON bl.category_id = c.id
     WHERE bl.active = TRUE
-    ORDER BY d.name, c.name
+    ORDER BY d.name
   `;
   return db.query(query);
 };
@@ -24,9 +23,8 @@ exports.getAllBudgetLimits = () => {
  */
 exports.getBudgetLimitsByDepartment = (departmentId) => {
   const query = `
-    SELECT bl.*, c.name as category_name
+    SELECT bl.*
     FROM budget_limits bl
-    JOIN budget_categories c ON bl.category_id = c.id
     WHERE bl.department_id = ? AND bl.active = TRUE
     ORDER BY c.name
   `;
@@ -34,34 +32,45 @@ exports.getBudgetLimitsByDepartment = (departmentId) => {
 };
 
 /**
- * Get budget limit by department and category
+
  * @param {Number} departmentId - Department ID
- * @param {Number} categoryId - Category ID
  * @returns {Promise} Promise with budget limit data
  */
-exports.getBudgetLimit = (departmentId, categoryId) => {
+exports.getAllBudgetLimits = () => {
+  const query = `
+    SELECT bl.*, d.name as department_name
+    FROM budget_limits bl
+    JOIN budget_departments d ON bl.department_id = d.id
+    WHERE bl.active = TRUE
+    ORDER BY d.name
+  `;
+  return db.query(query);
+};
+
+exports.getBudgetLimit = (departmentId) => {
   const query = `
     SELECT *
     FROM budget_limits
-    WHERE department_id = ? AND category_id = ? AND active = TRUE
+    WHERE department_id = ? AND active = TRUE
     LIMIT 1
   `;
-  return db.query(query, [departmentId, categoryId]);
+  return db.query(query, [departmentId]);
 };
+
+// Similar changes for other functions
 
 /**
  * Helper function to deactivate existing budget limit
  * @param {Number} departmentId - Department ID
- * @param {Number} categoryId - Category ID
  * @returns {Promise} Promise with update result
  */
-const deactivateExistingLimit = (departmentId, categoryId) => {
+const deactivateExistingLimit = (departmentId) => {
   const query = `
     UPDATE budget_limits
     SET active = FALSE, updated_at = CURRENT_TIMESTAMP
-    WHERE department_id = ? AND category_id = ? AND active = TRUE
+    WHERE department_id = ? AND active = TRUE
   `;
-  return db.query(query, [departmentId, categoryId]);
+  return db.query(query, [departmentId]);
 };
 
 /**
@@ -70,18 +79,18 @@ const deactivateExistingLimit = (departmentId, categoryId) => {
  * @returns {Promise} Promise with insert result
  */
 exports.createBudgetLimit = (budgetData) => {
-  const { department_id, category_id, total_amount, per_user_amount } = budgetData;
+  const { department_id, total_amount, per_user_amount } = budgetData;
   
   // First, deactivate any existing limit
-  return deactivateExistingLimit(department_id, category_id)
+  return deactivateExistingLimit(department_id)
     .then(() => {
       // Then create a new active limit
       const query = `
         INSERT INTO budget_limits 
-        (department_id, category_id, total_amount, per_user_amount, active) 
+        (department_id, total_amount, per_user_amount, active) 
         VALUES (?, ?, ?, ?, TRUE)
       `;
-      return db.query(query, [department_id, category_id, total_amount, per_user_amount]);
+      return db.query(query, [department_id, total_amount, per_user_amount]);
     });
 };
 
@@ -102,17 +111,17 @@ exports.updateBudgetLimit = async (id, budgetData, adminId, reason) => {
       throw new Error('Budget limit not found');
     }
     
-    const { department_id, category_id, total_amount, per_user_amount } = budgetData;
+    const { department_id, total_amount, per_user_amount } = budgetData;
     
     // Deactivate the current limit
-    await deactivateExistingLimit(department_id, category_id);
+    await deactivateExistingLimit(department_id);
     
     // Create a new active limit
     const insertResult = await db.query(
       `INSERT INTO budget_limits 
-       (department_id, category_id, total_amount, per_user_amount, active) 
+       (department_id, total_amount, per_user_amount, active) 
        VALUES (?, ?, ?, ?, TRUE)`,
-      [department_id, category_id, total_amount, per_user_amount]
+      [department_id, total_amount, per_user_amount]
     );
     
     const newLimitId = insertResult.insertId;
@@ -120,13 +129,12 @@ exports.updateBudgetLimit = async (id, budgetData, adminId, reason) => {
     // Record the change in history
     await db.query(
       `INSERT INTO budget_limit_history 
-       (limit_id, department_id, category_id, previous_total_amount, previous_per_user_amount, 
+       (limit_id, department_id, previous_total_amount, previous_per_user_amount, 
         new_total_amount, new_per_user_amount, changed_by, change_reason) 
        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)`,
       [
         newLimitId, 
         department_id, 
-        category_id, 
         currentLimit.total_amount, 
         currentLimit.per_user_amount, 
         total_amount, 
@@ -146,10 +154,9 @@ exports.updateBudgetLimit = async (id, budgetData, adminId, reason) => {
 /**
  * Get budget limit history
  * @param {Number} departmentId - Department ID
- * @param {Number} categoryId - Category ID
  * @returns {Promise} Promise with history data
  */
-exports.getBudgetLimitHistory = (departmentId, categoryId) => {
+exports.getBudgetLimitHistory = (departmentId) => {
   const query = `
     SELECT h.*, 
            u.name as admin_name, 
@@ -157,10 +164,10 @@ exports.getBudgetLimitHistory = (departmentId, categoryId) => {
            DATE_FORMAT(h.created_at, '%Y-%m-%d %H:%i:%s') as change_date
     FROM budget_limit_history h
     JOIN budget_users u ON h.changed_by = u.id
-    WHERE h.department_id = ? AND h.category_id = ?
+    WHERE h.department_id = ? 
     ORDER BY h.created_at DESC
   `;
-  return db.query(query, [departmentId, categoryId]);
+  return db.query(query, [departmentId]);
 };
 
 /**
@@ -171,10 +178,8 @@ exports.getBudgetLimitHistory = (departmentId, categoryId) => {
 exports.getUserBudgetLimits = (userId) => {
   const query = `
     SELECT ubl.*, 
-           c.name as category_name,
            d.name as department_name
     FROM budget_user_limits ubl
-    JOIN budget_categories c ON ubl.category_id = c.id
     JOIN budget_departments d ON ubl.department_id = d.id
     WHERE ubl.user_id = ? AND ubl.active = TRUE
     ORDER BY d.name, c.name
@@ -188,23 +193,23 @@ exports.getUserBudgetLimits = (userId) => {
  * @returns {Promise} Promise with insert result
  */
 exports.setUserBudgetLimit = async (limitData) => {
-  const { user_id, department_id, category_id, amount } = limitData;
+  const { user_id, department_id, amount } = limitData;
   
   // First deactivate any existing user-specific limit
   const deactivateQuery = `
     UPDATE budget_user_limits
     SET active = FALSE, updated_at = CURRENT_TIMESTAMP
-    WHERE user_id = ? AND department_id = ? AND category_id = ? AND active = TRUE
+    WHERE user_id = ? AND department_id = ?  AND active = TRUE
   `;
   
-  await db.query(deactivateQuery, [user_id, department_id, category_id]);
+  await db.query(deactivateQuery, [user_id, department_id]);
   
   // Then create a new active limit
   const insertQuery = `
     INSERT INTO budget_user_limits
-    (user_id, department_id, category_id, amount, active)
+    (user_id, department_id, amount, active)
     VALUES (?, ?, ?, ?, TRUE)
   `;
   
-  return db.query(insertQuery, [user_id, department_id, category_id, amount]);
+  return db.query(insertQuery, [user_id, department_id, amount]);
 };

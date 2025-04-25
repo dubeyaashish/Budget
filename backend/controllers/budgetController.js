@@ -18,16 +18,24 @@ exports.getAllBudgetLimits = async (req, res) => {
  * Get budget limits by department
  * GET /api/budgets/department/:departmentId
  */
-exports.getBudgetLimitsByDepartment = async (req, res) => {
+// Example: Update getBudgetLimit function
+exports.getBudgetLimit = async (req, res) => {
   try {
-    const departmentId = req.params.departmentId;
-    const limits = await budgetModel.getBudgetLimitsByDepartment(departmentId);
-    res.json(limits);
+    const { departmentId } = req.params;
+    const limit = await budgetModel.getBudgetLimit(departmentId);
+    
+    if (!limit || limit.length === 0) {
+      return res.status(404).json({ message: 'Budget limit not found.' });
+    }
+    
+    res.json(limit[0]);
   } catch (error) {
-    console.error('Error getting department budget limits:', error);
-    res.status(500).json({ message: 'Server error fetching department budget limits.' });
+    console.error('Error getting budget limit:', error);
+    res.status(500).json({ message: 'Server error fetching budget limit.' });
   }
 };
+
+// Similar changes for createBudgetLimit, updateBudgetLimit, etc.
 
 /**
  * Get budget limit
@@ -35,8 +43,8 @@ exports.getBudgetLimitsByDepartment = async (req, res) => {
  */
 exports.getBudgetLimit = async (req, res) => {
   try {
-    const { departmentId, categoryId } = req.params;
-    const limit = await budgetModel.getBudgetLimit(departmentId, categoryId);
+    const { departmentId } = req.params;
+    const limit = await budgetModel.getBudgetLimit(departmentId);
     
     if (!limit || limit.length === 0) {
       return res.status(404).json({ message: 'Budget limit not found.' });
@@ -55,17 +63,16 @@ exports.getBudgetLimit = async (req, res) => {
  */
 exports.createBudgetLimit = async (req, res) => {
   try {
-    const { department_id, category_id, total_amount, per_user_amount } = req.body;
+    const { department_id, total_amount, per_user_amount } = req.body;
     
-    if (!department_id || !category_id || total_amount === undefined) {
+    if (!department_id || total_amount === undefined) {
       return res.status(400).json({ 
-        message: 'Department, category, and total amount are required.' 
+        message: 'Department, and total amount are required.' 
       });
     }
     
     const result = await budgetModel.createBudgetLimit({
       department_id,
-      category_id,
       total_amount,
       per_user_amount
     });
@@ -87,18 +94,18 @@ exports.createBudgetLimit = async (req, res) => {
 exports.updateBudgetLimit = async (req, res) => {
   try {
     const id = req.params.id;
-    const { department_id, category_id, total_amount, per_user_amount, reason } = req.body;
+    const { department_id, total_amount, per_user_amount, reason } = req.body;
     const adminId = req.user.id;
     
-    if (!department_id || !category_id || total_amount === undefined || !reason) {
+    if (!department_id || total_amount === undefined || !reason) {
       return res.status(400).json({ 
-        message: 'Department, category, total amount, and reason for change are required.' 
+        message: 'Department , total amount, and reason for change are required.' 
       });
     }
     
     const newLimitId = await budgetModel.updateBudgetLimit(
       id, 
-      { department_id, category_id, total_amount, per_user_amount },
+      { department_id, total_amount, per_user_amount },
       adminId,
       reason
     );
@@ -119,13 +126,19 @@ exports.updateBudgetLimit = async (req, res) => {
  */
 exports.getBudgetLimitHistory = async (req, res) => {
   try {
-    const { departmentId, categoryId } = req.params;
-    const history = await budgetModel.getBudgetLimitHistory(departmentId, categoryId);
+    const { departmentId } = req.params;
+    const history = await budgetModel.getBudgetLimitHistory(departmentId);
     res.json(history);
   } catch (error) {
     console.error('Error getting budget limit history:', error);
     res.status(500).json({ message: 'Server error fetching budget limit history.' });
   }
+};
+
+exports.getBudgetLimitsByDepartment = async (req, res) => {
+  const { departmentId } = req.params;
+  const limits = await budgetModel.getBudgetLimitsByDepartment(departmentId);
+  res.json(limits);
 };
 
 /**
@@ -157,11 +170,11 @@ exports.getUserBudgetLimits = async (req, res) => {
  */
 exports.setUserBudgetLimit = async (req, res) => {
   try {
-    const { user_id, department_id, category_id, amount } = req.body;
+    const { user_id, department_id, amount } = req.body;
     
-    if (!user_id || !department_id || !category_id || amount === undefined) {
+    if (!user_id || !department_id || amount === undefined) {
       return res.status(400).json({ 
-        message: 'User, department, category, and amount are required.' 
+        message: 'User, department and amount are required.' 
       });
     }
     
@@ -175,7 +188,6 @@ exports.setUserBudgetLimit = async (req, res) => {
     await budgetModel.setUserBudgetLimit({
       user_id,
       department_id,
-      category_id,
       amount
     });
     

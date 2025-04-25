@@ -1,5 +1,5 @@
 // frontend/src/context/KeyAccountContext.js
-import React, { createContext, useState, useEffect } from 'react';
+import React, { createContext, useState, useEffect, useCallback, useMemo } from 'react';
 import keyAccountService from '../services/keyAccountService';
 
 export const KeyAccountContext = createContext();
@@ -10,19 +10,15 @@ export const KeyAccountProvider = ({ children }) => {
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState(null);
 
-  useEffect(() => {
-    fetchKeyAccounts();
-  }, []);
-
-  const fetchKeyAccounts = async () => {
+  // Fetch key accounts and their usage
+  const fetchKeyAccounts = useCallback(async () => {
     try {
       setIsLoading(true);
       setError(null);
-      
+
       const accounts = await keyAccountService.getAllKeyAccounts();
       setKeyAccounts(accounts);
-      
-      // Also fetch accounts with usage data
+
       const usage = await keyAccountService.getKeyAccountsWithUsage();
       setAccountsWithUsage(usage);
     } catch (err) {
@@ -31,18 +27,20 @@ export const KeyAccountProvider = ({ children }) => {
     } finally {
       setIsLoading(false);
     }
-  };
+  }, []);
 
-  const upsertKeyAccount = async (accountData) => {
+  useEffect(() => {
+    fetchKeyAccounts();
+  }, [fetchKeyAccounts]);
+
+  // Create or update a key account, then refresh list
+  const upsertKeyAccount = useCallback(async (accountData) => {
     try {
       setIsLoading(true);
       setError(null);
-      
+
       await keyAccountService.upsertKeyAccount(accountData);
-      
-      // Refresh the accounts list
-      fetchKeyAccounts();
-      
+      await fetchKeyAccounts();
       return true;
     } catch (err) {
       console.error('Error saving key account:', err);
@@ -51,13 +49,14 @@ export const KeyAccountProvider = ({ children }) => {
     } finally {
       setIsLoading(false);
     }
-  };
+  }, [fetchKeyAccounts]);
 
-  const getBudgetSummary = async () => {
+  // Fetch overall budget summary
+  const getBudgetSummary = useCallback(async () => {
     try {
       setIsLoading(true);
       setError(null);
-      
+
       const summary = await keyAccountService.getBudgetSummary();
       return summary;
     } catch (err) {
@@ -67,13 +66,14 @@ export const KeyAccountProvider = ({ children }) => {
     } finally {
       setIsLoading(false);
     }
-  };
+  }, []);
 
-  const getDepartmentSpending = async (accountId) => {
+  // Fetch spending breakdown for a specific account
+  const getDepartmentSpending = useCallback(async (accountId) => {
     try {
       setIsLoading(true);
       setError(null);
-      
+
       const spending = await keyAccountService.getDepartmentSpendingByAccount(accountId);
       return spending;
     } catch (err) {
@@ -83,13 +83,14 @@ export const KeyAccountProvider = ({ children }) => {
     } finally {
       setIsLoading(false);
     }
-  };
+  }, []);
 
-  const getAccountSpendingByDepartment = async (departmentId) => {
+  // Fetch accounts spending by department
+  const getAccountSpendingByDepartment = useCallback(async (departmentId) => {
     try {
       setIsLoading(true);
       setError(null);
-      
+
       const spending = await keyAccountService.getAccountSpendingByDepartment(departmentId);
       return spending;
     } catch (err) {
@@ -99,34 +100,45 @@ export const KeyAccountProvider = ({ children }) => {
     } finally {
       setIsLoading(false);
     }
-  };
+  }, []);
 
-  // Group accounts by account type
-  const groupedAccounts = keyAccounts.reduce((acc, account) => {
-    if (!acc[account.account_type]) {
-      acc[account.account_type] = [];
-    }
-    
-    acc[account.account_type].push(account);
-    return acc;
-  }, {});
+  // Group key accounts by type
+  const groupedAccounts = useMemo(() => {
+    return keyAccounts.reduce((acc, account) => {
+      if (!acc[account.account_type]) acc[account.account_type] = [];
+      acc[account.account_type].push(account);
+      return acc;
+    }, {});
+  }, [keyAccounts]);
+
+  // Memoize context value to prevent unnecessary rerenders
+  const value = useMemo(() => ({
+    keyAccounts,
+    accountsWithUsage,
+    groupedAccounts,
+    isLoading,
+    error,
+    fetchKeyAccounts,
+    upsertKeyAccount,
+    getBudgetSummary,
+    getDepartmentSpending,
+    getAccountSpendingByDepartment,
+    setError
+  }), [
+    keyAccounts,
+    accountsWithUsage,
+    groupedAccounts,
+    isLoading,
+    error,
+    fetchKeyAccounts,
+    upsertKeyAccount,
+    getBudgetSummary,
+    getDepartmentSpending,
+    getAccountSpendingByDepartment
+  ]);
 
   return (
-    <KeyAccountContext.Provider
-      value={{
-        keyAccounts,
-        accountsWithUsage,
-        groupedAccounts,
-        isLoading,
-        error,
-        fetchKeyAccounts,
-        upsertKeyAccount,
-        getBudgetSummary,
-        getDepartmentSpending,
-        getAccountSpendingByDepartment,
-        setError
-      }}
-    >
+    <KeyAccountContext.Provider value={value}>
       {children}
     </KeyAccountContext.Provider>
   );

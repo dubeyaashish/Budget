@@ -12,7 +12,7 @@ router.get('/', authenticateToken, isAdmin, budgetController.getAllBudgetLimits)
 router.get('/department/:departmentId', authenticateToken, budgetController.getBudgetLimitsByDepartment);
 
 // Get specific budget limit
-router.get('/department/:departmentId/category/:categoryId', authenticateToken, budgetController.getBudgetLimit);
+router.get('/department/:departmentId', authenticateToken, budgetController.getBudgetLimit);
 
 // Create budget limit (admin only)
 router.post('/', authenticateToken, isAdmin, budgetController.createBudgetLimit);
@@ -21,7 +21,7 @@ router.post('/', authenticateToken, isAdmin, budgetController.createBudgetLimit)
 router.put('/:id', authenticateToken, isAdmin, budgetController.updateBudgetLimit);
 
 // Get budget limit history
-router.get('/history/department/:departmentId/category/:categoryId', authenticateToken, budgetController.getBudgetLimitHistory);
+router.get('/history/department/:departmentId', authenticateToken, budgetController.getBudgetLimitHistory);
 
 // Get user budget limits
 router.get('/user/:userId', authenticateToken, budgetController.getUserBudgetLimits);

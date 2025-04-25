@@ -9,9 +9,8 @@ const path = require('path');
 // Import routes
 const authRoutes = require('./routes/authRoutes');
 const departmentRoutes = require('./routes/departmentRoutes');
-const categoryRoutes = require('./routes/categoryRoutes');
 const budgetRoutes = require('./routes/budgetRoutes');
-const withdrawalRoutes = require('./routes/withdrawalRoutes');
+const creditRoutes = require('./routes/creditRoutes');
 const keyAccountRoutes = require('./routes/keyAccountRoutes');
 
 // Initialize express app
@@ -19,7 +18,9 @@ const app = express();
 const PORT = process.env.PORT || 5000;
 
 // Middleware
-app.use(helmet()); // Add security headers
+app.use(helmet({ 
+  contentSecurityPolicy: false // Disable CSP for simplicity in production
+})); 
 app.use(morgan('dev')); // HTTP request logger
 app.use(cors()); // Enable CORS for all routes
 app.use(express.json()); // Parse JSON request bodies
@@ -28,15 +29,16 @@ app.use(express.urlencoded({ extended: true })); // Parse URL-encoded bodies
 // API Routes
 app.use('/api/auth', authRoutes);
 app.use('/api/departments', departmentRoutes);
-app.use('/api/categories', categoryRoutes);
 app.use('/api/budgets', budgetRoutes);
-app.use('/api/withdrawals', withdrawalRoutes);
+app.use('/api/credits', creditRoutes);
 app.use('/api/key-accounts', keyAccountRoutes);
 
 // Serve static files in production
 if (process.env.NODE_ENV === 'production') {
+  // Serve static files from the build directory
   app.use(express.static(path.join(__dirname, '../frontend/build')));
   
+  // For any other route, send the index.html file
   app.get('*', (req, res) => {
     res.sendFile(path.join(__dirname, '../frontend/build', 'index.html'));
   });

@@ -3,7 +3,7 @@ import React, { useState, useEffect, useContext } from 'react';
 import { Link } from 'react-router-dom';
 import { AuthContext } from '../../context/AuthContext';
 import { KeyAccountContext } from '../../context/KeyAccountContext';
-import withdrawalService from '../../services/withdrawalService';
+import creditService from '../../services/creditService';
 import departmentService from '../../services/departmentService';
 import LoadingSpinner from '../common/LoadingSpinner';
 import AlertMessage from '../common/AlertMessage';
@@ -13,7 +13,7 @@ const Dashboard = () => {
   const { currentUser } = useContext(AuthContext);
   const { getAccountSpendingByDepartment } = useContext(KeyAccountContext);
   
-  const [withdrawalRequests, setWithdrawalRequests] = useState([]);
+  const [creditRequests, setCreditRequests] = useState([]);
   const [revisionRequests, setRevisionRequests] = useState([]);
   const [accountSpending, setAccountSpending] = useState([]);
   const [isLoadingRequests, setIsLoadingRequests] = useState(true);
@@ -23,17 +23,17 @@ const Dashboard = () => {
   const [selectedAccountType, setSelectedAccountType] = useState('');
 
   useEffect(() => {
-    const fetchWithdrawalRequests = async () => {
+    const fetchCreditRequests = async () => {
       try {
         setIsLoadingRequests(true);
-        const requests = await withdrawalService.getUserWithdrawalRequests();
-        const revisions = await withdrawalService.getUserRevisionRequests();
+        const requests = await creditService.getUserCreditRequests();
+        const revisions = await creditService.getUserRevisionRequests();
         
-        setWithdrawalRequests(requests);
+        setCreditRequests(requests);
         setRevisionRequests(revisions);
       } catch (err) {
         console.error('Error fetching requests:', err);
-        setError('Failed to load your withdrawal requests');
+        setError('Failed to load your credit requests');
       } finally {
         setIsLoadingRequests(false);
       }
@@ -59,17 +59,17 @@ const Dashboard = () => {
       }
     };
 
-    fetchWithdrawalRequests();
+    fetchCreditRequests();
     fetchDepartmentData();
   }, [currentUser, getAccountSpendingByDepartment]);
 
-  // Get recent withdrawal requests (last 5)
-  const recentRequests = withdrawalRequests.slice(0, 5);
+  // Get recent credit requests (last 5)
+  const recentRequests = creditRequests.slice(0, 5);
 
   // Count requests by status
-  const pendingCount = withdrawalRequests.filter(req => req.status === 'pending').length;
-  const approvedCount = withdrawalRequests.filter(req => req.status === 'approved').length;
-  const rejectedCount = withdrawalRequests.filter(req => req.status === 'rejected').length;
+  const pendingCount = creditRequests.filter(req => req.status === 'pending').length;
+  const approvedCount = creditRequests.filter(req => req.status === 'approved').length;
+  const rejectedCount = creditRequests.filter(req => req.status === 'rejected').length;
   const revisionCount = revisionRequests.length;
 
   // Get account spending by type
@@ -100,19 +100,19 @@ const Dashboard = () => {
         <div className="bg-white rounded-lg shadow p-6">
           <h2 className="text-lg font-medium text-gray-900 mb-2">Pending Requests</h2>
           <p className="text-3xl font-bold text-orange-500">{pendingCount}</p>
-          <Link to="/withdrawal-history" className="mt-3 text-sm text-indigo-600 block">View all</Link>
+          <Link to="/credit-history" className="mt-3 text-sm text-indigo-600 block">View all</Link>
         </div>
         
         <div className="bg-white rounded-lg shadow p-6">
           <h2 className="text-lg font-medium text-gray-900 mb-2">Approved Requests</h2>
           <p className="text-3xl font-bold text-green-500">{approvedCount}</p>
-          <Link to="/withdrawal-history" className="mt-3 text-sm text-indigo-600 block">View all</Link>
+          <Link to="/credit-history" className="mt-3 text-sm text-indigo-600 block">View all</Link>
         </div>
         
         <div className="bg-white rounded-lg shadow p-6">
           <h2 className="text-lg font-medium text-gray-900 mb-2">Rejected Requests</h2>
           <p className="text-3xl font-bold text-red-500">{rejectedCount}</p>
-          <Link to="/withdrawal-history" className="mt-3 text-sm text-indigo-600 block">View all</Link>
+          <Link to="/credit-history" className="mt-3 text-sm text-indigo-600 block">View all</Link>
         </div>
         
         <div className="bg-white rounded-lg shadow p-6">
@@ -191,10 +191,10 @@ const Dashboard = () => {
                 
                 <div className="mt-4">
                   <Link 
-                    to="/new-withdrawal" 
+                    to="/new-credit" 
                     className="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500"
                   >
-                    New Withdrawal Request
+                    New Credit Request
                   </Link>
                 </div>
               </div>
@@ -224,7 +224,7 @@ const Dashboard = () => {
                         Type
                       </th>
                       <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                        Available
+                        Available Credit
                       </th>
                       <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                         Usage
@@ -282,9 +282,9 @@ const Dashboard = () => {
       <div className="bg-white rounded-lg shadow">
         <div className="p-6 border-b border-gray-200">
           <div className="flex justify-between items-center">
-            <h2 className="text-lg font-medium text-gray-900">Recent Withdrawal Requests</h2>
+            <h2 className="text-lg font-medium text-gray-900">Recent Credit Requests</h2>
             <Link 
-              to="/withdrawal-history" 
+              to="/credit-history" 
               className="text-indigo-600 hover:text-indigo-900"
             >
               View all
@@ -353,7 +353,7 @@ const Dashboard = () => {
               </table>
             </div>
           ) : (
-            <p className="text-gray-500">No withdrawal requests found.</p>
+            <p className="text-gray-500">No credit requests found.</p>
           )}
         </div>
       </div>

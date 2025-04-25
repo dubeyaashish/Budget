@@ -2,7 +2,6 @@
 import React, { useState, useEffect } from 'react';
 import budgetService from '../../services/budgetService';
 import departmentService from '../../services/departmentService';
-import categoryService from '../../services/categoryService';
 import LoadingSpinner from '../common/LoadingSpinner';
 import AlertMessage from '../common/AlertMessage';
 import { formatCurrency } from '../../utils/formatCurrency';
@@ -10,7 +9,6 @@ import { formatCurrency } from '../../utils/formatCurrency';
 const BudgetLimits = () => {
   const [budgetLimits, setBudgetLimits] = useState([]);
   const [departments, setDepartments] = useState([]);
-  const [categories, setCategories] = useState([]);
   const [selectedDepartment, setSelectedDepartment] = useState('');
   const [isLoading, setIsLoading] = useState(true);
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -23,7 +21,6 @@ const BudgetLimits = () => {
   // Form data for creating/updating budget limit
   const [formData, setFormData] = useState({
     department_id: '',
-    category_id: '',
     total_amount: '',
     per_user_amount: '',
     reason: ''
@@ -37,21 +34,19 @@ const BudgetLimits = () => {
     const fetchData = async () => {
       try {
         setIsLoading(true);
-        const [depsData, catsData] = await Promise.all([
+        const [depsData] = await Promise.all([
           departmentService.getAllDepartments(),
-          categoryService.getAllCategories()
         ]);
         
         setDepartments(depsData);
-        setCategories(catsData);
         
         // If there are departments, select the first one by default
         if (depsData.length > 0) {
           setSelectedDepartment(depsData[0].id);
         }
       } catch (err) {
-        console.error('Error fetching departments and categories:', err);
-        setError('Failed to load departments and categories');
+        console.error('Error fetching departments:', err);
+        setError('Failed to load departments');
       } finally {
         setIsLoading(false);
       }
@@ -94,7 +89,6 @@ const BudgetLimits = () => {
   const openCreateModal = () => {
     setFormData({
       department_id: selectedDepartment,
-      category_id: '',
       total_amount: '',
       per_user_amount: '',
       reason: ''
@@ -106,7 +100,6 @@ const BudgetLimits = () => {
   const openUpdateModal = (limit) => {
     setFormData({
       department_id: limit.department_id,
-      category_id: limit.category_id,
       total_amount: limit.total_amount,
       per_user_amount: limit.per_user_amount || '',
       reason: ''
@@ -120,7 +113,6 @@ const BudgetLimits = () => {
     setShowModal(false);
     setFormData({
       department_id: selectedDepartment,
-      category_id: '',
       total_amount: '',
       per_user_amount: '',
       reason: ''
@@ -132,8 +124,8 @@ const BudgetLimits = () => {
     e.preventDefault();
     
     // Validate form
-    if (!formData.department_id || !formData.category_id || !formData.total_amount) {
-      setError('Department, category, and total amount are required');
+    if (!formData.department_id || !formData.total_amount) {
+      setError('Department and total amount are required');
       return;
     }
     
@@ -149,7 +141,6 @@ const BudgetLimits = () => {
       if (modalMode === 'create') {
         await budgetService.createBudgetLimit({
           department_id: formData.department_id,
-          category_id: formData.category_id,
           total_amount: parseFloat(formData.total_amount),
           per_user_amount: formData.per_user_amount ? parseFloat(formData.per_user_amount) : null
         });
@@ -158,7 +149,6 @@ const BudgetLimits = () => {
       } else {
         await budgetService.updateBudgetLimit(selectedLimit.id, {
           department_id: formData.department_id,
-          category_id: formData.category_id,
           total_amount: parseFloat(formData.total_amount),
           per_user_amount: formData.per_user_amount ? parseFloat(formData.per_user_amount) : null,
           reason: formData.reason
@@ -180,10 +170,10 @@ const BudgetLimits = () => {
     }
   };
 
-  const viewLimitHistory = async (departmentId, categoryId) => {
+  const viewLimitHistory = async (departmentId) => {
     try {
       setIsLoading(true);
-      const history = await budgetService.getBudgetLimitHistory(departmentId, categoryId);
+      const history = await budgetService.getBudgetLimitHistory(departmentId);
       setLimitHistory(history);
       setShowHistory(true);
     } catch (err) {
@@ -247,9 +237,6 @@ const BudgetLimits = () => {
                 <thead className="bg-gray-50">
                   <tr>
                     <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                      Category
-                    </th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                       Total Budget
                     </th>
                     <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
@@ -267,9 +254,6 @@ const BudgetLimits = () => {
                   {budgetLimits.map(limit => (
                     <tr key={limit.id}>
                       <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                        {limit.category_name}
-                      </td>
-                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
                         {formatCurrency(limit.total_amount)}
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
@@ -286,7 +270,7 @@ const BudgetLimits = () => {
                           Edit
                         </button>
                         <button
-                          onClick={() => viewLimitHistory(limit.department_id, limit.category_id)}
+                          onClick={() => viewLimitHistory(limit.department_id)}
                           className="text-gray-600 hover:text-gray-900"
                         >
                           History
@@ -336,27 +320,6 @@ const BudgetLimits = () => {
   </select>
 </div>
 
-<div className="mb-4">
-  <label htmlFor="modal_category_id" className="block text-sm font-medium text-gray-700 mb-1">
-    Category
-  </label>
-  <select
-    id="modal_category_id"
-    name="category_id"
-    className="mt-1 block w-full pl-3 pr-10 py-2 text-base border-gray-300 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm rounded-md"
-    value={formData.category_id}
-    onChange={handleFormChange}
-    disabled={modalMode === 'update'}
-    required
-  >
-    <option value="">Select Category</option>
-    {categories.map(cat => (
-      <option key={cat.id} value={cat.id}>
-        {cat.name}
-      </option>
-    ))}
-  </select>
-</div>
 
 <div className="mb-4">
   <label htmlFor="modal_total_amount" className="block text-sm font-medium text-gray-700 mb-1">

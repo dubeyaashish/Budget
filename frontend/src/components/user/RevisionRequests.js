@@ -1,303 +1,264 @@
-// frontend/src/components/user/RevisionRequests.js
 import React, { useState, useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
-import withdrawalService from '../../services/withdrawalService';
-import categoryService from '../../services/categoryService';
-import LoadingSpinner from '../common/LoadingSpinner';
+import creditService from '../../services/creditService';
 import AlertMessage from '../common/AlertMessage';
-import { formatCurrency } from '../../utils/formatCurrency';
+
 
 const RevisionRequests = () => {
   const [revisionRequests, setRevisionRequests] = useState([]);
-  const [categories, setCategories] = useState([]);
-  const [selectedRequest, setSelectedRequest] = useState(null);
-  const [isLoading, setIsLoading] = useState(true);
-  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
-  const [success, setSuccess] = useState(null);
   const [showModal, setShowModal] = useState(false);
-  
+  const [selectedRequest, setSelectedRequest] = useState(null);
   const [formData, setFormData] = useState({
     amount: '',
     reason: '',
-    category_id: '',
     key_account_id: ''
   });
-  
-  const navigate = useNavigate();
+  const [keyAccounts, setKeyAccounts] = useState([]);
 
   useEffect(() => {
-    const fetchData = async () => {
-      try {
-        setIsLoading(true);
-        const [requests, allCategories] = await Promise.all([
-          withdrawalService.getUserRevisionRequests(),
-          categoryService.getAllCategories()
-        ]);
-        
-        setRevisionRequests(requests);
-        setCategories(allCategories);
-      } catch (err) {
-        console.error('Error fetching revision requests:', err);
-        setError('Failed to load revision requests');
-      } finally {
-        setIsLoading(false);
-      }
-    };
-
     fetchData();
   }, []);
 
-  const handleChange = (e) => {
-    const { name, value } = e.target;
-    setFormData({
-      ...formData,
-      [name]: value
-    });
+  const fetchData = async () => {
+    try {
+      setLoading(true);
+      const [requests, accounts] = await Promise.all([
+        creditService.getUserCreditRevisionRequests(),
+        creditService.getKeyAccounts() // Assumes a method to fetch key accounts
+      ]);
+      setRevisionRequests(requests);
+      setKeyAccounts(accounts);
+      setLoading(false);
+    } catch (err) {
+      setError(err.message || 'Failed to fetch revision requests');
+      setLoading(false);
+    }
   };
 
   const handleRevise = (request) => {
     setSelectedRequest(request);
-    
-    // Initialize form with current request data
     setFormData({
-      amount: request.suggestedAmount || request.amount,
-      reason: request.reason,
-      category_id: request.category_id,
-      key_account_id: request.key_account_id
+      amount: request.amount || '',
+      reason: request.reason || '',
+      key_account_id: request.key_account_id || ''
     });
-    
     setShowModal(true);
+  };
+
+  const handleInputChange = (e) => {
+    const { name, value } = e.target;
+    setFormData((prev) => ({
+      ...prev,
+      [name]: value
+    }));
+  };
+
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+    try {
+      if (!formData.amount || formData.amount <= 0) {
+        setError('Please enter a valid amount');
+        return;
+      }
+      if (!formData.reason) {
+        setError('Please provide a reason');
+        return;
+      }
+      if (!formData.key_account_id) {
+        setError('Please select a key account');
+        return;
+      }
+
+      await creditService.updateRevisionVersion(selectedRequest.id, {
+        amount: parseFloat(formData.amount),
+        reason: formData.reason,
+        key_account_id: formData.key_account_id
+      });
+
+      setShowModal(false);
+      setFormData({ amount: '', reason: '', key_account_id: '' });
+      setSelectedRequest(null);
+      setError(null);
+      fetchData(); // Refresh the list
+    } catch (err) {
+      setError(err.message || 'Failed to update revision');
+    }
   };
 
   const closeModal = () => {
     setShowModal(false);
     setSelectedRequest(null);
-    setFormData({
-      amount: '',
-      reason: '',
-      category_id: '',
-      key_account_id: ''
-    });
+    setFormData({ amount: '', reason: '', key_account_id: '' });
+    setError(null);
   };
 
-  const handleSubmit = async (e) => {
-    e.preventDefault();
-    
-    if (!selectedRequest) return;
-    
-    try {
-      setIsSubmitting(true);
-      setError(null);
-      
-      await withdrawalService.submitRevision(selectedRequest.id, formData);
-      
-      setSuccess('Revision submitted successfully!');
-      
-      // Remove the request from the list
-      setRevisionRequests(revisionRequests.filter(req => req.id !== selectedRequest.id));
-      
-      // Close the modal
-      closeModal();
-    } catch (err) {
-      console.error('Error submitting revision:', err);
-      setError(err.response?.data?.message || 'Failed to submit revision');
-    } finally {
-      setIsSubmitting(false);
-    }
+  const formatCurrency = (amount) => {
+    return new Intl.NumberFormat('en-US', {
+      style: 'currency',
+      currency: 'USD'
+    }).format(amount);
   };
+
+  if (loading) {
+    return <div className="text-center mt-10">Loading...</div>;
+  }
 
   return (
-    <div className="flex-1 p-8 ml-64">
-      <h1 className="text-2xl font-bold mb-6">Revision Requests</h1>
-      
-      {error && <AlertMessage type="error" message={error} />}
-      {success && <AlertMessage type="success" message={success} />}
-      
-      <div className="bg-white rounded-lg shadow">
-        <div className="p-6 border-b border-gray-200">
-          <h2 className="text-lg font-medium text-gray-900">Requests Needing Revision</h2>
+    <div className="container mx-auto px-4 py-8">
+      <h1 className="text-2xl font-bold mb-6">Revision Credit Requests</h1>
+
+      {error && (
+        <AlertMessage
+          message={error}
+          type="error"
+          onClose={() => setError(null)}
+        />
+      )}
+
+      {revisionRequests.length === 0 ? (
+        <p className="text-gray-600">No revision requests found.</p>
+      ) : (
+        <div className="overflow-x-auto">
+          <table className="min-w-full bg-white shadow-md rounded-lg">
+            <thead>
+              <tr className="bg-gray-100 text-gray-600 uppercase text-sm leading-normal">
+                <th className="py-3 px-6 text-left">ID</th>
+                <th className="py-3 px-6 text-left">Department</th>
+                <th className="py-3 px-6 text-left">Account</th>
+                <th className="py-3 px-6 text-right">Amount</th>
+                <th className="py-3 px-6 text-left">Reason</th>
+                <th className="py-3 px-6 text-left">Version</th>
+                <th className="py-3 px-6 text-left">Parent Request ID</th>
+                <th className="py-3 px-6 text-left">Feedback</th>
+                <th className="py-3 px-6 text-left">Status</th>
+                <th className="py-3 px-6 text-center">Actions</th>
+              </tr>
+            </thead>
+            <tbody className="text-gray-600 text-sm">
+              {revisionRequests.map((request) => (
+                <tr
+                  key={request.id}
+                  className="border-b border-gray-200 hover:bg-gray-50"
+                >
+                  <td className="py-3 px-6">{request.id}</td>
+                  <td className="py-3 px-6">{request.department_name}</td>
+                  <td className="py-3 px-6">{request.account_name}</td>
+                  <td className="py-3 px-6 text-right">
+                    {formatCurrency(request.amount)}
+                  </td>
+                  <td className="py-3 px-6">{request.reason}</td>
+                  <td className="py-3 px-6">{request.version}</td>
+                  <td className="py-3 px-6">{request.parent_request_id || 'N/A'}</td>
+                  <td className="py-3 px-6">{request.feedback || 'N/A'}</td>
+                  <td className="py-3 px-6 capitalize">{request.status}</td>
+                  <td className="py-3 px-6 text-center">
+                    <button
+                      onClick={() => handleRevise(request)}
+                      className="bg-indigo-600 text-white px-4 py-2 rounded-md hover:bg-indigo-700 transition duration-200"
+                    >
+                      Revise
+                    </button>
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
         </div>
-        
-        <div className="p-6">
-          {isLoading ? (
-            <div className="flex justify-center py-8">
-              <LoadingSpinner size="large" />
-            </div>
-          ) : revisionRequests.length > 0 ? (
-            <div className="overflow-x-auto">
-              <table className="min-w-full divide-y divide-gray-200">
-                <thead className="bg-gray-50">
-                  <tr>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                      Request Date
-                    </th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                      Department
-                    </th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                      Category
-                    </th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                      Original Amount
-                    </th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                      Suggested Amount
-                    </th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                      Admin Feedback
-                    </th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                      Actions
-                    </th>
-                  </tr>
-                </thead>
-                <tbody className="bg-white divide-y divide-gray-200">
-                  {revisionRequests.map(request => (
-                    <tr key={request.id}>
-                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                        {new Date(request.created_at).toLocaleDateString()}
-                      </td>
-                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                        {request.department_name}
-                      </td>
-                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                        {request.category_name}
-                      </td>
-                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                        {formatCurrency(request.amount)}
-                      </td>
-                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                        {request.suggestedAmount ? formatCurrency(request.suggestedAmount) : 'Not specified'}
-                      </td>
-                      <td className="px-6 py-4 text-sm text-gray-500 max-w-xs truncate">
-                        {request.feedback}
-                      </td>
-                      <td className="px-6 py-4 whitespace-nowrap text-sm font-medium">
-                        <button
-                          onClick={() => handleRevise(request)}
-                          className="text-indigo-600 hover:text-indigo-900"
-                        >
-                          Revise
-                        </button>
-                      </td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
-            </div>
-          ) : (
-            <p className="text-gray-500">No revision requests found.</p>
-          )}
-        </div>
-      </div>
-      
-      {/* Revision Modal */}
-      {showModal && selectedRequest && (
-        <div className="fixed inset-0 bg-gray-600 bg-opacity-50 overflow-y-auto h-full w-full flex items-center justify-center">
-          <div className="relative bg-white rounded-lg max-w-lg mx-auto p-8 shadow-xl w-full">
-            <h2 className="text-xl font-bold mb-4">Revise Withdrawal Request</h2>
-            
-            <div className="mb-4 bg-yellow-50 p-4 rounded-md border border-yellow-200">
-              <h3 className="text-sm font-medium text-yellow-800">Admin Feedback</h3>
-              <p className="mt-1 text-sm text-yellow-700">{selectedRequest.feedback}</p>
-            </div>
-            
+      )}
+
+      {showModal && (
+        <div className="fixed inset-0 bg-gray-600 bg-opacity-50 flex items-center justify-center z-50">
+          <div className="bg-white rounded-lg p-6 w-full max-w-md">
+            <h2 className="text-xl font-bold mb-4">
+              Revise Credit Request ID {selectedRequest.parent_request_id}, Version {selectedRequest.version}
+            </h2>
+
             <form onSubmit={handleSubmit}>
               <div className="mb-4">
-                <label htmlFor="amount" className="block text-sm font-medium text-gray-700 mb-1">
-                  Amount
-                </label>
-                <div className="mt-1 relative rounded-md shadow-sm">
-                  <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                    <span className="text-gray-500 sm:text-sm">฿</span>
-                  </div>
-                  <input
-                    type="number"
-                    name="amount"
-                    id="amount"
-                    className="focus:ring-indigo-500 focus:border-indigo-500 block w-full pl-7 pr-12 sm:text-sm border-gray-300 rounded-md"
-                    placeholder="0.00"
-                    step="0.01"
-                    min="0"
-                    value={formData.amount}
-                    onChange={handleChange}
-                    required
-                  />
-                </div>
-                {selectedRequest.suggestedAmount && (
-                  <p className="mt-1 text-sm text-gray-500">
-                    Suggested amount: {formatCurrency(selectedRequest.suggestedAmount)}
-                  </p>
-                )}
-              </div>
-              
-              <div className="mb-4">
-                <label htmlFor="category_id" className="block text-sm font-medium text-gray-700 mb-1">
-                  Category
+                <label
+                  htmlFor="key_account_id"
+                  className="block text-sm font-medium text-gray-700"
+                >
+                  Key Account
                 </label>
                 <select
-                  id="category_id"
-                  name="category_id"
-                  className="mt-1 block w-full pl-3 pr-10 py-2 text-base border-gray-300 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm rounded-md"
-                  value={formData.category_id}
-                  onChange={handleChange}
+                  id="key_account_id"
+                  name="key_account_id"
+                  value={formData.key_account_id}
+                  onChange={handleInputChange}
+                  className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm"
                   required
                 >
-                  <option value="">Select Category</option>
-                  {categories.map(cat => (
-                    <option key={cat.id} value={cat.id}>
-                      {cat.name}
+                  <option value="">Select a key account</option>
+                  {keyAccounts.map((account) => (
+                    <option key={account.id} value={account.id}>
+                      {account.name} ({account.account_type})
                     </option>
                   ))}
                 </select>
               </div>
-              
+
               <div className="mb-4">
-                <label htmlFor="key_account_id" className="block text-sm font-medium text-gray-700 mb-1">
-                  Key Account ID
+                <label
+                  htmlFor="amount"
+                  className="block text-sm font-medium text-gray-700"
+                >
+                  Amount
                 </label>
                 <input
-                  type="text"
-                  name="key_account_id"
-                  id="key_account_id"
-                  className="focus:ring-indigo-500 focus:border-indigo-500 block w-full sm:text-sm border-gray-300 rounded-md"
-                  value={formData.key_account_id}
-                  onChange={handleChange}
+                  type="number"
+                  id="amount"
+                  name="amount"
+                  value={formData.amount}
+                  onChange={handleInputChange}
+                  min="0"
+                  step="0.01"
+                  className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm"
                   required
                 />
               </div>
-              
+
               <div className="mb-4">
-                <label htmlFor="reason" className="block text-sm font-medium text-gray-700 mb-1">
+                <label
+                  htmlFor="reason"
+                  className="block text-sm font-medium text-gray-700"
+                >
                   Reason
                 </label>
                 <textarea
                   id="reason"
                   name="reason"
-                  rows={4}
-                  className="shadow-sm focus:ring-indigo-500 focus:border-indigo-500 block w-full sm:text-sm border-gray-300 rounded-md"
-                  placeholder="Please provide a detailed reason for this withdrawal request"
                   value={formData.reason}
-                  onChange={handleChange}
+                  onChange={handleInputChange}
+                  rows={4}
+                  className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm"
+                  placeholder="Provide a detailed reason for this revision"
                   required
                 />
               </div>
-              
-              <div className="mt-6 flex justify-end">
+
+              {error && (
+                <AlertMessage
+                  message={error}
+                  type="error"
+                  onClose={() => setError(null)}
+                />
+              )}
+
+              <div className="flex justify-end space-x-2">
                 <button
                   type="button"
-                  className="bg-white py-2 px-4 border border-gray-300 rounded-md shadow-sm text-sm font-medium text-gray-700 hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 mr-3"
                   onClick={closeModal}
+                  className="bg-gray-300 text-gray-700 px-4 py-2 rounded-md hover:bg-gray-400 transition duration-200"
                 >
                   Cancel
                 </button>
                 <button
                   type="submit"
-                  disabled={isSubmitting}
-                  className="inline-flex justify-center py-2 px-4 border border-transparent shadow-sm text-sm font-medium rounded-md text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500"
+                  className="bg-indigo-600 text-white px-4 py-2 rounded-md hover:bg-indigo-700 transition duration-200"
                 >
-                  {isSubmitting ? <LoadingSpinner /> : 'Submit Revision'}
+                  Submit Revision
                 </button>
               </div>
             </form>
