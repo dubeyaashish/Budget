@@ -65,29 +65,32 @@ const NewWithdrawalRequest = () => {
     } else {
       setAccountEntries([]);
     }
-  }, [formData.department_id, departments, keyAccounts]);
+  }, [formData.department_id, departments, keyAccounts, accountsWithUsage]);
 
   // Load department-specific accounts and set them as entries
   const populateDepartmentAccounts = (departmentId) => {
     try {
       // Get department name
-      const department = departments.find(d => d.id === parseInt(departmentId));
+      const department = departments.find(d => d.id.toString() === departmentId.toString());
       if (!department) return;
       
       // Find department in the imported JSON data
       const deptData = departmentAccountsData.find(d => 
-        d.Department === department.name || 
-        (department.name && department.name.includes(d.Department))
+        d.Department.toLowerCase() === department.name.toLowerCase() || 
+        (department.name && department.name.toLowerCase().includes(d.Department.toLowerCase()))
       );
       
       if (deptData && deptData.Accounts) {
         // Transform to account entries
-        const entries = deptData.Accounts.map(acc => ({
-          key_account_id: acc["Key Account ID"],
-          key_account_name: acc["Key Account"],
-          amount: '',
-          available: getAvailableAmount(acc["Key Account ID"])
-        }));
+        const entries = deptData.Accounts.map(acc => {
+          const accountId = acc["Key Account ID"];
+          return {
+            key_account_id: accountId,
+            key_account_name: acc["Key Account"],
+            amount: '',
+            available: getAvailableAmount(accountId)
+          };
+        });
         
         setAccountEntries(entries);
       } else {
@@ -109,15 +112,15 @@ const NewWithdrawalRequest = () => {
   
   // Helper to get available amount for an account
   const getAvailableAmount = (accountId) => {
-    const account = keyAccounts.find(a => a.id === accountId);
-    const accountWithUsage = accountsWithUsage.find(a => a.id === accountId);
+    const account = accountsWithUsage.find(a => a.id === accountId);
     
-    if (accountWithUsage && accountWithUsage.available_amount !== undefined) {
-      return accountWithUsage.available_amount;
+    if (account && account.available_amount !== undefined) {
+      return account.available_amount;
     }
     
-    if (account) {
-      return account.total_budget - (account.used_amount || 0);
+    const basicAccount = keyAccounts.find(a => a.id === accountId);
+    if (basicAccount) {
+      return basicAccount.total_budget - (basicAccount.used_amount || 0);
     }
     
     return 0;
@@ -210,33 +213,42 @@ const NewWithdrawalRequest = () => {
       setError(null);
       
       let successCount = 0;
+      const submissionPromises = [];
       
-      // Process one entry at a time sequentially
+      // Create an array of promises for each entry submission
       for (const entry of validEntries) {
         const payload = {
           department_id: parseInt(formData.department_id),
-          category_id: 1, // Adding default category_id as it's required by the backend
           key_account_id: entry.key_account_id,
           amount: parseFloat(entry.amount),
           reason: formData.reason
         };
         
         // Log the payload for debugging
-        console.log('Sending withdrawal request:', payload);
+        console.log('Preparing withdrawal request:', payload);
         
-        try {
-          // Send each request individually
-          await withdrawalService.createWithdrawalRequest(payload);
-          successCount++;
-        } catch (err) {
-          console.error('Error with individual request:', err);
-          // Display the actual error message from the server if available
-          if (err.response && err.response.data && err.response.data.message) {
-            setError(`Request failed: ${err.response.data.message}`);
-          }
-          // Continue with other requests even if one fails
-        }
+        // Create promise for each request
+        submissionPromises.push(
+          withdrawalService.createWithdrawalRequest(payload)
+            .then(() => {
+              successCount++;
+              return true;
+            })
+            .catch(err => {
+              console.error('Error with individual request:', err);
+              // Store the error message but continue with other requests
+              return {
+                error: err.response?.data?.message || 'Request failed'
+              };
+            })
+        );
       }
+      
+      // Wait for all submissions to complete
+      const results = await Promise.all(submissionPromises);
+      
+      // Process results
+      const errors = results.filter(result => result.error).map(result => result.error);
       
       if (successCount > 0) {
         setSuccess(`${successCount} withdrawal request(s) submitted successfully!`);
@@ -252,8 +264,11 @@ const NewWithdrawalRequest = () => {
         setTimeout(() => {
           navigate('/withdrawal-history');
         }, 2000);
+      } else if (errors.length > 0) {
+        // If all requests failed, show the first error
+        setError(`Failed to submit requests: ${errors[0]}`);
       } else {
-        setError('All withdrawal requests failed to submit. Please try again.');
+        setError('No requests were submitted. Please try again.');
       }
       
     } catch (err) {
