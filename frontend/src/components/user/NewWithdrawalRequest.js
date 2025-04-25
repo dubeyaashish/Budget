@@ -4,7 +4,6 @@ import { useNavigate } from 'react-router-dom';
 import { AuthContext } from '../../context/AuthContext';
 import { KeyAccountContext } from '../../context/KeyAccountContext';
 import departmentService from '../../services/departmentService';
-import categoryService from '../../services/categoryService';
 import withdrawalService from '../../services/withdrawalService';
 import LoadingSpinner from '../common/LoadingSpinner';
 import AlertMessage from '../common/AlertMessage';
@@ -18,7 +17,6 @@ const NewWithdrawalRequest = () => {
   
   const [formData, setFormData] = useState({
     department_id: '',
-    category_id: '',
     reason: ''
   });
   
@@ -26,7 +24,6 @@ const NewWithdrawalRequest = () => {
   const [accountEntries, setAccountEntries] = useState([]);
   
   const [departments, setDepartments] = useState([]);
-  const [categories, setCategories] = useState([]);
   const [availableAccounts, setAvailableAccounts] = useState([]);
   const [isLoading, setIsLoading] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -40,10 +37,8 @@ const NewWithdrawalRequest = () => {
       try {
         setIsLoading(true);
         const departmentsData = await departmentService.getAllDepartments();
-        const categoriesData = await categoryService.getAllCategories();
         
         setDepartments(departmentsData);
-        setCategories(categoriesData);
         
         // If user has a default department, select it
         if (currentUser.department) {
@@ -54,7 +49,7 @@ const NewWithdrawalRequest = () => {
         }
       } catch (err) {
         console.error('Error fetching data:', err);
-        setError('Failed to load departments and categories');
+        setError('Failed to load departments');
       } finally {
         setIsLoading(false);
       }
@@ -214,11 +209,13 @@ const NewWithdrawalRequest = () => {
       setIsSubmitting(true);
       setError(null);
       
-      // Process one entry at a time sequentially instead of using Promise.all
+      let successCount = 0;
+      
+      // Process one entry at a time sequentially
       for (const entry of validEntries) {
         const payload = {
           department_id: parseInt(formData.department_id),
-          category_id: formData.category_id ? parseInt(formData.category_id) : null,
+          category_id: 1, // Adding default category_id as it's required by the backend
           key_account_id: entry.key_account_id,
           amount: parseFloat(entry.amount),
           reason: formData.reason
@@ -227,24 +224,37 @@ const NewWithdrawalRequest = () => {
         // Log the payload for debugging
         console.log('Sending withdrawal request:', payload);
         
-        // Send each request individually and wait for it to complete
-        await withdrawalService.createWithdrawalRequest(payload);
+        try {
+          // Send each request individually
+          await withdrawalService.createWithdrawalRequest(payload);
+          successCount++;
+        } catch (err) {
+          console.error('Error with individual request:', err);
+          // Display the actual error message from the server if available
+          if (err.response && err.response.data && err.response.data.message) {
+            setError(`Request failed: ${err.response.data.message}`);
+          }
+          // Continue with other requests even if one fails
+        }
       }
       
-      setSuccess(`${validEntries.length} withdrawal request(s) submitted successfully!`);
-      
-      // Reset form
-      setFormData({
-        department_id: currentUser.department || '',
-        category_id: '',
-        reason: ''
-      });
-      setAccountEntries([]);
-      
-      // Redirect to withdrawal history after 2 seconds
-      setTimeout(() => {
-        navigate('/withdrawal-history');
-      }, 2000);
+      if (successCount > 0) {
+        setSuccess(`${successCount} withdrawal request(s) submitted successfully!`);
+        
+        // Reset form
+        setFormData({
+          department_id: currentUser.department || '',
+          reason: ''
+        });
+        setAccountEntries([]);
+        
+        // Redirect to withdrawal history after 2 seconds
+        setTimeout(() => {
+          navigate('/withdrawal-history');
+        }, 2000);
+      } else {
+        setError('All withdrawal requests failed to submit. Please try again.');
+      }
       
     } catch (err) {
       console.error('Error submitting withdrawal requests:', err);
@@ -288,26 +298,6 @@ const NewWithdrawalRequest = () => {
                 {departments.map(dept => (
                   <option key={dept.id} value={dept.id}>
                     {dept.name}
-                  </option>
-                ))}
-              </select>
-            </div>
-            
-            <div>
-              <label htmlFor="category_id" className="block text-sm font-medium text-gray-700">
-                Category
-              </label>
-              <select
-                id="category_id"
-                name="category_id"
-                className="mt-1 block w-full pl-3 pr-10 py-2 text-base border-gray-300 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm rounded-md"
-                value={formData.category_id || ''}
-                onChange={handleChange}
-              >
-                <option value="">Select Category</option>
-                {categories.map(category => (
-                  <option key={category.id} value={category.id}>
-                    {category.name}
                   </option>
                 ))}
               </select>

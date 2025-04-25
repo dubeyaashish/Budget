@@ -11,38 +11,60 @@ exports.createWithdrawalRequest = async (req, res) => {
     const userId = req.user.id;
     const { department_id, category_id, key_account_id, amount, reason } = req.body;
     
-    if (!department_id || !category_id || !key_account_id || !amount || !reason) {
+    // Modified validation to make category_id optional
+    if (!department_id || !key_account_id || !amount || !reason) {
       return res.status(400).json({ 
-        message: 'Department, category, account, amount, and reason are required.' 
+        message: 'Department, account, amount, and reason are required.' 
       });
     }
     
     // Check available budget first
-    const budget = await withdrawalModel.checkAvailableBudget(key_account_id);
-    
-    if (budget.available_amount < amount) {
+    try {
+      const budget = await withdrawalModel.checkAvailableBudget(key_account_id);
+      
+      if (budget.available_amount < amount) {
+        return res.status(400).json({ 
+          message: `Insufficient budget. Available: ${budget.available_amount}`,
+          budget
+        });
+      }
+    } catch (budgetError) {
+      console.error('Error checking budget:', budgetError);
       return res.status(400).json({ 
-        message: `Insufficient budget. Available: ${budget.available_amount}`,
-        budget
+        message: 'Error checking available budget. Please verify the account ID is valid.'
       });
     }
     
-    const result = await withdrawalModel.createWithdrawalRequest({
-      user_id: userId,
-      department_id,
-      category_id,
-      key_account_id,
-      amount,
-      reason
-    });
+    // Use default category_id if not provided
+    const finalCategoryId = category_id || 1; // Default to category ID 1 if not provided
     
-    res.status(201).json({
-      message: 'Withdrawal request created successfully',
-      requestId: result.insertId
-    });
+    try {
+      const result = await withdrawalModel.createWithdrawalRequest({
+        user_id: userId,
+        department_id,
+        category_id: finalCategoryId,
+        key_account_id,
+        amount,
+        reason
+      });
+      
+      res.status(201).json({
+        message: 'Withdrawal request created successfully',
+        requestId: result.insertId
+      });
+    } catch (dbError) {
+      console.error('Database error creating withdrawal request:', dbError);
+      res.status(500).json({ 
+        message: 'Server error creating withdrawal request.',
+        details: dbError.message 
+      });
+    }
   } catch (error) {
     console.error('Error creating withdrawal request:', error);
-    res.status(500).json({ message: 'Server error creating withdrawal request.' });
+    res.status(500).json({ 
+      message: 'Server error creating withdrawal request.',
+      details: error.message 
+    });
   }
 };
 
@@ -257,11 +279,15 @@ exports.submitRevision = async (req, res) => {
     const userId = req.user.id;
     const { amount, reason, category_id, key_account_id } = req.body;
     
-    if (!amount || !reason || !category_id || !key_account_id) {
+    // Modified validation to make category_id optional
+    if (!amount || !reason || !key_account_id) {
       return res.status(400).json({ 
-        message: 'Amount, reason, category, and account are required.' 
+        message: 'Amount, reason, and account are required.' 
       });
     }
+    
+    // Use default category_id if not provided
+    const finalCategoryId = category_id || 1;
     
     // Check available budget
     const budget = await withdrawalModel.checkAvailableBudget(key_account_id);
@@ -276,7 +302,7 @@ exports.submitRevision = async (req, res) => {
     await withdrawalModel.submitRevision(requestId, userId, {
       amount: parseFloat(amount),
       reason,
-      category_id,
+      category_id: finalCategoryId,
       key_account_id
     });
     

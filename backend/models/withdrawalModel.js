@@ -10,13 +10,16 @@ const keyAccountModel = require('./keyAccountModel');
 exports.createWithdrawalRequest = (requestData) => {
   const { user_id, department_id, category_id, key_account_id, amount, reason } = requestData;
   
+  // Use default category_id if not provided
+  const finalCategoryId = category_id || 1;
+  
   const query = `
     INSERT INTO budget_withdrawal_requests
     (user_id, department_id, category_id, key_account_id, amount, reason, status)
     VALUES (?, ?, ?, ?, ?, ?, 'pending')
   `;
   
-  return db.query(query, [user_id, department_id, category_id, key_account_id, amount, reason]);
+  return db.query(query, [user_id, department_id, finalCategoryId, key_account_id, amount, reason]);
 };
 
 /**
@@ -35,7 +38,7 @@ exports.getUserWithdrawalRequests = (userId) => {
            CONCAT(a.name, ' ', a.surname) as approver_name
     FROM budget_withdrawal_requests wr
     JOIN budget_departments d ON wr.department_id = d.id
-    JOIN budget_categories c ON wr.category_id = c.id
+    LEFT JOIN budget_categories c ON wr.category_id = c.id
     JOIN budget_key_accounts ka ON wr.key_account_id = ka.id
     JOIN budget_users u ON wr.user_id = u.id
     LEFT JOIN budget_users a ON wr.approved_by = a.id
@@ -60,7 +63,7 @@ exports.getAllPendingRequests = () => {
            CONCAT(u.name, ' ', u.surname) as requester_name
     FROM budget_withdrawal_requests wr
     JOIN budget_departments d ON wr.department_id = d.id
-    JOIN budget_categories c ON wr.category_id = c.id
+    LEFT JOIN budget_categories c ON wr.category_id = c.id
     JOIN budget_key_accounts ka ON wr.key_account_id = ka.id
     JOIN budget_users u ON wr.user_id = u.id
     WHERE wr.status = 'pending'
@@ -86,7 +89,7 @@ exports.getRevisionRequests = (userId = null) => {
            CONCAT(a.name, ' ', a.surname) as reviewer_name
     FROM budget_withdrawal_requests wr
     JOIN budget_departments d ON wr.department_id = d.id
-    JOIN budget_categories c ON wr.category_id = c.id
+    LEFT JOIN budget_categories c ON wr.category_id = c.id
     JOIN budget_key_accounts ka ON wr.key_account_id = ka.id
     JOIN budget_users u ON wr.user_id = u.id
     LEFT JOIN budget_users a ON wr.approved_by = a.id
@@ -115,7 +118,7 @@ exports.getDepartmentPendingRequests = (departmentId) => {
            ka.account_type,
            CONCAT(u.name, ' ', u.surname) as requester_name
     FROM budget_withdrawal_requests wr
-    JOIN budget_categories c ON wr.category_id = c.id
+    LEFT JOIN budget_categories c ON wr.category_id = c.id
     JOIN budget_key_accounts ka ON wr.key_account_id = ka.id
     JOIN budget_users u ON wr.user_id = u.id
     WHERE wr.department_id = ? AND wr.status = 'pending'
@@ -143,7 +146,7 @@ exports.getWithdrawalRequestById = async (requestId) => {
            CONCAT(a.name, ' ', a.surname) as approver_name
     FROM budget_withdrawal_requests wr
     JOIN budget_departments d ON wr.department_id = d.id
-    JOIN budget_categories c ON wr.category_id = c.id
+    LEFT JOIN budget_categories c ON wr.category_id = c.id
     JOIN budget_key_accounts ka ON wr.key_account_id = ka.id
     JOIN budget_users u ON wr.user_id = u.id
     LEFT JOIN budget_users a ON wr.approved_by = a.id
@@ -304,6 +307,9 @@ exports.submitRevision = async (requestId, userId, updateData) => {
   
   const { amount, reason, category_id, key_account_id } = updateData;
   
+  // Use default category_id if not provided
+  const finalCategoryId = category_id || 1;
+  
   const query = `
     UPDATE budget_withdrawal_requests
     SET amount = ?,
@@ -316,7 +322,7 @@ exports.submitRevision = async (requestId, userId, updateData) => {
     WHERE id = ?
   `;
   
-  return db.query(query, [amount, reason, category_id, key_account_id, requestId]);
+  return db.query(query, [amount, reason, finalCategoryId, key_account_id, requestId]);
 };
 
 /**
@@ -325,19 +331,24 @@ exports.submitRevision = async (requestId, userId, updateData) => {
  * @returns {Promise} Promise with available budget
  */
 exports.checkAvailableBudget = async (keyAccountId) => {
-  const [account] = await db.query(
-    `SELECT total_budget, used_amount, 
-            (total_budget - used_amount) as available_amount
-     FROM budget_key_accounts 
-     WHERE id = ?`,
-    [keyAccountId]
-  );
-  
-  if (!account || account.length === 0) {
-    return { total_budget: 0, used_amount: 0, available_amount: 0 };
+  try {
+    const [account] = await db.query(
+      `SELECT total_budget, used_amount, 
+              (total_budget - used_amount) as available_amount
+       FROM budget_key_accounts 
+       WHERE id = ?`,
+      [keyAccountId]
+    );
+    
+    if (!account || account.length === 0) {
+      return { total_budget: 0, used_amount: 0, available_amount: 0 };
+    }
+    
+    return account[0];
+  } catch (err) {
+    console.error('Error checking available budget:', err);
+    throw new Error('Failed to check available budget');
   }
-  
-  return account[0];
 };
 
 /**
