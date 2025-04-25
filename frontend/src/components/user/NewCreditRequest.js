@@ -7,266 +7,205 @@ import creditService from '../../services/creditService';
 import LoadingSpinner from '../common/LoadingSpinner';
 import AlertMessage from '../common/AlertMessage';
 import { formatCurrency } from '../../utils/formatCurrency';
-import departmentAccountsData from '../../data/departmentAccounts.json';
 
 const NewCreditRequest = () => {
   const { currentUser } = useContext(AuthContext);
   const { accountsWithUsage, keyAccounts } = useContext(KeyAccountContext);
 
-  // Initialize departments as an empty array to prevent undefined errors
   const [formData, setFormData] = useState({
     department_id: '',
     version: 1,
     status: 'draft',
     request_id: null,
   });
+
+  const [selectedDepartment, setSelectedDepartment] = useState(null);
+  const [departmentKeyAccounts, setDepartmentKeyAccounts] = useState([]);
   const [accountEntries, setAccountEntries] = useState([]);
   const [departments, setDepartments] = useState([]);
-  const [availableAccounts, setAvailableAccounts] = useState([]);
-  const [isLoading, setIsLoading] = useState(true); // Start with loading true
+  const [isLoading, setIsLoading] = useState(true);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [error, setError] = useState(null);
   const [success, setSuccess] = useState(null);
   const [isSubmitted, setIsSubmitted] = useState(false);
+  const [budgetMasterData, setBudgetMasterData] = useState([]);
 
   const navigate = useNavigate();
-
-  // Log state and context for debugging
-  console.log('NewCreditRequest render:', {
-    currentUser: JSON.stringify(currentUser, null, 2),
-    formData: JSON.stringify(formData, null, 2),
-    accountEntries: JSON.stringify(accountEntries, null, 2),
-    departments: JSON.stringify(departments, null, 2),
-    availableAccounts: JSON.stringify(availableAccounts, null, 2),
-  });
 
   // Calculate total amount
   const totalAmount = accountEntries.reduce((sum, entry) => sum + (parseFloat(entry.amount) || 0), 0);
 
   useEffect(() => {
     const fetchData = async () => {
-      // Guard against invalid currentUser
       if (!currentUser || !currentUser.id) {
         console.warn('No valid currentUser, skipping fetch');
         setError('User not authenticated');
         setIsLoading(false);
         return;
       }
-
+  
       try {
         setIsLoading(true);
+        
+        // Fetch departments
+        console.log('Fetching departments...');
         const departmentsData = await departmentService.getAllDepartments();
-        console.log('Departments data:', JSON.stringify(departmentsData, null, 2));
-        // Ensure departmentsData is an array
+        console.log('Departments data received:', departmentsData);
         setDepartments(Array.isArray(departmentsData) ? departmentsData : []);
-
+  
+        // Fetch budget master data - check the actual response
+        console.log('Fetching budget master data...');
+        const budgetData = await creditService.getBudgetMasterData();
+        console.log('Budget master data received:', budgetData);
+        console.log('Budget master data sample:', budgetData.slice(0, 3));
+        setBudgetMasterData(Array.isArray(budgetData) ? budgetData : []);
+  
+        // More detailed logging for selected department
         if (currentUser.department) {
+          console.log(`Setting default department ID: ${currentUser.department}`);
           setFormData((prev) => ({
             ...prev,
             department_id: currentUser.department,
           }));
+          setSelectedDepartment(currentUser.department);
         }
-
-        const latestRequest = await creditService.getLatestUserCreditRequest();
-        console.log('Latest request from backend:', JSON.stringify(latestRequest, null, 2));
-
-        if (latestRequest && latestRequest.id && latestRequest.department_id) {
-          setFormData({
-            department_id: latestRequest.department_id,
-            version: latestRequest.version || 1,
-            status: latestRequest.status || 'draft',
-            request_id: latestRequest.id,
-          });
-          const entries = Array.isArray(latestRequest.entries) ? latestRequest.entries : [];
-          setAccountEntries(
-            entries.map((entry) => ({
-              key_account_id: entry.key_account_id || '',
-              key_account_name: entry.key_account_name || '',
-              amount: entry.amount ? entry.amount.toString() : '',
-              remark: entry.reason || '',
-              available: getAvailableAmount(entry.key_account_id) || 0,
-            }))
-          );
-          setIsSubmitted(latestRequest.status !== 'draft');
-        } else {
-          console.log('No valid latest request found:', latestRequest);
-          setFormData({
-            department_id: currentUser?.department || '',
-            version: 1,
-            status: 'draft',
-            request_id: null,
-          });
-          setAccountEntries([]);
-          setIsSubmitted(false);
-        }
+  
+        // Rest of your code...
       } catch (err) {
         console.error('Error fetching data:', err);
-        setError('Failed to load departments or request data');
+        setError('Failed to load required data. Please try again.');
       } finally {
         setIsLoading(false);
       }
     };
-
+  
     fetchData();
   }, [currentUser]);
 
+  // Update department key accounts when department or budget data changes
   useEffect(() => {
-    if (formData.department_id) {
-      populateDepartmentAccounts(formData.department_id);
-    } else {
-      setAccountEntries([]);
-      setAvailableAccounts([]);
-    }
-  }, [formData.department_id, departments, keyAccounts, accountsWithUsage]);
-
-  const populateDepartmentAccounts = (departmentId) => {
-    try {
-      const department = departments.find((d) => d.id?.toString() === departmentId?.toString());
-      if (!department) {
-        console.warn(`Department not found for ID: ${departmentId}`);
-        setAccountEntries([]);
-        return;
-      }
-
-      const deptData = departmentAccountsData.find(
-        (d) =>
-          d.Department.toLowerCase() === department.name?.toLowerCase() ||
-          (department.name && department.name.toLowerCase().includes(d.Department.toLowerCase()))
-      );
-
-      if (deptData && deptData.Accounts && !isSubmitted) {
-        const entries = deptData.Accounts.map((acc) => {
-          const accountId = acc['Key Account ID'];
-          return {
-            key_account_id: accountId || '',
-            key_account_name: acc['Key Account'] || '',
-            amount: '',
-            remark: '',
-            available: getAvailableAmount(accountId) || 0,
-          };
+    console.log('useEffect for department key accounts triggered');
+    console.log('Selected department:', selectedDepartment);
+    console.log('Budget master data length:', budgetMasterData.length);
+    
+    if (selectedDepartment && budgetMasterData.length > 0) {
+      console.log(`Filtering budget data for department ID: ${selectedDepartment}`);
+      
+      // More verbose logging for filtering
+      const departmentAccounts = budgetMasterData.filter(item => {
+        const itemDept = item.department?.toString();
+        const selectedDept = selectedDepartment?.toString();
+        console.log(`Comparing item.department (${itemDept}) with selectedDepartment (${selectedDept})`);
+        return itemDept === selectedDept;
+      });
+      
+      console.log(`Found ${departmentAccounts.length} accounts for department ID: ${selectedDepartment}`);
+      console.log('Department accounts:', departmentAccounts);
+      
+      setDepartmentKeyAccounts(departmentAccounts);
+      
+      // Pre-populate account entries if none exist yet
+      if (accountEntries.length === 0 && !isSubmitted) {
+        console.log('Creating account entries from department accounts');
+        const groupedAccounts = {};
+        
+        departmentAccounts.forEach(account => {
+          console.log('Processing account:', account);
+          if (!groupedAccounts[account.key_account]) {
+            groupedAccounts[account.key_account] = {
+              key_account_id: account.key_account,
+              key_account_name: account.key_account_name,
+              amount: '',
+              reason: '',
+              available: getAvailableAmount(account.key_account),
+              type: account.type,
+              total: parseFloat(account.amount) || 0
+            };
+          } else {
+            groupedAccounts[account.key_account].total += parseFloat(account.amount) || 0;
+          }
         });
-        setAccountEntries(entries);
-      } else {
-        setAccountEntries([]);
+        
+        const newEntries = Object.values(groupedAccounts);
+        console.log('Created account entries:', newEntries);
+        
+        setAccountEntries(newEntries);
       }
-
-      setAvailableAccounts(
-        keyAccounts.map((account) => ({
-          id: account.id || '',
-          name: account.name || 'Unknown',
-          available: getAvailableAmount(account.id) || 0,
-        }))
-      );
-    } catch (err) {
-      console.error('Error loading department accounts:', err);
-      setAccountEntries([]);
-      setAvailableAccounts([]);
     }
-  };
+  }, [selectedDepartment, budgetMasterData, isSubmitted]);
 
   const getAvailableAmount = (accountId) => {
-    if (!accountId) {
-      console.warn('getAvailableAmount: No accountId provided');
-      return 0;
-    }
-    const account = accountsWithUsage.find((a) => a.id === accountId);
+    if (!accountId) return 0;
+    
+    const account = accountsWithUsage.find(a => a.id === accountId);
     if (account && account.available_amount !== undefined) {
       return account.available_amount;
     }
-    const basicAccount = keyAccounts.find((a) => a.id === accountId);
+    
+    const basicAccount = keyAccounts.find(a => a.id === accountId);
     if (basicAccount) {
       return basicAccount.total_budget - (basicAccount.used_amount || 0);
     }
-    console.warn(`getAvailableAmount: No account found for ID ${accountId}`);
+    
     return 0;
   };
 
-  const handleChange = (e) => {
-    const { name, value } = e.target;
+  const handleDepartmentChange = (e) => {
+    const departmentId = e.target.value;
+    console.log(`Department changed to ID: ${departmentId}`);
+    
     setFormData({
       ...formData,
-      [name]: value,
+      department_id: departmentId,
+      version: 1, 
+      status: 'draft',
+      request_id: null
     });
+    
+    setSelectedDepartment(departmentId);
+    setAccountEntries([]);
+    setIsSubmitted(false);
+    setSuccess(null);
+    setError(null);
+    
+    // Attempt to fetch department-specific budget data directly
+    if (departmentId) {
+      console.log(`Fetching budget data specifically for department ID: ${departmentId}`);
+      creditService.getDepartmentBudgetMasterData(departmentId)
+        .then(data => {
+          console.log(`Retrieved ${data?.length || 0} department-specific budget records:`, data);
+        })
+        .catch(err => {
+          console.error('Error fetching department budget data:', err);
+        });
+    }
   };
 
   const handleAccountAmountChange = (index, value) => {
     const updatedEntries = [...accountEntries];
-    if (!updatedEntries[index]) {
-      console.error(`No entry at index ${index}`);
-      return;
-    }
     updatedEntries[index].amount = value;
     setAccountEntries(updatedEntries);
   };
 
-  const handleAccountRemarkChange = (index, value) => {
+  const handleAccountReasonChange = (index, value) => {
     const updatedEntries = [...accountEntries];
-    if (!updatedEntries[index]) {
-      console.error(`No entry at index ${index}`);
-      return;
-    }
-    updatedEntries[index].remark = value;
+    updatedEntries[index].reason = value;
     setAccountEntries(updatedEntries);
   };
 
-  const removeAccountEntry = (index) => {
-    const updatedEntries = [...accountEntries];
-    updatedEntries.splice(index, 1);
-    setAccountEntries(updatedEntries);
-  };
-
-  const addAccountEntry = () => {
-    if (availableAccounts.length === 0) {
-      console.warn('addAccountEntry: No available accounts');
-      return;
-    }
-    setAccountEntries([
-      ...accountEntries,
-      {
-        key_account_id: '',
-        key_account_name: '',
-        amount: '',
-        remark: '',
-        available: 0,
-      },
-    ]);
-  };
-
-  const handleAccountChange = (index, accountId) => {
-    const account = availableAccounts.find((a) => a.id === accountId);
-    if (!account) {
-      console.warn(`handleAccountChange: No account found for ID ${accountId}`);
-      return;
-    }
-    const updatedEntries = [...accountEntries];
-    if (!updatedEntries[index]) {
-      console.error(`No entry at index ${index}`);
-      return;
-    }
-    updatedEntries[index] = {
-      ...updatedEntries[index],
-      key_account_id: account.id,
-      key_account_name: account.name,
-      available: account.available,
-    };
-    setAccountEntries(updatedEntries);
-  };
-
-  const handleSubmit = async (e) => {
-    e.preventDefault();
-
+  const validateForm = () => {
     if (!formData.department_id) {
       setError('Please select a department');
-      return;
+      return false;
     }
 
     const validEntries = accountEntries.filter(
-      (entry) => entry.key_account_id && entry.amount && parseFloat(entry.amount) > 0 && entry.remark.trim()
+      (entry) => entry.key_account_id && entry.amount && parseFloat(entry.amount) > 0 && entry.reason
     );
 
     if (validEntries.length === 0) {
-      setError('Please add at least one account with a valid amount and remark');
-      return;
+      setError('Please add at least one account with a valid amount and reason');
+      return false;
     }
 
     const invalidEntry = accountEntries.find(
@@ -279,6 +218,16 @@ const NewCreditRequest = () => {
           invalidEntry.available
         )}`
       );
+      return false;
+    }
+
+    return true;
+  };
+
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+    
+    if (!validateForm()) {
       return;
     }
 
@@ -286,76 +235,63 @@ const NewCreditRequest = () => {
       setIsSubmitting(true);
       setError(null);
 
-      let successCount = 0;
-      const submissionPromises = [];
+      const validEntries = accountEntries.filter(
+        (entry) => entry.key_account_id && entry.amount && parseFloat(entry.amount) > 0 && entry.reason
+      );
 
-      for (const entry of validEntries) {
-        const payload = {
-          department_id: parseInt(formData.department_id),
+      // Create a single credit request with multiple entries
+      const payload = {
+        department_id: parseInt(formData.department_id),
+        entries: validEntries.map(entry => ({
           key_account_id: entry.key_account_id,
           amount: parseFloat(entry.amount),
-          reason: entry.remark,
-          version: formData.version,
-          status: 'pending',
-          parent_request_id: null,
-        };
+          reason: entry.reason,
+        })),
+        version: formData.version,
+        status: 'pending',
+        parent_request_id: formData.request_id
+      };
 
-        console.log('Preparing credit request:', payload);
-
-        submissionPromises.push(
-          creditService
-            .createCreditRequest(payload)
-            .then((response) => {
-              console.log('💡 createCreditRequest returned:', response);
-              successCount++;
-              if (successCount === 1) {
-                setFormData((prev) => ({
-                  ...prev,
-                  request_id: response.id,
-                  status: 'pending',
-                }));
-              }
-              return true;
-            })
-            .catch((err) => {
-              console.error('Error with individual request:', err);
-              return {
-                error: err.response?.data?.message || 'Request failed',
-              };
-            })
-        );
-      }
-
-      const results = await Promise.all(submissionPromises);
-
-      const errors = results.filter((result) => result.error).map((result) => result.error);
-
-      if (successCount > 0) {
-        setSuccess(`${successCount} credit request(s) submitted successfully!`);
-        setIsSubmitted(true);
-      } else if (errors.length > 0) {
-        setError(`Failed to submit requests: ${errors[0]}`);
-      } else {
-        setError('No requests were submitted. Please try again.');
-      }
+      console.log('Submitting credit request:', payload);
+      
+      const response = await creditService.createCreditRequest(payload);
+      
+      console.log('Credit request response:', response);
+      
+      setSuccess('Credit request submitted successfully!');
+      setIsSubmitted(true);
+      setFormData(prev => ({
+        ...prev,
+        request_id: response.requestId,
+        status: 'pending'
+      }));
+      
     } catch (err) {
-      console.error('Error submitting credit requests:', err);
-      setError(err.response?.data?.message || 'Failed to submit credit requests');
+      console.error('Error submitting credit request:', err);
+      setError(err.response?.data?.message || 'Failed to submit credit request');
     } finally {
       setIsSubmitting(false);
     }
   };
 
   const saveAsDraft = async () => {
+    if (!formData.department_id) {
+      setError('Please select a department');
+      return;
+    }
+
     try {
+      setIsSubmitting(true);
+      setError(null);
+
       const payload = {
-        department_id: parseInt(formData.department_id) || 0,
+        department_id: parseInt(formData.department_id),
         entries: accountEntries
           .filter((entry) => entry.key_account_id)
           .map((entry) => ({
             key_account_id: entry.key_account_id,
             amount: parseFloat(entry.amount) || 0,
-            reason: entry.remark,
+            reason: entry.reason,
           })),
         version: formData.version,
         status: 'draft',
@@ -366,6 +302,8 @@ const NewCreditRequest = () => {
     } catch (err) {
       console.error('Error saving draft:', err);
       setError('Failed to save draft');
+    } finally {
+      setIsSubmitting(false);
     }
   };
 
@@ -382,9 +320,7 @@ const NewCreditRequest = () => {
     setError(null);
   };
 
-  // Prevent rendering until currentUser is valid
   if (!currentUser || !currentUser.id) {
-    console.log('Render guard: Waiting for currentUser');
     return (
       <div className="flex-1 p-8 ml-64 flex justify-center items-center">
         <p>Loading user data...</p>
@@ -399,6 +335,14 @@ const NewCreditRequest = () => {
       </div>
     );
   }
+
+  // Group accounts by type for display
+  const accountsByType = accountEntries.reduce((groups, account) => {
+    if (!account.type) account.type = 'Uncategorized';
+    if (!groups[account.type]) groups[account.type] = [];
+    groups[account.type].push(account);
+    return groups;
+  }, {});
 
   return (
     <div className="flex-1 p-8 ml-64">
@@ -430,174 +374,129 @@ const NewCreditRequest = () => {
                 name="department_id"
                 className="mt-1 block w-full pl-3 pr-10 py-2 text-base border-gray-300 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm rounded-md"
                 value={formData.department_id || ''}
-                onChange={handleChange}
+                onChange={handleDepartmentChange}
                 disabled={isSubmitted}
                 required
               >
                 <option value="">Select Department</option>
                 {Array.isArray(departments) &&
-                  departments.map((dept, index) => (
-                    <option key={dept?.id || `dept-${index}`} value={dept?.id || ''}>
-                      {dept?.name || 'Unknown'}
+                  departments.map((dept) => (
+                    <option key={dept.id} value={dept.id}>
+                      {dept.name}
                     </option>
                   ))}
               </select>
             </div>
             <div className="flex items-end">
               <p className="text-sm font-medium text-gray-700">
-                Total Amount: <span className="font-bold">{formatCurrency(totalAmount)}</span>
+                Total Request Amount: <span className="font-bold text-lg text-indigo-600">{formatCurrency(totalAmount)}</span>
               </p>
             </div>
           </div>
 
           <div className="mt-8 mb-6">
             <div className="flex justify-between items-center mb-4">
-              <h2 className="text-lg font-medium text-gray-900">Account Entries</h2>
-              {!isSubmitted && (
-                <button
-                  type="button"
-                  onClick={addAccountEntry}
-                  className="inline-flex items-center px-3 py-1 border border-transparent text-sm font-medium rounded-md text-indigo-700 bg-indigo-100 hover:bg-indigo-200 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500"
-                >
-                  <svg
-                    className="h-4 w-4 mr-1"
-                    fill="none"
-                    stroke="currentColor"
-                    viewBox="0 0 24 24"
-                    xmlns="http://www.w3.org/2000/svg"
-                  >
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6"></path>
-                  </svg>
-                  Add Account
-                </button>
-              )}
+              <h2 className="text-lg font-medium text-gray-900">Department Key Accounts</h2>
             </div>
 
-            {accountEntries.length > 0 ? (
-              <div className="space-y-4 mb-6">
-                {accountEntries.map((entry, index) => (
-                  <div key={index} className="p-4 border border-gray-200 rounded-lg bg-gray-50">
-                    <div className="flex items-start space-x-4">
-                      <div className="flex-grow">
-                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
-                          <div>
-                            <label
-                              htmlFor={`account-${index}`}
-                              className="block text-sm font-medium text-gray-700"
-                            >
-                              Key Account <span className="text-red-500">*</span>
-                            </label>
-                            {entry.key_account_id && entry.key_account_name ? (
-                              <div className="mt-1 text-sm text-gray-900 py-2 px-3 bg-gray-100 border border-gray-300 rounded-md">
-                                {entry.key_account_id} - {entry.key_account_name}
-                              </div>
-                            ) : (
-                              <select
-                                id={`account-${index}`}
-                                value={entry.key_account_id || ''}
-                                onChange={(e) => handleAccountChange(index, e.target.value)}
-                                className="mt-1 block w-full pl-3 pr-10 py-2 text-base border-gray-300 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm rounded-md"
-                                disabled={isSubmitted}
-                                required
-                              >
-                                <option value="">Select Account</option>
-                                {availableAccounts.map((account) => (
-                                  <option key={account.id || `acc-${index}`} value={account.id || ''}>
-                                    {account.id} - {account.name}
-                                  </option>
-                                ))}
-                              </select>
-                            )}
-                          </div>
-
-                          <div>
-                            <label
-                              htmlFor={`amount-${index}`}
-                              className="block text-sm font-medium text-gray-700"
-                            >
-                              Amount <span className="text-red-500">*</span>
-                            </label>
-                            <div className="mt-1 relative rounded-md shadow-sm">
-                              <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                                <span className="text-gray-500 sm:text-sm">฿</span>
-                              </div>
-                              <input
-                                type="number"
-                                id={`amount-${index}`}
-                                value={entry.amount || ''}
-                                onChange={(e) => handleAccountAmountChange(index, e.target.value)}
-                                className="focus:ring-indigo-500 focus:border-indigo-500 block w-full pl-7 pr-12 sm:text-sm border-gray-300 rounded-md"
-                                placeholder="0.00"
-                                step="0.01"
-                                min="0"
-                                disabled={isSubmitted}
-                                required
-                              />
-                            </div>
-                            {entry.available !== undefined && (
-                              <p className="mt-1 text-xs text-gray-500">
-                                Available Credit: {formatCurrency(entry.available)}
-                              </p>
-                            )}
-                          </div>
+            {formData.department_id ? (
+              <div>
+                {/* Display accounts grouped by type */}
+                {Object.keys(accountsByType).length > 0 ? (
+                  <div className="space-y-6">
+                    {Object.keys(accountsByType).map(type => (
+                      <div key={type} className="border border-gray-200 rounded-lg">
+                        <div className="bg-gray-50 px-4 py-3 border-b border-gray-200 rounded-t-lg">
+                          <h3 className="text-md font-medium text-gray-700">{type}</h3>
                         </div>
+                        <div className="divide-y divide-gray-200">
+                          {accountsByType[type].map((entry, index) => {
+                            const entryIndex = accountEntries.findIndex(e => e.key_account_id === entry.key_account_id);
+                            return (
+                              <div key={entry.key_account_id} className="p-4">
+                                <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
+                                  <div>
+                                    <label className="block text-sm font-medium text-gray-700">
+                                      Key Account
+                                    </label>
+                                    <div className="mt-1 text-sm text-gray-900 py-2 px-3 bg-gray-100 border border-gray-300 rounded-md">
+                                      {entry.key_account_id} - {entry.key_account_name}
+                                      {entry.total > 0 && (
+                                        <span className="block mt-1 text-xs text-gray-500">
+                                          Total Budget: {formatCurrency(entry.total)}
+                                        </span>
+                                      )}
+                                    </div>
+                                  </div>
 
-                        <div>
-                          <label
-                            htmlFor={`remark-${index}`}
-                            className="block text-sm font-medium text-gray-700"
-                          >
-                            Remark <span className="text-red-500">*</span>
-                          </label>
-                          <textarea
-                            id={`remark-${index}`}
-                            rows={3}
-                            value={entry.remark || ''}
-                            onChange={(e) => handleAccountRemarkChange(index, e.target.value)}
-                            className="mt-1 focus:ring-indigo-500 focus:border-indigo-500 block w-full sm:text-sm border-gray-300 rounded-md"
-                            placeholder="Please provide a detailed reason for this account request"
-                            disabled={isSubmitted}
-                            required
-                          />
+                                  <div>
+                                    <label
+                                      htmlFor={`amount-${entryIndex}`}
+                                      className="block text-sm font-medium text-gray-700"
+                                    >
+                                      Amount <span className="text-red-500">*</span>
+                                    </label>
+                                    <div className="mt-1 relative rounded-md shadow-sm">
+                                      <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                                        <span className="text-gray-500 sm:text-sm">฿</span>
+                                      </div>
+                                      <input
+                                        type="number"
+                                        id={`amount-${entryIndex}`}
+                                        value={entry.amount || ''}
+                                        onChange={(e) => handleAccountAmountChange(entryIndex, e.target.value)}
+                                        className="focus:ring-indigo-500 focus:border-indigo-500 block w-full pl-7 pr-12 sm:text-sm border-gray-300 rounded-md"
+                                        placeholder="0.00"
+                                        step="0.01"
+                                        min="0"
+                                        disabled={isSubmitted}
+                                        required
+                                      />
+                                    </div>
+                                    {entry.available !== undefined && (
+                                      <p className="mt-1 text-xs text-gray-500">
+                                        Available Credit: {formatCurrency(entry.available)}
+                                      </p>
+                                    )}
+                                  </div>
+                                </div>
+
+                                <div>
+                                  <label
+                                    htmlFor={`reason-${entryIndex}`}
+                                    className="block text-sm font-medium text-gray-700"
+                                  >
+                                    Reason <span className="text-red-500">*</span>
+                                  </label>
+                                  <textarea
+                                    id={`reason-${entryIndex}`}
+                                    rows={2}
+                                    value={entry.reason || ''}
+                                    onChange={(e) => handleAccountReasonChange(entryIndex, e.target.value)}
+                                    className="mt-1 focus:ring-indigo-500 focus:border-indigo-500 block w-full sm:text-sm border-gray-300 rounded-md"
+                                    placeholder="Please provide a detailed reason for this account request"
+                                    disabled={isSubmitted}
+                                    required
+                                  />
+                                </div>
+                              </div>
+                            );
+                          })}
                         </div>
                       </div>
-
-                      {!isSubmitted && (
-                        <button
-                          type="button"
-                          onClick={() => removeAccountEntry(index)}
-                          className="inline-flex items-center p-1 border border-transparent rounded-full text-red-500 hover:bg-red-100 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500"
-                        >
-                          <svg
-                            className="h-5 w-5"
-                            fill="none"
-                            stroke="currentColor"
-                            viewBox="0 0 24 24"
-                            xmlns="http://www.w3.org/2000/svg"
-                          >
-                            <path
-                              strokeLinecap="round"
-                              strokeLinejoin="round"
-                              strokeWidth="2"
-                              d="M6 18L18 6M6 6l12 12"
-                            ></path>
-                          </svg>
-                        </button>
-                      )}
-                    </div>
+                    ))}
                   </div>
-                ))}
-              </div>
-            ) : formData.department_id ? (
-              <div className="text-center py-8 bg-gray-50 rounded-lg border border-gray-200">
-                <p className="text-gray-500">
-                  No accounts added yet. Select a department and accounts will be pre-populated, or click "Add Account" to
-                  add one manually.
-                </p>
+                ) : (
+                  <div className="text-center py-8 bg-gray-50 rounded-lg border border-gray-200">
+                    <p className="text-gray-500">
+                      No key accounts found for this department. Please select a different department.
+                    </p>
+                  </div>
+                )}
               </div>
             ) : (
               <div className="text-center py-8 bg-gray-50 rounded-lg border border-gray-200">
-                <p className="text-gray-500">Please select a department to see available accounts.</p>
+                <p className="text-gray-500">Please select a department to see available key accounts.</p>
               </div>
             )}
           </div>
@@ -653,7 +552,7 @@ const NewCreditRequest = () => {
                     <span className="ml-2 text-sm text-yellow-600">Revision Requested</span>
                   </div>
                   <span className="text-sm text-gray-500">
-                    Date: {new Date(Date.now() - 86400000).toLocaleDateString('en-GB')}
+                    Date: {new Date(Date.now() - 86400000).toLocaleDateString()}
                   </span>
                 </div>
                 <p className="mt-2 text-sm text-gray-600">

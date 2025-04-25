@@ -2,6 +2,73 @@ const creditModel = require('../models/creditModel');
 const keyAccountModel = require('../models/keyAccountModel');
 
 /**
+ * Get budget master data
+ * @param {Object} req - Express request object
+ * @param {Object} res - Express response object
+ */
+/**
+ * Get budget master data
+ * @param {Object} req - Express request object
+ * @param {Object} res - Express response object
+ */
+exports.getBudgetMasterData = async (req, res) => {
+  try {
+    // Query directly to ensure we're getting the expected data
+    const query = `
+      SELECT *
+      FROM budget_master
+      ORDER BY department, type, key_account
+    `;
+    
+    // Use db.query directly to avoid any potential issues with model methods
+    const [rows] = await db.promisePool.query(query);
+    
+    console.log('Budget Master Data results:', JSON.stringify(rows, null, 2).substring(0, 500) + '...');
+    
+    res.json(rows);
+  } catch (error) {
+    console.error('Error fetching budget master data:', error);
+    res.status(500).json({ message: 'Server error fetching budget data' });
+  }
+};
+
+/**
+ * Get department budget master data
+ * @param {Object} req - Express request object
+ * @param {Object} res - Express response object
+ */
+exports.getDepartmentBudgetMasterData = async (req, res) => {
+  try {
+    const { departmentId } = req.params;
+    
+    console.log(`Fetching budget master data for department ID: ${departmentId}`);
+    
+    // Query directly with both string and number comparison to handle potential type mismatches
+    const query = `
+      SELECT *
+      FROM budget_master
+      WHERE department = ? OR department = ?
+      ORDER BY type, key_account
+    `;
+    
+    // Use db.query directly to avoid any potential issues with model methods
+    const [rows] = await db.promisePool.query(query, [departmentId, Number(departmentId)]);
+    
+    console.log(`Found ${rows.length} records for department ID: ${departmentId}`);
+    if (rows.length === 0) {
+      console.log('No data found. Dumping the first few records from budget_master:');
+      const [allRows] = await db.promisePool.query('SELECT * FROM budget_master LIMIT 5');
+      console.log(JSON.stringify(allRows, null, 2));
+    }
+    
+    res.json(rows);
+  } catch (error) {
+    console.error('Error fetching department budget data:', error);
+    res.status(500).json({ message: 'Server error fetching department budget data' });
+  }
+};
+
+/**
  * Create a new credit request
  * @param {Object} req - Express request object
  * @param {Object} res - Express response object
@@ -81,6 +148,22 @@ exports.getLatestUserCreditRequest = async (req, res) => {
 };
 
 /**
+ * Get all user credit requests
+ * @param {Object} req - Express request object
+ * @param {Object} res - Express response object
+ */
+exports.getUserCreditRevisionRequests = async (req, res) => {
+  try {
+    const userId = req.user.id;
+    const requests = await creditModel.getUserCreditRevisionRequests(userId);
+    res.json(requests);
+  } catch (error) {
+    console.error('Error fetching user revision requests:', error);
+    res.status(500).json({ message: 'Server error fetching user revision requests' });
+  }
+};
+
+/**
  * Get all pending credit requests (admin only)
  * @param {Object} req - Express request object
  * @param {Object} res - Express response object
@@ -113,38 +196,6 @@ exports.getAllRevisionRequests = async (req, res) => {
   } catch (error) {
     console.error('Error fetching revision credit requests:', error);
     res.status(500).json({ message: 'Server error fetching revision credit requests' });
-  }
-};
-
-/**
- * Get user revision credit requests
- * @param {Object} req - Express request object
- * @param {Object} res - Express response object
- */
-exports.getUserCreditRevisionRequests = async (req, res) => {
-  try {
-    const userId = req.user.id;
-    const requests = await creditModel.getUserCreditRevisionRequests(userId);
-    res.json(requests);
-  } catch (error) {
-    console.error('Error fetching user revision requests:', error);
-    res.status(500).json({ message: 'Server error fetching user revision requests' });
-  }
-};
-
-/**
- * Get department pending credit requests
- * @param {Object} req - Express request object
- * @param {Object} res - Express response object
- */
-exports.getDepartmentPendingRequests = async (req, res) => {
-  try {
-    const departmentId = req.params.departmentId;
-    const requests = await creditModel.getDepartmentPendingRequests(departmentId);
-    res.json(requests);
-  } catch (error) {
-    console.error('Error fetching department pending requests:', error);
-    res.status(500).json({ message: 'Server error fetching department pending requests' });
   }
 };
 
@@ -280,12 +331,11 @@ exports.updateRevisionVersion = async (req, res) => {
 };
 
 /**
- * Resolve revision and merge into original request (admin only)
- * szegénység
+ * Resolve revision (admin only)
  * @param {Object} req - Express request object
  * @param {Object} res - Express response object
  */
-exports.resolveCreditRequest = async (req, res) => {
+exports.resolveRevision = async (req, res) => {
   try {
     const requestId = req.params.id;
     const adminId = req.user.id;
@@ -345,7 +395,7 @@ exports.saveDraftCreditRequest = async (req, res) => {
     const userId = req.user.id;
     const { department_id, entries } = req.body;
     
-    if (!department_id || !entries || !Array.isArray(entries) || entries.length === 0) {
+    if (!department_id || !entries || !Array.isArray(entries)) {
       return res.status(400).json({ message: 'Invalid draft data' });
     }
     
@@ -378,6 +428,90 @@ exports.getUserDraftCreditRequests = async (req, res) => {
   } catch (error) {
     console.error('Error fetching draft credit requests:', error);
     res.status(500).json({ message: 'Server error fetching draft credit requests' });
+  }
+};
+
+// Add missing function for createRevisionRequest that was causing errors
+/**
+ * Create revision request (admin only)
+ * @param {Object} req - Express request object
+ * @param {Object} res - Express response object
+ */
+exports.createRevisionRequest = async (req, res) => {
+  try {
+    const requestId = req.params.id;
+    const adminId = req.user.id;
+    const { feedback } = req.body;
+    
+    if (!feedback) {
+      return res.status(400).json({ message: 'Feedback is required for revision' });
+    }
+    
+    if (req.user.role !== 'admin') {
+      return res.status(403).json({ message: 'Access denied. Admin rights required.' });
+    }
+    
+    // Check if the model function exists, otherwise use a simple implementation
+    if (typeof creditModel.createRevisionRequest === 'function') {
+      const result = await creditModel.createRevisionRequest(requestId, adminId, feedback);
+      res.json({
+        message: 'Revision created successfully',
+        revisionId: result.revisionId
+      });
+    } else {
+      // Simplified fallback
+      await creditModel.query(
+        `UPDATE budget_withdrawal_requests
+         SET status = 'revision', feedback = ?, reviewed_by = ?, updated_at = CURRENT_TIMESTAMP
+         WHERE id = ?`,
+        [feedback, adminId, requestId]
+      );
+      res.json({ message: 'Revision created successfully' });
+    }
+  } catch (error) {
+    console.error('Error creating revision request:', error);
+    res.status(500).json({ message: 'Server error creating revision request' });
+  }
+};
+
+/**
+ * Update revision request
+ * @param {Object} req - Express request object
+ * @param {Object} res - Express response object
+ */
+exports.updateRevisionRequest = async (req, res) => {
+  try {
+    const requestId = req.params.id;
+    const userId = req.user.id;
+    const { entries } = req.body;
+    
+    if (!entries || !Array.isArray(entries)) {
+      return res.status(400).json({ message: 'Valid entries are required' });
+    }
+    
+    // Check if we have a proper model function, otherwise implement directly
+    if (typeof creditModel.updateRevisionRequest === 'function') {
+      await creditModel.updateRevisionRequest({
+        request_id: requestId,
+        user_id: userId,
+        entries
+      });
+    } else {
+      // Simplified fallback
+      for (const entry of entries) {
+        await creditModel.query(
+          `UPDATE budget_withdrawal_requests
+           SET amount = ?, reason = ?, updated_at = CURRENT_TIMESTAMP
+           WHERE id = ? AND user_id = ?`,
+          [entry.amount, entry.reason, entry.id, userId]
+        );
+      }
+    }
+    
+    res.json({ message: 'Revision updated successfully' });
+  } catch (error) {
+    console.error('Error updating revision:', error);
+    res.status(500).json({ message: 'Server error updating revision' });
   }
 };
 

@@ -18,7 +18,7 @@ const Sidebar = () => {
     { to: '/admin/dashboard', label: 'Dashboard', icon: 'home' },
     { to: '/admin/key-accounts', label: 'Key Accounts', icon: 'money-bill' },
     { to: '/admin/key-account-allocation', label: 'Budget Allocation', icon: 'wallet' },
-    { to: '/admin/withdrawals', label: 'Withdrawal Requests', icon: 'file-invoice-dollar' },
+    { to: '/admin/credits', label: 'Credit Requests', icon: 'file-invoice-dollar' },
     { to: '/admin/departments', label: 'Departments', icon: 'building' },
     { to: '/admin/budget-limits', label: 'Budget Limits', icon: 'chart-pie' },
     { to: '/admin/users', label: 'User Management', icon: 'users' },
@@ -27,8 +27,8 @@ const Sidebar = () => {
 
   const userLinks = [
     { to: '/dashboard', label: 'Dashboard', icon: 'home' },
-    { to: '/new-withdrawal', label: 'New Withdrawal', icon: 'plus-circle' },
-    { to: '/withdrawal-history', label: 'Withdrawal History', icon: 'history' },
+    { to: '/new-credit', label: 'New Credit', icon: 'plus-circle' },
+    { to: '/credit-history', label: 'Credit History', icon: 'history' },
     { to: '/revision-requests', label: 'Revision Requests', icon: 'edit' }
   ];
 

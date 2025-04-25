@@ -4,6 +4,12 @@ const creditController = require('../controllers/creditController');
 const { authenticateToken } = require('../middleware/authMiddleware');
 const { isAdmin } = require('../middleware/roleMiddleware');
 
+// Get budget master data
+router.get('/budget-master', authenticateToken, creditController.getBudgetMasterData);
+
+// Get department budget master data
+router.get('/budget-master/department/:departmentId', authenticateToken, creditController.getDepartmentBudgetMasterData);
+
 // Create a new credit request
 router.post('/', authenticateToken, creditController.createCreditRequest);
 
@@ -22,9 +28,6 @@ router.get('/revisions/all', authenticateToken, isAdmin, creditController.getAll
 // Get all pending credit requests (admin only)
 router.get('/pending', authenticateToken, isAdmin, creditController.getAllPendingRequests);
 
-// Get department pending credit requests
-router.get('/pending/department/:departmentId', authenticateToken, creditController.getDepartmentPendingRequests);
-
 // Get credit request by ID
 router.get('/:id', authenticateToken, creditController.getCreditRequestById);
 
@@ -34,14 +37,14 @@ router.put('/:id/approve', authenticateToken, isAdmin, creditController.approveC
 // Reject credit request (admin only)
 router.put('/:id/reject', authenticateToken, isAdmin, creditController.rejectCreditRequest);
 
-// Create revision version of credit request (admin only)
-router.post('/:id/revision', authenticateToken, isAdmin, creditController.createRevisionVersion);
+// Create revision request (admin only)
+router.post('/:id/revision', authenticateToken, isAdmin, creditController.createRevisionRequest);
 
-// Update revision version
-router.put('/:id/update', authenticateToken, creditController.updateRevisionVersion);
+// Update revision request
+router.put('/:id/update', authenticateToken, creditController.updateRevisionRequest);
 
-// Resolve revision and merge into original request (admin only)
-router.put('/:id/resolve', authenticateToken, isAdmin, creditController.resolveCreditRequest);
+// Resolve revision (admin only)
+router.put('/:id/resolve', authenticateToken, isAdmin, creditController.resolveRevision);
 
 // Check available budget for a key account
 router.get('/check-budget/:accountId', authenticateToken, creditController.checkAvailableBudget);

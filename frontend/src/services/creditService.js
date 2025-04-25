@@ -1,98 +1,169 @@
 import api from './api';
 
-
-
-
 const creditService = {
   createCreditRequest: async (data) => {
-    const response = await api.post('/credits', data);
-    return response.data;
+    try {
+      const response = await api.post('/credits', data);
+      return response;
+    } catch (error) {
+      throw error;
+    }
   },
 
   getUserCreditRequests: async () => {
-    const response = await api.get('/credits/user');
-    return response.data;
+    try {
+      const response = await api.get('/credits/user');
+      return response;
+    } catch (error) {
+      throw error;
+    }
   },
 
   getLatestUserCreditRequest: async () => {
-    const response = await api.get('/credits/user/latest');
-    return response.data;
+    try {
+      const response = await api.get('/credits/user/latest');
+      return response;
+    } catch (error) {
+      console.error('Error fetching latest user credit request:', error);
+      return null;
+    }
   },
 
-
   getUserCreditRevisionRequests: async () => {
-    const response = await api.get('/credits/revisions');
-    return response.data;
+    try {
+      const response = await api.get('/credits/revisions');
+      return response;
+    } catch (error) {
+      throw error;
+    }
   },
 
   getAllRevisionRequests: async () => {
-    const response = await api.get('/credits/revisions/all');
-    return response.data;
+    try {
+      const response = await api.get('/credits/revisions/all');
+      return response;
+    } catch (error) {
+      throw error;
+    }
   },
 
   getAllPendingRequests: async () => {
-    const response = await api.get('/credits/pending');
-    return response.data;
+    try {
+      const response = await api.get('/credits/pending');
+      return response;
+    } catch (error) {
+      throw error;
+    }
   },
 
   getCreditRequestById: async (id) => {
-    const response = await api.get(`/credits/${id}`);
-    return response.data;
+    try {
+      const response = await api.get(`/credits/${id}`);
+      return response;
+    } catch (error) {
+      throw error;
+    }
   },
 
   getCreditRequestVersions: async (requestId) => {
-    const response = await api.get(`/credits/${requestId}/versions`);
-    return response.data;
+    try {
+      const response = await api.get(`/credits/${requestId}/versions`);
+      return response;
+    } catch (error) {
+      throw error;
+    }
   },
 
   approveCreditRequest: async (id, feedback) => {
-    const response = await api.put(`/credits/${id}/approve`, { feedback });
-    return response.data;
+    try {
+      const response = await api.put(`/credits/${id}/approve`, { feedback });
+      return response;
+    } catch (error) {
+      throw error;
+    }
   },
 
-  rejectCreditRequest: async (id, feedback) => {
-    const response = await api.put(`/credits/${id}/reject`, { feedback });
-    return response.data;
+  rejectCreditRequest: async (id, reason) => {
+    try {
+      const response = await api.put(`/credits/${id}/reject`, { reason });
+      return response;
+    } catch (error) {
+      throw error;
+    }
   },
 
-  createRevisionVersion: async (id, data) => {
-    const response = await api.post(`/credits/${id}/revision`, data);
-    return response.data;
+  createRevisionVersion: async (id, feedback, amount) => {
+    try {
+      const response = await api.post(`/credits/${id}/revision`, { feedback, amount });
+      return response;
+    } catch (error) {
+      throw error;
+    }
   },
 
   updateRevisionVersion: async (id, data) => {
-    const response = await api.put(`/credits/${id}/update`, data);
-    return response.data;
+    try {
+      const response = await api.put(`/credits/${id}/update`, data);
+      return response;
+    } catch (error) {
+      throw error;
+    }
   },
 
-  resolveRevision: async (id, data) => {
-    const response = await api.put(`/credits/${id}/resolve`, data);
-    return response.data;
+  resolveRevision: async (id) => {
+    try {
+      const response = await api.put(`/credits/${id}/resolve`);
+      return response;
+    } catch (error) {
+      throw error;
+    }
   },
 
   checkAvailableBudget: async (accountId) => {
-    const response = await api.get(`/credits/check-budget/${accountId}`);
-    return response.data;
+    try {
+      const response = await api.get(`/credits/check-budget/${accountId}`);
+      return response;
+    } catch (error) {
+      throw error;
+    }
   },
 
   getDepartmentSpendingSummary: async (departmentId) => {
-    const response = await api.get(`/credits/summary/department/${departmentId}`);
-    return response.data;
+    try {
+      const response = await api.get(`/credits/summary/department/${departmentId}`);
+      return response;
+    } catch (error) {
+      throw error;
+    }
   },
 
   saveDraftCreditRequest: async (data) => {
-    const response = await api.post('/credits/draft', data);
-    return response.data;
+    try {
+      const response = await api.post('/credits/draft', data);
+      return response;
+    } catch (error) {
+      throw error;
+    }
   },
 
   getUserDraftCreditRequests: async () => {
-    const response = await api.get('/credits/draft');
-    return response.data;
+    try {
+      const response = await api.get('/credits/draft');
+      return response;
+    } catch (error) {
+      throw error;
+    }
   },
 
-  getKeyAccounts: async () => {
-    const response = await api.get('/key-accounts');
-    return response.data;
+  getBudgetMasterData: async () => {
+    try {
+      const response = await api.get('/budget-master');
+      return response;
+    } catch (error) {
+      console.error('Error fetching budget master data:', error);
+      // Return empty array instead of throwing to make the app more resilient
+      return [];
+    }
   }
 };
 
