@@ -496,15 +496,17 @@ exports.saveDraftCreditRequest = async (req, res) => {
       status: 'draft'
     };
     
-    await creditModel.saveDraftCreditRequest(requestData);
+    const result = await creditModel.saveDraftCreditRequest(requestData);
     
-    res.json({ message: 'Draft saved successfully' });
+    res.json({ 
+      message: 'Draft saved successfully',
+      data: result
+    });
   } catch (error) {
     console.error('Error saving draft credit request:', error);
     res.status(500).json({ message: 'Server error saving draft credit request' });
   }
 };
-
 /**
  * Get user draft credit requests
  * @param {Object} req - Express request object

@@ -1,10 +1,9 @@
 // backend/models/keyAccountModel.js
-
 const db = require('../config/db');
 
 exports.getAllKeyAccounts = async () => {
   try {
-    const [rows] = await pool.query(`
+    const rows = await db.query(`
       SELECT * 
       FROM budget_key_accounts
       ORDER BY name ASC
@@ -18,7 +17,7 @@ exports.getAllKeyAccounts = async () => {
 
 exports.getKeyAccountById = async (id) => {
   try {
-    const [rows] = await pool.query(`
+    const rows = await db.query(`
       SELECT * 
       FROM budget_key_accounts
       WHERE id = ?
@@ -34,7 +33,7 @@ exports.getKeyAccountById = async (id) => {
 exports.getKeyAccountWithUsage = async (id) => {
   try {
     // Get the account and its total budget
-    const [accounts] = await pool.query(`
+    const accounts = await db.query(`
       SELECT *
       FROM budget_key_accounts
       WHERE id = ?
@@ -47,7 +46,7 @@ exports.getKeyAccountWithUsage = async (id) => {
     const account = accounts[0];
     
     // Calculate the used amount from transactions
-    const [usageResults] = await pool.query(`
+    const usageResults = await db.query(`
       SELECT SUM(amount) as used_amount
       FROM budget_transactions
       WHERE key_account_id = ?
@@ -71,14 +70,14 @@ exports.getKeyAccountWithUsage = async (id) => {
 exports.getKeyAccountsWithUsage = async () => {
   try {
     // Get all accounts
-    const [accounts] = await pool.query(`
+    const accounts = await db.query(`
       SELECT *
       FROM budget_key_accounts
       ORDER BY name ASC
     `);
     
     // Get usage data for all accounts
-    const [usageResults] = await pool.query(`
+    const usageResults = await db.query(`
       SELECT key_account_id, SUM(amount) as used_amount
       FROM budget_transactions
       GROUP BY key_account_id
@@ -111,20 +110,19 @@ exports.getKeyAccountsWithUsage = async () => {
 };
 
 exports.upsertKeyAccount = async (accountData) => {
-  const connection = await pool.getConnection();
-  
   try {
-    await connection.beginTransaction();
+    // Begin transaction
+    await db.promisePool.query('START TRANSACTION');
     
     // Check if the account exists
-    const [existingAccounts] = await connection.query(
+    const existingAccounts = await db.query(
       `SELECT * FROM budget_key_accounts WHERE id = ?`,
       [accountData.id]
     );
     
     if (existingAccounts.length > 0) {
       // Update existing account
-      await connection.query(
+      await db.query(
         `UPDATE budget_key_accounts
          SET name = ?, account_type = ?, total_budget = ?
          WHERE id = ?`,
@@ -132,27 +130,25 @@ exports.upsertKeyAccount = async (accountData) => {
       );
     } else {
       // Insert new account
-      await connection.query(
+      await db.query(
         `INSERT INTO budget_key_accounts (id, name, account_type, total_budget)
          VALUES (?, ?, ?, ?)`,
         [accountData.id, accountData.name, accountData.account_type, accountData.total_budget]
       );
     }
     
-    await connection.commit();
+    await db.promisePool.query('COMMIT');
     return { success: true };
   } catch (error) {
-    await connection.rollback();
+    await db.promisePool.query('ROLLBACK');
     console.error('Error upserting key account:', error);
     throw error;
-  } finally {
-    connection.release();
   }
 };
 
 exports.getAccountSpendingByDepartment = async (departmentId) => {
   try {
-    const [rows] = await pool.query(`
+    const rows = await db.query(`
       SELECT 
         ka.id, 
         ka.name as account_name, 
@@ -178,7 +174,7 @@ exports.getAccountSpendingByDepartment = async (departmentId) => {
 
 exports.getDepartmentSpendingByAccount = async (accountId) => {
   try {
-    const [rows] = await pool.query(`
+    const rows = await db.query(`
       SELECT 
         d.id as department_id, 
         d.name as department_name,
@@ -200,19 +196,19 @@ exports.getDepartmentSpendingByAccount = async (accountId) => {
 exports.getBudgetSummary = async () => {
   try {
     // Get total allocated budget
-    const [totalBudgetResult] = await pool.query(`
+    const totalBudgetResult = await db.query(`
       SELECT SUM(total_budget) as total_allocated
       FROM budget_key_accounts
     `);
     
     // Get total used budget
-    const [totalUsedResult] = await pool.query(`
+    const totalUsedResult = await db.query(`
       SELECT SUM(amount) as total_used
       FROM budget_transactions
     `);
     
-    const totalAllocated = totalBudgetResult[0].total_allocated || 0;
-    const totalUsed = totalUsedResult[0].total_used || 0;
+    const totalAllocated = totalBudgetResult[0]?.total_allocated || 0;
+    const totalUsed = totalUsedResult[0]?.total_used || 0;
     
     return {
       total_allocated: totalAllocated,

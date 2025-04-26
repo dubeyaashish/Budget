@@ -407,38 +407,52 @@ const NewCreditRequest = () => {
     }
   };
 
-  const saveAsDraft = async () => {
-    if (!formData.department_id) {
-      setError('Please select a department');
-      return;
+// Fixed saveAsDraft function for NewCreditRequest.js
+const saveAsDraft = async () => {
+  if (!formData.department_id) {
+    setError('Please select a department');
+    return;
+  }
+
+  try {
+    setIsSubmitting(true);
+    setError(null);
+
+    // Create payload with minimal validation - drafts can be incomplete
+    const payload = {
+      department_id: parseInt(formData.department_id),
+      entries: accountEntries
+        .filter((entry) => entry.key_account_id) // Keep only entries with key account ID
+        .map((entry) => ({
+          key_account_id: entry.key_account_id,
+          amount: parseFloat(entry.amount) || 0, // Parse amount with fallback to 0
+          reason: entry.reason || '',
+        })),
+      version: formData.version,
+      status: 'draft',
+    };
+
+    console.log('Saving draft with payload:', payload);
+
+    const response = await creditService.saveDraftCreditRequest(payload);
+    
+    console.log('Draft save response:', response);
+    setSuccess('Request saved as draft');
+    
+    // Optionally set request_id if returned from the API
+    if (response && response.data && response.data.id) {
+      setFormData(prev => ({
+        ...prev,
+        request_id: response.data.id
+      }));
     }
-
-    try {
-      setIsSubmitting(true);
-      setError(null);
-
-      const payload = {
-        department_id: parseInt(formData.department_id),
-        entries: accountEntries
-          .filter((entry) => entry.key_account_id)
-          .map((entry) => ({
-            key_account_id: entry.key_account_id,
-            amount: parseFloat(entry.amount) || 0,
-            reason: entry.reason,
-          })),
-        version: formData.version,
-        status: 'draft',
-      };
-
-      await creditService.saveDraftCreditRequest(payload);
-      setSuccess('Request saved as draft');
-    } catch (err) {
-      console.error('Error saving draft:', err);
-      setError('Failed to save draft');
-    } finally {
-      setIsSubmitting(false);
-    }
-  };
+  } catch (err) {
+    console.error('Error saving draft:', err);
+    setError('Failed to save draft: ' + (err.response?.data?.message || err.message || 'Unknown error'));
+  } finally {
+    setIsSubmitting(false);
+  }
+};
 
   const startNewRequest = () => {
     setFormData({

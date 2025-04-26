@@ -3,7 +3,7 @@ const db = require('../config/db');
 
 exports.getBudgetMasterData = async () => {
   try {
-    const [rows] = await pool.query(`
+    const rows = await db.query(`
       SELECT 
         ka.id as key_account,
         ka.name as key_account_name,
@@ -11,7 +11,7 @@ exports.getBudgetMasterData = async () => {
         ka.total_budget as amount,
         d.id as department,
         d.name as department_name
-      FROM key_accounts ka
+      FROM budget_key_accounts ka
       JOIN budget_departments d ON 1=1
       ORDER BY d.name ASC, ka.name ASC
     `);
@@ -24,7 +24,7 @@ exports.getBudgetMasterData = async () => {
 
 exports.getDepartmentBudgetMasterData = async (departmentId) => {
   try {
-    const [rows] = await pool.query(`
+    const rows = await db.query(`
       SELECT 
         ka.id as key_account,
         ka.name as key_account_name,
@@ -32,7 +32,7 @@ exports.getDepartmentBudgetMasterData = async (departmentId) => {
         ka.total_budget as amount,
         d.id as department,
         d.name as department_name
-      FROM key_accounts ka
+      FROM budget_key_accounts ka
       JOIN budget_departments d ON d.id = ?
       ORDER BY ka.name ASC
     `, [departmentId]);
@@ -44,7 +44,7 @@ exports.getDepartmentBudgetMasterData = async (departmentId) => {
 };
 
 exports.createCreditRequest = async (userData) => {
-  const connection = await pool.getConnection();
+  const connection = await db.pool.getConnection();
   
   try {
     await connection.beginTransaction();
@@ -52,7 +52,7 @@ exports.createCreditRequest = async (userData) => {
     // Insert entries for the request
     const entries = [];
     for (const entry of userData.entries) {
-      const [result] = await connection.query(
+      const result = await db.query(
         `INSERT INTO budget_withdrawal_requests
          (user_id, department_id, key_account_id, amount, reason, status, version)
          VALUES (?, ?, ?, ?, ?, ?, ?)`,
@@ -87,12 +87,12 @@ exports.createCreditRequest = async (userData) => {
 
 exports.getLatestUserCreditRequest = async (userId) => {
   try {
-    const [rows] = await pool.query(`
+    const rows = await db.query(`
       SELECT r.*, d.name as department_name,
              ka.name as account_name, ka.account_type
       FROM budget_withdrawal_requests r
       JOIN budget_departments d ON r.department_id = d.id
-      JOIN key_accounts ka ON r.key_account_id = ka.id
+      JOIN budget_key_accounts ka ON r.key_account_id = ka.id
       WHERE r.user_id = ?
       ORDER BY r.created_at DESC
       LIMIT 1`,
@@ -107,12 +107,12 @@ exports.getLatestUserCreditRequest = async (userId) => {
 
 exports.getUserCreditRequests = async (userId) => {
   try {
-    const [rows] = await pool.query(`
+    const rows = await db.query(`
       SELECT r.*, d.name as department_name,
              ka.name as account_name, ka.account_type
       FROM budget_withdrawal_requests r
       JOIN budget_departments d ON r.department_id = d.id
-      JOIN key_accounts ka ON r.key_account_id = ka.id
+      JOIN budget_key_accounts ka ON r.key_account_id = ka.id
       WHERE r.user_id = ?
       ORDER BY r.created_at DESC`,
       [userId]
@@ -126,12 +126,12 @@ exports.getUserCreditRequests = async (userId) => {
 
 exports.getUserRevisionRequests = async (userId) => {
   try {
-    const [rows] = await pool.query(`
+    const rows = await db.query(`
       SELECT r.*, d.name as department_name,
              ka.name as account_name, ka.account_type
       FROM budget_withdrawal_requests r
       JOIN budget_departments d ON r.department_id = d.id
-      JOIN key_accounts ka ON r.key_account_id = ka.id
+      JOIN budget_key_accounts ka ON r.key_account_id = ka.id
       WHERE r.user_id = ? AND r.status = 'revision'
       ORDER BY r.created_at DESC`,
       [userId]
@@ -145,14 +145,14 @@ exports.getUserRevisionRequests = async (userId) => {
 
 exports.getAllPendingRequests = async () => {
   try {
-    const [rows] = await pool.query(`
+    const rows = await db.query(`
       SELECT r.*, d.name as department_name,
              u.name as requester_name, u.surname as requester_surname,
              ka.name as account_name, ka.account_type
       FROM budget_withdrawal_requests r
       JOIN budget_departments d ON r.department_id = d.id
-      JOIN users u ON r.user_id = u.id
-      JOIN key_accounts ka ON r.key_account_id = ka.id
+      JOIN budget_users u ON r.user_id = u.id
+      JOIN budget_key_accounts ka ON r.key_account_id = ka.id
       WHERE r.status = 'pending'
       ORDER BY r.created_at DESC`
     );
@@ -165,14 +165,14 @@ exports.getAllPendingRequests = async () => {
 
 exports.getAllRevisionRequests = async () => {
   try {
-    const [rows] = await pool.query(`
+    const rows = await db.query(`
       SELECT r.*, d.name as department_name,
              u.name as requester_name, u.surname as requester_surname,
              ka.name as account_name, ka.account_type
       FROM budget_withdrawal_requests r
       JOIN budget_departments d ON r.department_id = d.id
-      JOIN users u ON r.user_id = u.id
-      JOIN key_accounts ka ON r.key_account_id = ka.id
+      JOIN budget_users u ON r.user_id = u.id
+      JOIN budget_key_accounts ka ON r.key_account_id = ka.id
       WHERE r.status = 'revision'
       ORDER BY r.created_at DESC`
     );
@@ -185,14 +185,14 @@ exports.getAllRevisionRequests = async () => {
 
 exports.getCreditRequestById = async (requestId) => {
   try {
-    const [rows] = await pool.query(`
+    const rows = await db.query(`
       SELECT r.*, d.name as department_name,
              u.name as requester_name, u.surname as requester_surname,
              ka.name as account_name, ka.account_type
       FROM budget_withdrawal_requests r
       JOIN budget_departments d ON r.department_id = d.id
-      JOIN users u ON r.user_id = u.id
-      JOIN key_accounts ka ON r.key_account_id = ka.id
+      JOIN budget_users u ON r.user_id = u.id
+      JOIN budget_key_accounts ka ON r.key_account_id = ka.id
       WHERE r.id = ?`,
       [requestId]
     );
@@ -205,13 +205,12 @@ exports.getCreditRequestById = async (requestId) => {
 };
 
 exports.approveCreditRequest = async (requestId, adminId, feedback) => {
-  const connection = await pool.getConnection();
-  
   try {
-    await connection.beginTransaction();
+    // Begin transaction
+    await db.promisePool.query('START TRANSACTION');
     
     // Update request status
-    await connection.query(
+    await db.query(
       `UPDATE budget_withdrawal_requests
        SET status = 'approved', feedback = ?
        WHERE id = ?`,
@@ -219,7 +218,7 @@ exports.approveCreditRequest = async (requestId, adminId, feedback) => {
     );
     
     // Get the request details
-    const [rows] = await connection.query(
+    const rows = await db.query(
       `SELECT * FROM budget_withdrawal_requests WHERE id = ?`,
       [requestId]
     );
@@ -231,28 +230,26 @@ exports.approveCreditRequest = async (requestId, adminId, feedback) => {
     const request = rows[0];
     
     // Record transaction
-    await connection.query(
+    await db.query(
       `INSERT INTO budget_transactions
        (request_id, key_account_id, amount, admin_id)
        VALUES (?, ?, ?, ?)`,
       [requestId, request.key_account_id, request.amount, adminId]
     );
     
-    await connection.commit();
+    await db.promisePool.query('COMMIT');
     return { success: true };
   } catch (error) {
-    await connection.rollback();
+    await db.promisePool.query('ROLLBACK');
     console.error('Error approving credit request:', error);
     throw error;
-  } finally {
-    connection.release();
   }
 };
 
 exports.createRevisionVersion = async (requestId, feedback, amount) => {
   try {
     // Update the request status
-    await pool.query(
+    await db.query(
       `UPDATE budget_withdrawal_requests
        SET status = 'revision', feedback = ?, suggested_amount = ?
        WHERE id = ?`,
@@ -267,13 +264,12 @@ exports.createRevisionVersion = async (requestId, feedback, amount) => {
 };
 
 exports.updateRevisionVersion = async (requestId, userData) => {
-  const connection = await pool.getConnection();
-  
   try {
-    await connection.beginTransaction();
+    // Begin transaction
+    await db.promisePool.query('START TRANSACTION');
     
     // Get the original request
-    const [originalRequest] = await connection.query(
+    const originalRequest = await db.query(
       `SELECT * FROM budget_withdrawal_requests WHERE id = ?`,
       [requestId]
     );
@@ -286,7 +282,7 @@ exports.updateRevisionVersion = async (requestId, userData) => {
     const currentVersion = original.version;
     
     // Create a new version
-    const [result] = await connection.query(
+    const result = await db.query(
       `INSERT INTO budget_withdrawal_requests
        (user_id, department_id, key_account_id, amount, reason, status, version, parent_request_id)
        VALUES (?, ?, ?, ?, ?, 'pending', ?, ?)`,
@@ -303,20 +299,18 @@ exports.updateRevisionVersion = async (requestId, userData) => {
     
     const newRequestId = result.insertId;
     
-    await connection.commit();
+    await db.promisePool.query('COMMIT');
     return { success: true, requestId: newRequestId };
   } catch (error) {
-    await connection.rollback();
+    await db.promisePool.query('ROLLBACK');
     console.error('Error updating revision version:', error);
     throw error;
-  } finally {
-    connection.release();
   }
 };
 
 exports.resolveRevision = async (requestId) => {
   try {
-    await pool.query(
+    await db.query(
       `UPDATE budget_withdrawal_requests
        SET status = 'pending'
        WHERE id = ?`,
@@ -331,10 +325,10 @@ exports.resolveRevision = async (requestId) => {
 
 exports.getDepartmentSpendingSummary = async (departmentId) => {
   try {
-    const [rows] = await pool.query(`
+    const rows = await db.query(`
       SELECT ka.account_type, SUM(t.amount) as total_spent
        FROM budget_transactions t
-       JOIN key_accounts ka ON t.key_account_id = ka.id
+       JOIN budget_key_accounts ka ON t.key_account_id = ka.id
        JOIN budget_withdrawal_requests r ON t.request_id = r.id
        WHERE r.department_id = ?
        GROUP BY ka.account_type
@@ -349,17 +343,16 @@ exports.getDepartmentSpendingSummary = async (departmentId) => {
 };
 
 exports.saveDraftCreditRequest = async (userData) => {
-  const connection = await pool.getConnection();
-  
   try {
-    await connection.beginTransaction();
+    // Begin transaction
+    await db.promisePool.query('START TRANSACTION');
     
     // Insert entries for the request as drafts
     const entries = [];
     for (const entry of userData.entries) {
       if (!entry.key_account_id) continue;
       
-      const [result] = await connection.query(
+      const result = await db.query(
         `INSERT INTO budget_withdrawal_requests
          (user_id, department_id, key_account_id, amount, reason, status, version)
          VALUES (?, ?, ?, ?, ?, 'draft', 1)`,
@@ -379,25 +372,23 @@ exports.saveDraftCreditRequest = async (userData) => {
       });
     }
     
-    await connection.commit();
+    await db.promisePool.query('COMMIT');
     return { success: true, entries };
   } catch (error) {
-    await connection.rollback();
+    await db.promisePool.query('ROLLBACK');
     console.error('Error saving draft credit request:', error);
     throw error;
-  } finally {
-    connection.release();
   }
 };
 
 exports.getUserDraftCreditRequests = async (userId) => {
   try {
-    const [rows] = await pool.query(`
+    const rows = await db.query(`
       SELECT r.*, d.name as department_name,
              ka.name as account_name, ka.account_type
       FROM budget_withdrawal_requests r
       JOIN budget_departments d ON r.department_id = d.id
-      JOIN key_accounts ka ON r.key_account_id = ka.id
+      JOIN budget_key_accounts ka ON r.key_account_id = ka.id
       WHERE r.user_id = ? AND r.status = 'draft'
       ORDER BY r.created_at DESC`,
       [userId]

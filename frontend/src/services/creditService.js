@@ -143,6 +143,7 @@ const creditService = {
       const response = await api.post('/credits/draft', data);
       return response;
     } catch (error) {
+      console.error('Error saving draft:', error);
       throw error;
     }
   },
@@ -167,7 +168,6 @@ const creditService = {
     }
   },
   
-  // Add the missing function
   getDepartmentBudgetMasterData: async (departmentId) => {
     try {
       const response = await api.get(`/credits/budget-master/department/${departmentId}`);

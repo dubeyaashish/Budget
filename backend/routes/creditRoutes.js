@@ -1,3 +1,4 @@
+// backend/routes/creditRoutes.js
 const express = require('express');
 const router = express.Router();
 const creditController = require('../controllers/creditController');
