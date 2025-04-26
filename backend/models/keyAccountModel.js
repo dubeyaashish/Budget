@@ -6,7 +6,7 @@ exports.getAllKeyAccounts = async () => {
   try {
     const [rows] = await pool.query(`
       SELECT * 
-      FROM key_accounts
+      FROM budget_key_accounts
       ORDER BY name ASC
     `);
     return rows;
@@ -20,7 +20,7 @@ exports.getKeyAccountById = async (id) => {
   try {
     const [rows] = await pool.query(`
       SELECT * 
-      FROM key_accounts
+      FROM budget_key_accounts
       WHERE id = ?
     `, [id]);
     
@@ -36,7 +36,7 @@ exports.getKeyAccountWithUsage = async (id) => {
     // Get the account and its total budget
     const [accounts] = await pool.query(`
       SELECT *
-      FROM key_accounts
+      FROM budget_key_accounts
       WHERE id = ?
     `, [id]);
     
@@ -73,7 +73,7 @@ exports.getKeyAccountsWithUsage = async () => {
     // Get all accounts
     const [accounts] = await pool.query(`
       SELECT *
-      FROM key_accounts
+      FROM budget_key_accounts
       ORDER BY name ASC
     `);
     
@@ -118,14 +118,14 @@ exports.upsertKeyAccount = async (accountData) => {
     
     // Check if the account exists
     const [existingAccounts] = await connection.query(
-      `SELECT * FROM key_accounts WHERE id = ?`,
+      `SELECT * FROM budget_key_accounts WHERE id = ?`,
       [accountData.id]
     );
     
     if (existingAccounts.length > 0) {
       // Update existing account
       await connection.query(
-        `UPDATE key_accounts
+        `UPDATE budget_key_accounts
          SET name = ?, account_type = ?, total_budget = ?
          WHERE id = ?`,
         [accountData.name, accountData.account_type, accountData.total_budget, accountData.id]
@@ -133,7 +133,7 @@ exports.upsertKeyAccount = async (accountData) => {
     } else {
       // Insert new account
       await connection.query(
-        `INSERT INTO key_accounts (id, name, account_type, total_budget)
+        `INSERT INTO budget_key_accounts (id, name, account_type, total_budget)
          VALUES (?, ?, ?, ?)`,
         [accountData.id, accountData.name, accountData.account_type, accountData.total_budget]
       );
@@ -159,7 +159,7 @@ exports.getAccountSpendingByDepartment = async (departmentId) => {
         ka.account_type, 
         ka.total_budget,
         COALESCE(SUM(t.amount), 0) as total_spent
-      FROM key_accounts ka
+      FROM budget_key_accounts ka
       LEFT JOIN budget_transactions t ON ka.id = t.key_account_id
       LEFT JOIN budget_withdrawal_requests r ON t.request_id = r.id AND r.department_id = ?
       GROUP BY ka.id
@@ -202,7 +202,7 @@ exports.getBudgetSummary = async () => {
     // Get total allocated budget
     const [totalBudgetResult] = await pool.query(`
       SELECT SUM(total_budget) as total_allocated
-      FROM key_accounts
+      FROM budget_key_accounts
     `);
     
     // Get total used budget

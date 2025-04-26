@@ -1,11 +1,8 @@
+// backend/controllers/creditController.js
 const creditModel = require('../models/creditModel');
 const keyAccountModel = require('../models/keyAccountModel');
+const db = require('../config/db');
 
-/**
- * Get budget master data
- * @param {Object} req - Express request object
- * @param {Object} res - Express response object
- */
 /**
  * Get budget master data
  * @param {Object} req - Express request object
@@ -13,19 +10,26 @@ const keyAccountModel = require('../models/keyAccountModel');
  */
 exports.getBudgetMasterData = async (req, res) => {
   try {
-    // Query directly to ensure we're getting the expected data
+    // Query that matches the actual structure where department contains names
     const query = `
-      SELECT *
-      FROM budget_master
-      ORDER BY department, type, key_account
+      SELECT 
+        bm.type,
+        bm.key_account,
+        bm.key_account_name,
+        bm.overall,
+        d.id as department,
+        bm.department as department_name,
+        bm.amount
+      FROM budget_master bm
+      JOIN budget_departments d ON bm.department = d.name
+      ORDER BY bm.department, bm.type, bm.key_account_name
     `;
     
-    // Use db.query directly to avoid any potential issues with model methods
-    const [rows] = await db.promisePool.query(query);
+    const results = await db.query(query);
     
-    console.log('Budget Master Data results:', JSON.stringify(rows, null, 2).substring(0, 500) + '...');
+    console.log('Budget Master Data results:', JSON.stringify(results.slice(0, 3), null, 2));
     
-    res.json(rows);
+    res.json(results);
   } catch (error) {
     console.error('Error fetching budget master data:', error);
     res.status(500).json({ message: 'Server error fetching budget data' });
@@ -33,7 +37,7 @@ exports.getBudgetMasterData = async (req, res) => {
 };
 
 /**
- * Get department budget master data
+ * Get department budget master data with fuzzy matching
  * @param {Object} req - Express request object
  * @param {Object} res - Express response object
  */
@@ -43,25 +47,111 @@ exports.getDepartmentBudgetMasterData = async (req, res) => {
     
     console.log(`Fetching budget master data for department ID: ${departmentId}`);
     
-    // Query directly with both string and number comparison to handle potential type mismatches
-    const query = `
-      SELECT *
-      FROM budget_master
-      WHERE department = ? OR department = ?
-      ORDER BY type, key_account
-    `;
+    // First, find the department name for the given ID
+    const deptQuery = `SELECT id, name, description FROM budget_departments WHERE id = ?`;
+    const deptResults = await db.query(deptQuery, [departmentId]);
     
-    // Use db.query directly to avoid any potential issues with model methods
-    const [rows] = await db.promisePool.query(query, [departmentId, Number(departmentId)]);
-    
-    console.log(`Found ${rows.length} records for department ID: ${departmentId}`);
-    if (rows.length === 0) {
-      console.log('No data found. Dumping the first few records from budget_master:');
-      const [allRows] = await db.promisePool.query('SELECT * FROM budget_master LIMIT 5');
-      console.log(JSON.stringify(allRows, null, 2));
+    if (deptResults.length === 0) {
+      console.log(`No department found with ID ${departmentId}`);
+      return res.json([]);
     }
     
-    res.json(rows);
+    const departmentInfo = deptResults[0];
+    const departmentName = departmentInfo.name;
+    console.log(`Found department: "${departmentName}" (${departmentInfo.description || 'No description'}) for ID: ${departmentId}`);
+    
+    // Get a list of all department names in budget_master
+    const deptNamesQuery = `SELECT DISTINCT department FROM budget_master`;
+    const deptNames = await db.query(deptNamesQuery);
+    console.log(`Found ${deptNames.length} unique department names in budget_master`);
+    
+    // Try to find a match in available department names
+    let matchedDeptName = null;
+    
+    // First, try exact match
+    for (const dept of deptNames) {
+      if (dept.department === departmentName) {
+        matchedDeptName = dept.department;
+        console.log(`Found exact department name match: "${matchedDeptName}"`);
+        break;
+      }
+    }
+    
+    // If no exact match, try matching with description
+    if (!matchedDeptName && departmentInfo.description) {
+      for (const dept of deptNames) {
+        if (dept.department === departmentInfo.description) {
+          matchedDeptName = dept.department;
+          console.log(`Found match with department description: "${matchedDeptName}"`);
+          break;
+        }
+      }
+    }
+    
+    // If still no match, try partial matches (contains)
+    if (!matchedDeptName) {
+      for (const dept of deptNames) {
+        if (dept.department && departmentName && 
+            (dept.department.includes(departmentName) || 
+            departmentName.includes(dept.department) ||
+            (departmentInfo.description && dept.department.includes(departmentInfo.description)) ||
+            (departmentInfo.description && departmentInfo.description.includes(dept.department)))) {
+          matchedDeptName = dept.department;
+          console.log(`Found partial match: "${matchedDeptName}"`);
+          break;
+        }
+      }
+    }
+    
+    // If still no match, use the department name we have
+    if (!matchedDeptName) {
+      console.log(`No matching department found in budget_master for "${departmentName}"`);
+      matchedDeptName = departmentName;
+    }
+    
+    // Now query budget_master using the matched department name
+    const query = `
+      SELECT 
+        bm.type,
+        bm.key_account,
+        bm.key_account_name,
+        bm.overall,
+        ? as department,
+        bm.department as department_name,
+        bm.amount
+      FROM budget_master bm
+      WHERE bm.department = ?
+      ORDER BY bm.type, bm.key_account_name
+    `;
+    
+    const results = await db.query(query, [departmentId, matchedDeptName]);
+    
+    console.log(`Found ${results.length} records for department name: "${matchedDeptName}"`);
+    
+    // If no results, create a fallback entry from key accounts
+    if (results.length === 0) {
+      console.log('No data found. Creating fallback data from key accounts...');
+      
+      // Get key accounts
+      const kaQuery = `SELECT id, name, account_type, total_budget FROM budget_key_accounts`;
+      const keyAccounts = await db.query(kaQuery);
+      
+      // Create fallback data
+      const fallbackResults = keyAccounts.map(ka => ({
+        type: ka.account_type || 'Unknown',
+        key_account: ka.id,
+        key_account_name: ka.name,
+        overall: ka.total_budget || 0,
+        department: departmentId,
+        department_name: departmentName,
+        amount: 0.0000
+      }));
+      
+      console.log(`Created ${fallbackResults.length} fallback entries from key accounts`);
+      res.json(fallbackResults);
+    } else {
+      res.json(results);
+    }
   } catch (error) {
     console.error('Error fetching department budget data:', error);
     res.status(500).json({ message: 'Server error fetching department budget data' });
