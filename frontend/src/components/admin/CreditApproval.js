@@ -1,4 +1,5 @@
-import React, { useState, useEffect, useContext } from 'react';
+// frontend/src/components/admin/CreditApproval.js
+import React, { useState, useEffect, useContext, useCallback } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { KeyAccountContext } from '../../context/KeyAccountContext';
 import creditService from '../../services/creditService';
@@ -34,6 +35,7 @@ const CreditApproval = () => {
     return acc;
   }, {});
 
+  // Fetch data on mount and when id changes
   useEffect(() => {
     const fetchData = async () => {
       try {
@@ -74,7 +76,7 @@ const CreditApproval = () => {
     setEditedAmount('');
     setRemark('');
     setVersionHistory([]);
-    navigate('/admin/credits', { replace: true });
+    navigate('/admin/credit', { replace: true });
   };
 
   const toggleRequestSelection = (req) => {
@@ -99,7 +101,7 @@ const CreditApproval = () => {
       console.error('Error fetching version history:', err);
       setError('Failed to load version history');
     }
-    navigate(`/admin/credits/${req.id}`, { replace: true });
+    navigate(`/admin/credit/${req.id}`, { replace: true });
   };
 
   const handleApprove = async (requestId) => {
@@ -122,11 +124,46 @@ const CreditApproval = () => {
       }
       
       setTimeout(() => {
-        navigate('/admin/credits');
+        navigate('/admin/credit');
       }, 2000);
     } catch (err) {
       console.error('Error approving credit request:', err);
       setError(err.response?.data?.message || 'Failed to approve credit request');
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
+
+  const handleReject = async (requestId) => {
+    if (!remark.trim()) {
+      setError('Please provide a reason for rejection');
+      return;
+    }
+    
+    try {
+      setIsSubmitting(true);
+      setError(null);
+      
+      await creditService.rejectCreditRequest(requestId, { reason: remark });
+      
+      setSuccess('Credit request rejected successfully');
+      setPendingRequests(pendingRequests.filter(req => req.id !== requestId));
+      setRevisionRequests(revisionRequests.filter(req => req.id !== requestId));
+      setSelectedRequests(selectedRequests.filter(req => req.id !== requestId));
+      
+      if (detailedRequest?.id === requestId) {
+        setDetailedRequest(null);
+        setEditedAmount('');
+        setRemark('');
+        setVersionHistory([]);
+      }
+      
+      setTimeout(() => {
+        navigate('/admin/credit');
+      }, 2000);
+    } catch (err) {
+      console.error('Error rejecting credit request:', err);
+      setError(err.response?.data?.message || 'Failed to reject credit request');
     } finally {
       setIsSubmitting(false);
     }
@@ -147,23 +184,38 @@ const CreditApproval = () => {
         const amount = parseFloat(editedAmount);
         if (isNaN(amount) || amount <= 0) {
           setError('Please enter a valid amount');
+          setIsSubmitting(false);
           return;
         }
+        
         if (!remark.trim()) {
           setError('Please provide a remark for the revision');
+          setIsSubmitting(false);
           return;
         }
         
-        // Create a new revision version
-        await creditService.createRevisionVersion(
+        // Create a revision request
+        await creditService.createRevisionRequest(
           detailedRequest.id,
-          remark,
-          amount
+          {
+            feedback: remark,
+            suggested_amount: amount
+          }
         );
         
-        setSuccess('Revision requested successfully');
+        setSuccess('Revision requested successfully. The user will be notified.');
+        
+        // Update UI state
         setPendingRequests(pendingRequests.filter(req => req.id !== detailedRequest.id));
-        setRevisionRequests([...revisionRequests, { ...detailedRequest, status: 'revision', amount }]);
+        
+        const revisedRequest = {
+          ...detailedRequest,
+          status: 'revision',
+          suggested_amount: amount,
+          feedback: remark
+        };
+        
+        setRevisionRequests([...revisionRequests, revisedRequest]);
         setDetailedRequest(null);
         setEditedAmount('');
         setRemark('');
@@ -172,44 +224,59 @@ const CreditApproval = () => {
       // Handle batch revisions
       else if (batchRevisions.length > 0) {
         const invalidRevision = batchRevisions.find(
-          rev => isNaN(parseFloat(rev.editedAmount)) || parseFloat(rev.editedAmount) <= 0 || !rev.remark.trim()
+          rev => !rev.remark.trim() || isNaN(parseFloat(rev.editedAmount)) || parseFloat(rev.editedAmount) <= 0
         );
+        
         if (invalidRevision) {
-          setError('Please provide valid amounts and remarks for all selected requests');
+          setError('Please provide feedback and valid amounts for all selected requests');
+          setIsSubmitting(false);
           return;
         }
         
+        // Process all revisions in parallel
         await Promise.all(
           batchRevisions.map(rev =>
-            creditService.createRevisionVersion(
+            creditService.createRevisionRequest(
               rev.id,
-              rev.remark,
-              parseFloat(rev.editedAmount)
+              {
+                feedback: rev.remark,
+                suggested_amount: parseFloat(rev.editedAmount)
+              }
             )
           )
         );
         
-        setSuccess('Revision requested successfully for selected requests');
+        setSuccess(`Revision requested for ${batchRevisions.length} requests. Users will be notified.`);
+        
+        // Update UI state
         const revisedIds = batchRevisions.map(rev => rev.id);
+        
+        // Remove from pending
         setPendingRequests(pendingRequests.filter(req => !revisedIds.includes(req.id)));
-        setRevisionRequests([
-          ...revisionRequests,
-          ...batchRevisions.map(rev => ({
-            ...pendingRequests.find(req => req.id === rev.id),
+        
+        // Add to revisions
+        const newRevisions = batchRevisions.map(rev => {
+          // Find the original request
+          const originalRequest = pendingRequests.find(req => req.id === rev.id);
+          return {
+            ...originalRequest,
             status: 'revision',
-            amount: parseFloat(rev.editedAmount)
-          }))
-        ]);
+            suggested_amount: parseFloat(rev.editedAmount),
+            feedback: rev.remark
+          };
+        });
+        
+        setRevisionRequests([...revisionRequests, ...newRevisions]);
+        
+        // Reset selection state
         setSelectedRequests([]);
-        setDetailedRequest(null);
-        setEditedAmount('');
-        setRemark('');
-        setVersionHistory([]);
+        setBatchRevisions([]);
       }
       
       closeRevisionModal();
+      
       setTimeout(() => {
-        navigate('/admin/credits');
+        navigate('/admin/credit');
       }, 2000);
     } catch (err) {
       console.error('Error requesting revision:', err);
@@ -238,7 +305,7 @@ const CreditApproval = () => {
       }
       
       setTimeout(() => {
-        navigate('/admin/credits');
+        navigate('/admin/credit');
       }, 2000);
     } catch (err) {
       console.error('Error resolving revision:', err);
@@ -254,8 +321,8 @@ const CreditApproval = () => {
         id: req.id,
         account_name: req.account_name,
         originalAmount: req.amount,
-        editedAmount: req.editedAmount || req.amount,
-        remark: req.remark || ''
+        editedAmount: req.amount || 0,
+        remark: ''
       }))
     );
     setShowRevisionModal(true);
@@ -359,11 +426,11 @@ const CreditApproval = () => {
                               {req.account_name || 'Not specified'}
                             </span>
                             <span className="text-sm text-gray-500">
-                              Requester: {req.requester_name}
+                              Requester: {req.requester_name} {req.requester_surname}
                             </span>
                             <span className="text-sm font-medium text-indigo-600 mt-1">
                               {formatCurrency(req.amount)}
-                              {req.status === 'revision' && ` (Version ${req.version})`}
+                              {req.status === 'revision' && ` (Version ${req.version || 1})`}
                             </span>
                             <span className="text-xs text-gray-500 mt-1">
                               {new Date(req.created_at).toLocaleString()}
@@ -414,7 +481,9 @@ const CreditApproval = () => {
                   </div>
                   <div>
                     <h3 className="text-sm font-medium text-gray-500">Requester</h3>
-                    <p className="mt-1 text-lg font-medium text-gray-900">{detailedRequest.requester_name}</p>
+                    <p className="mt-1 text-lg font-medium text-gray-900">
+                      {detailedRequest.requester_name} {detailedRequest.requester_surname}
+                    </p>
                   </div>
                   <div>
                     <h3 className="text-sm font-medium text-gray-500">Request Date</h3>
@@ -428,11 +497,11 @@ const CreditApproval = () => {
                   </div>
                   <div>
                     <h3 className="text-sm font-medium text-gray-500">Version</h3>
-                    <p className="mt-1 text-lg font-medium text-gray-900">{detailedRequest.version}</p>
+                    <p className="mt-1 text-lg font-medium text-gray-900">{detailedRequest.version || 1}</p>
                   </div>
                   <div>
                     <h3 className="text-sm font-medium text-gray-500">Status</h3>
-                    <p className="mt-1 text-lg font-medium text-gray-900">{detailedRequest.status}</p>
+                    <p className="mt-1 text-lg font-medium text-gray-900 capitalize">{detailedRequest.status}</p>
                   </div>
                 </div>
                 
@@ -527,13 +596,13 @@ const CreditApproval = () => {
                 
                 <div className="mb-6">
                   <label htmlFor="remark" className="block text-sm font-medium text-gray-700 mb-1">
-                    Remark for Revision
+                    Admin Remark
                   </label>
                   <textarea
                     id="remark"
                     rows={4}
                     className="shadow-sm focus:ring-indigo-500 focus:border-indigo-500 block w-full sm:text-sm border-gray-300 rounded-md"
-                    placeholder="Provide feedback or remarks for the revision"
+                    placeholder="Provide feedback or remarks for the revision or rejection"
                     value={remark}
                     onChange={(e) => setRemark(e.target.value)}
                   />
@@ -543,11 +612,11 @@ const CreditApproval = () => {
                   <h3 className="text-sm font-medium text-gray-500 mb-2">Version History</h3>
                   {versionHistory.length > 0 ? (
                     <div className="space-y-2">
-                      {versionHistory.map(version => (
-                        <div key={version.id} className="p-3 bg-gray-50 rounded border border-gray-200">
+                      {versionHistory.map((version, index) => (
+                        <div key={index} className="p-3 bg-gray-50 rounded border border-gray-200">
                           <div className="flex justify-between items-center">
                             <div>
-                              <span className="font-medium">Version {version.version}</span>
+                              <span className="font-medium">Version {version.version || '1'}</span>
                               <span className="ml-2 text-sm text-gray-500">({version.status})</span>
                             </div>
                             <span className="text-sm text-gray-500">
@@ -588,6 +657,13 @@ const CreditApproval = () => {
                     </button>
                   )}
                   <button
+                    onClick={() => handleReject(detailedRequest.id)}
+                    disabled={isSubmitting || !remark.trim()}
+                    className="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md text-white bg-red-600 hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500"
+                  >
+                    {isSubmitting ? <LoadingSpinner /> : 'Reject'}
+                  </button>
+                  <button
                     onClick={() => handleApprove(detailedRequest.id)}
                     disabled={isSubmitting}
                     className="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md text-white bg-green-600 hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500"
@@ -605,19 +681,34 @@ const CreditApproval = () => {
       
       {/* Batch Revision Request Modal */}
       {showRevisionModal && (
-        <div className="fixed inset-0 bg-gray-600 bg-opacity-50 overflow-y-auto h-full w-full flex items-center justify-center">
-          <div className="relative bg-white rounded-lg max-w-2xl mx-auto p-8 shadow-xl">
-            <h2 className="text-xl font-bold mb-4">Request Revision for {batchRevisions.length} Request(s)</h2>
+        <div className="fixed inset-0 bg-gray-600 bg-opacity-50 overflow-y-auto h-full w-full flex items-center justify-center z-50">
+          <div className="relative bg-white rounded-lg max-w-4xl mx-auto p-8 shadow-xl w-full">
+            <h2 className="text-xl font-bold mb-4">
+              Request Revision for {batchRevisions.length} Request(s)
+            </h2>
             
-            <div className="mb-4 overflow-y-auto max-h-96">
-              {batchRevisions.map(rev => (
-                <div key={rev.id} className="mb-4 p-4 border border-gray-200 rounded-md">
-                  <h3 className="text-sm font-medium text-gray-700 mb-2">
-                    {rev.account_name || 'Not specified'} (ID: {rev.id})
-                  </h3>
+            <div className="mb-6 text-sm text-gray-500">
+              <p>
+                Provide specific feedback for each request to help the user understand what changes are needed.
+                If appropriate, you can suggest a revised amount.
+              </p>
+            </div>
+            
+            <div className="max-h-96 overflow-y-auto">
+              {batchRevisions.map((rev, index) => (
+                <div key={rev.id} className="mb-6 p-4 border border-gray-200 rounded-lg">
+                  <div className="flex justify-between mb-2">
+                    <h3 className="font-medium">
+                      {rev.account_name} (Request #{rev.id})
+                    </h3>
+                    <span className="text-sm text-gray-500">
+                      Original: {formatCurrency(rev.originalAmount)}
+                    </span>
+                  </div>
+                  
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                     <div>
-                      <label className="block text-xs font-medium text-gray-500">
+                      <label className="block text-sm font-medium text-gray-700 mb-1">
                         Suggested Amount
                       </label>
                       <div className="mt-1 relative rounded-md shadow-sm">
@@ -634,20 +725,36 @@ const CreditApproval = () => {
                           min="0"
                         />
                       </div>
-                      <p className="mt-1 text-xs text-gray-500">
-                        Original: {formatCurrency(rev.originalAmount)}
-                      </p>
+                      
+                      {rev.editedAmount && rev.originalAmount && (
+                        <p className="mt-1 text-xs">
+                          {parseFloat(rev.editedAmount) > parseFloat(rev.originalAmount) ? (
+                            <span className="text-green-600">
+                              +{(parseFloat(rev.editedAmount) - parseFloat(rev.originalAmount)).toFixed(2)} 
+                              ({(((parseFloat(rev.editedAmount) - parseFloat(rev.originalAmount)) / parseFloat(rev.originalAmount)) * 100).toFixed(1)}%)
+                            </span>
+                          ) : parseFloat(rev.editedAmount) < parseFloat(rev.originalAmount) ? (
+                            <span className="text-red-600">
+                              {(parseFloat(rev.editedAmount) - parseFloat(rev.originalAmount)).toFixed(2)} 
+                              ({(((parseFloat(rev.editedAmount) - parseFloat(rev.originalAmount)) / parseFloat(rev.originalAmount)) * 100).toFixed(1)}%)
+                            </span>
+                          ) : (
+                            <span className="text-gray-500">No change</span>
+                          )}
+                        </p>
+                      )}
                     </div>
+                    
                     <div>
-                      <label className="block text-xs font-medium text-gray-500">
-                        Remark
+                      <label className="block text-sm font-medium text-gray-700 mb-1">
+                        Feedback for User
                       </label>
                       <textarea
-                        rows={3}
+                        rows={4}
                         value={rev.remark}
                         onChange={(e) => updateBatchRevision(rev.id, 'remark', e.target.value)}
                         className="shadow-sm focus:ring-indigo-500 focus:border-indigo-500 block w-full sm:text-sm border-gray-300 rounded-md"
-                        placeholder="Provide feedback for this request"
+                        placeholder="Explain why changes are needed..."
                       />
                     </div>
                   </div>
@@ -655,10 +762,10 @@ const CreditApproval = () => {
               ))}
             </div>
             
-            <div className="mt-6 flex justify-end">
+            <div className="mt-6 flex justify-end space-x-3">
               <button
                 type="button"
-                className="bg-white py-2 px-4 border border-gray-300 rounded-md shadow-sm text-sm font-medium text-gray-700 hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 mr-3"
+                className="bg-white py-2 px-4 border border-gray-300 rounded-md shadow-sm text-sm font-medium text-gray-700 hover:bg-gray-50 focus:outline-none"
                 onClick={closeRevisionModal}
               >
                 Cancel
@@ -666,7 +773,7 @@ const CreditApproval = () => {
               <button
                 type="button"
                 disabled={isSubmitting}
-                className="inline-flex justify-center py-2 px-4 border border-transparent shadow-sm text-sm font-medium rounded-md text-white bg-yellow-600 hover:bg-yellow-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-yellow-500"
+                className="inline-flex justify-center py-2 px-4 border border-transparent shadow-sm text-sm font-medium rounded-md text-white bg-yellow-600 hover:bg-yellow-700 focus:outline-none"
                 onClick={handleRequestRevision}
               >
                 {isSubmitting ? <LoadingSpinner /> : 'Request Revision'}

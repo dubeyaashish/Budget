@@ -32,6 +32,9 @@ router.get('/pending', authenticateToken, isAdmin, creditController.getAllPendin
 // Get credit request by ID
 router.get('/:id', authenticateToken, creditController.getCreditRequestById);
 
+// Get versions of a credit request
+router.get('/:id/versions', authenticateToken, creditController.getCreditRequestVersions);
+
 // Approve credit request (admin only)
 router.put('/:id/approve', authenticateToken, isAdmin, creditController.approveCreditRequest);
 

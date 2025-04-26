@@ -166,28 +166,35 @@ exports.getDepartmentBudgetMasterData = async (req, res) => {
 exports.createCreditRequest = async (req, res) => {
   try {
     const userId = req.user.id;
-    const { department_id, key_account_id, amount, reason } = req.body;
+    const { department_id, entries, version, parent_request_id } = req.body;
 
-    if (!department_id || !key_account_id || !amount || amount <= 0) {
+    if (!department_id || !entries || !Array.isArray(entries) || entries.length === 0) {
       return res.status(400).json({ message: 'Invalid request data' });
+    }
+
+    // Validate each entry has required fields
+    for (const entry of entries) {
+      if (!entry.key_account_id || !entry.amount || !entry.reason || entry.amount <= 0) {
+        return res.status(400).json({ 
+          message: 'Each entry must have a key account, valid amount, and reason'
+        });
+      }
     }
 
     const requestData = {
       user_id: userId,
       department_id,
-      key_account_id,
-      amount: parseFloat(amount),
-      reason,
-      version: 1,
-      status: 'pending',
-      parent_request_id: null
+      entries,
+      version: version || 1,
+      parent_request_id,
+      status: 'pending'
     };
 
-    const { insertId } = await creditModel.createCreditRequest(requestData);
+    const result = await creditModel.createCreditRequest(requestData);
 
     res.status(201).json({
       message: 'Credit request created successfully',
-      requestId: insertId
+      entries: result.entries
     });
   } catch (error) {
     console.error('Error creating credit request:', error);
@@ -238,7 +245,7 @@ exports.getLatestUserCreditRequest = async (req, res) => {
 };
 
 /**
- * Get all user credit requests
+ * Get all user credit revision requests
  * @param {Object} req - Express request object
  * @param {Object} res - Express response object
  */
@@ -309,6 +316,24 @@ exports.getCreditRequestById = async (req, res) => {
 };
 
 /**
+ * Get all versions of a credit request
+ * @param {Object} req - Express request object
+ * @param {Object} res - Express response object
+ */
+exports.getCreditRequestVersions = async (req, res) => {
+  try {
+    const requestId = req.params.id;
+    
+    const versions = await creditModel.getCreditRequestVersions(requestId);
+    
+    res.json(versions);
+  } catch (err) {
+    console.error('Error fetching credit request versions:', err);
+    res.status(500).json({ message: 'Server error fetching credit request versions' });
+  }
+};
+
+/**
  * Approve credit request (admin only)
  * @param {Object} req - Express request object
  * @param {Object} res - Express response object
@@ -317,12 +342,13 @@ exports.approveCreditRequest = async (req, res) => {
   try {
     const requestId = req.params.id;
     const adminId = req.user.id;
+    const { feedback } = req.body;
     
     if (req.user.role !== 'admin') {
       return res.status(403).json({ message: 'Access denied. Admin rights required.' });
     }
     
-    await creditModel.approveCreditRequest(requestId, adminId);
+    await creditModel.approveCreditRequest(requestId, adminId, feedback);
     
     res.json({ message: 'Credit request approved successfully' });
   } catch (error) {
@@ -360,62 +386,69 @@ exports.rejectCreditRequest = async (req, res) => {
 };
 
 /**
- * Create revision version of credit request (admin only)
+ * Create revision request (admin only)
  * @param {Object} req - Express request object
  * @param {Object} res - Express response object
  */
-exports.createRevisionVersion = async (req, res) => {
+exports.createRevisionRequest = async (req, res) => {
   try {
     const requestId = req.params.id;
     const adminId = req.user.id;
-    const { feedback, amount } = req.body;
+    const { feedback, suggested_amount } = req.body;
     
-    if (!feedback || !amount || amount <= 0) {
-      return res.status(400).json({ message: 'Feedback and valid amount are required' });
+    if (!feedback) {
+      return res.status(400).json({ message: 'Feedback is required for revision' });
     }
     
     if (req.user.role !== 'admin') {
       return res.status(403).json({ message: 'Access denied. Admin rights required.' });
     }
     
-    const result = await creditModel.createRevisionVersion(requestId, adminId, feedback, parseFloat(amount));
+    const result = await creditModel.createRevisionRequest(
+      requestId, 
+      adminId, 
+      feedback, 
+      suggested_amount
+    );
     
     res.json({
-      message: 'Revision version created successfully',
-      revisionId: result.insertId
+      message: 'Revision requested successfully',
+      requestId: result.requestId
     });
-  } catch (error) {
-    console.error('Error creating revision version:', error);
-    res.status(500).json({ message: 'Server error creating revision version' });
+  } catch (err) {
+    console.error('Error creating revision request:', err);
+    res.status(500).json({ message: 'Server error creating revision request' });
   }
 };
 
 /**
- * Update revision version
+ * Update revision request (user responding to admin)
  * @param {Object} req - Express request object
  * @param {Object} res - Express response object
  */
-exports.updateRevisionVersion = async (req, res) => {
+exports.updateRevisionRequest = async (req, res) => {
   try {
     const requestId = req.params.id;
     const userId = req.user.id;
     const { amount, reason, key_account_id } = req.body;
     
-    if (!amount || amount <= 0 || !reason || !key_account_id) {
-      return res.status(400).json({ message: 'Amount, reason, and key account ID are required' });
+    if (!amount || parseFloat(amount) <= 0 || !reason) {
+      return res.status(400).json({ message: 'Valid amount and reason are required' });
     }
     
-    const updateData = {
+    const result = await creditModel.updateRevisionRequest(requestId, userId, {
       amount: parseFloat(amount),
       reason,
       key_account_id
-    };
+    });
     
-    await creditModel.updateRevisionVersion(requestId, userId, updateData);
-    
-    res.json({ message: 'Revision updated successfully' });
-  } catch (error) {
-    console.error('Error updating revision:', error);
+    res.json({
+      message: 'Revision updated successfully',
+      newRequestId: result.newRequestId,
+      version: result.version
+    });
+  } catch (err) {
+    console.error('Error updating revision:', err);
     res.status(500).json({ message: 'Server error updating revision' });
   }
 };
@@ -507,6 +540,7 @@ exports.saveDraftCreditRequest = async (req, res) => {
     res.status(500).json({ message: 'Server error saving draft credit request' });
   }
 };
+
 /**
  * Get user draft credit requests
  * @param {Object} req - Express request object
@@ -520,90 +554,6 @@ exports.getUserDraftCreditRequests = async (req, res) => {
   } catch (error) {
     console.error('Error fetching draft credit requests:', error);
     res.status(500).json({ message: 'Server error fetching draft credit requests' });
-  }
-};
-
-// Add missing function for createRevisionRequest that was causing errors
-/**
- * Create revision request (admin only)
- * @param {Object} req - Express request object
- * @param {Object} res - Express response object
- */
-exports.createRevisionRequest = async (req, res) => {
-  try {
-    const requestId = req.params.id;
-    const adminId = req.user.id;
-    const { feedback } = req.body;
-    
-    if (!feedback) {
-      return res.status(400).json({ message: 'Feedback is required for revision' });
-    }
-    
-    if (req.user.role !== 'admin') {
-      return res.status(403).json({ message: 'Access denied. Admin rights required.' });
-    }
-    
-    // Check if the model function exists, otherwise use a simple implementation
-    if (typeof creditModel.createRevisionRequest === 'function') {
-      const result = await creditModel.createRevisionRequest(requestId, adminId, feedback);
-      res.json({
-        message: 'Revision created successfully',
-        revisionId: result.revisionId
-      });
-    } else {
-      // Simplified fallback
-      await creditModel.query(
-        `UPDATE budget_withdrawal_requests
-         SET status = 'revision', feedback = ?, reviewed_by = ?, updated_at = CURRENT_TIMESTAMP
-         WHERE id = ?`,
-        [feedback, adminId, requestId]
-      );
-      res.json({ message: 'Revision created successfully' });
-    }
-  } catch (error) {
-    console.error('Error creating revision request:', error);
-    res.status(500).json({ message: 'Server error creating revision request' });
-  }
-};
-
-/**
- * Update revision request
- * @param {Object} req - Express request object
- * @param {Object} res - Express response object
- */
-exports.updateRevisionRequest = async (req, res) => {
-  try {
-    const requestId = req.params.id;
-    const userId = req.user.id;
-    const { entries } = req.body;
-    
-    if (!entries || !Array.isArray(entries)) {
-      return res.status(400).json({ message: 'Valid entries are required' });
-    }
-    
-    // Check if we have a proper model function, otherwise implement directly
-    if (typeof creditModel.updateRevisionRequest === 'function') {
-      await creditModel.updateRevisionRequest({
-        request_id: requestId,
-        user_id: userId,
-        entries
-      });
-    } else {
-      // Simplified fallback
-      for (const entry of entries) {
-        await creditModel.query(
-          `UPDATE budget_withdrawal_requests
-           SET amount = ?, reason = ?, updated_at = CURRENT_TIMESTAMP
-           WHERE id = ? AND user_id = ?`,
-          [entry.amount, entry.reason, entry.id, userId]
-        );
-      }
-    }
-    
-    res.json({ message: 'Revision updated successfully' });
-  } catch (error) {
-    console.error('Error updating revision:', error);
-    res.status(500).json({ message: 'Server error updating revision' });
   }
 };
 
