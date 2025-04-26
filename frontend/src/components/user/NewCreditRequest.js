@@ -1,3 +1,4 @@
+// frontend/src/components/user/NewCreditRequest.js
 import React, { useState, useEffect, useContext } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { AuthContext } from '../../context/AuthContext';
@@ -57,10 +58,12 @@ const NewCreditRequest = () => {
           console.log('Departments data received:', departmentsData);
         } catch (deptError) {
           console.error('Error fetching departments:', deptError);
-          departmentsData = [{ id: currentUser.department || 1, name: 'Default Department' }];
+          // Set a default department if we can't fetch real ones
+          departmentsData = [{id: currentUser.department || 1, name: 'Default Department'}];
         }
         setDepartments(Array.isArray(departmentsData) ? departmentsData : []);
   
+        // More detailed logging for selected department
         if (currentUser.department) {
           console.log(`Setting default department ID: ${currentUser.department}`);
           setFormData((prev) => ({
@@ -69,6 +72,7 @@ const NewCreditRequest = () => {
           }));
           setSelectedDepartment(currentUser.department);
           
+          // Fetch budget data for the current user's department
           await handleDepartmentChange({ target: { value: currentUser.department } });
         }
       } catch (err) {
@@ -82,13 +86,18 @@ const NewCreditRequest = () => {
     fetchData();
   }, [currentUser]);
 
+  // Update available key accounts when department or entries change
   useEffect(() => {
     const filterAvailableAccounts = () => {
       if (departmentKeyAccounts.length > 0) {
+        // Get the IDs of accounts already selected
         const selectedIds = accountEntries.map(entry => entry.key_account_id);
+        
+        // Filter available accounts to those not already selected
         const available = departmentKeyAccounts.filter(
           account => !selectedIds.includes(account.key_account)
         );
+        
         setAvailableKeyAccounts(available);
       }
     };
@@ -96,6 +105,7 @@ const NewCreditRequest = () => {
     filterAvailableAccounts();
   }, [departmentKeyAccounts, accountEntries]);
 
+  // Update department key accounts when department or budget data changes
   useEffect(() => {
     console.log('useEffect for department key accounts triggered');
     console.log('Selected department:', selectedDepartment);
@@ -104,6 +114,7 @@ const NewCreditRequest = () => {
     if (selectedDepartment && budgetMasterData.length > 0) {
       console.log(`Filtering budget data for department ID: ${selectedDepartment}`);
       
+      // More verbose logging for filtering
       const departmentAccounts = budgetMasterData.filter(item => {
         const itemDept = item.department?.toString();
         const selectedDept = selectedDepartment?.toString();
@@ -116,6 +127,7 @@ const NewCreditRequest = () => {
       
       setDepartmentKeyAccounts(departmentAccounts);
       
+      // Pre-populate account entries if none exist yet or if department changed
       if (accountEntries.length === 0 && !isSubmitted) {
         console.log('Creating account entries from department accounts');
         const groupedAccounts = {};
@@ -179,12 +191,14 @@ const NewCreditRequest = () => {
     setSuccess(null);
     setError(null);
     
+    // Clear any existing budget data
     setBudgetMasterData([]);
     
     if (departmentId) {
       try {
         setIsLoading(true);
         
+        // Try to get data from the specific department endpoint
         console.log(`Fetching budget data for department ID: ${departmentId}`);
         let budgetData = [];
         let attempt = 0;
@@ -202,10 +216,12 @@ const NewCreditRequest = () => {
             console.error(`Attempt ${attempt + 1} failed:`, err);
           }
           
+          // If still no data, try fallback approach
           if (!budgetData || budgetData.length === 0) {
             if (attempt === maxAttempts - 1) {
               console.log('Using fallback key accounts approach');
               
+              // Get key accounts and departments
               try {
                 console.log('Fetching key accounts for fallback');
                 const [keyAccountsData, departmentsData] = await Promise.all([
@@ -213,9 +229,11 @@ const NewCreditRequest = () => {
                   departmentService.getAllDepartments()
                 ]);
                 
+                // Find the department name
                 const departmentInfo = departmentsData.find(d => d.id == departmentId) || {};
                 const departmentName = departmentInfo.name || '';
                 
+                // Generate fallback data
                 budgetData = keyAccountsData.map(account => ({
                   type: account.account_type || 'Unknown',
                   key_account: account.id,
@@ -230,6 +248,7 @@ const NewCreditRequest = () => {
               } catch (fallbackErr) {
                 console.error('Error with fallback approach:', fallbackErr);
                 
+                // Last resort - minimal fallback data
                 budgetData = [
                   {
                     type: 'Expense',
@@ -258,6 +277,7 @@ const NewCreditRequest = () => {
           attempt++;
         }
         
+        // Store the budget data (either real or fallback)
         console.log(`Setting ${budgetData.length} budget records to state`);
         setBudgetMasterData(budgetData);
         
@@ -282,6 +302,7 @@ const NewCreditRequest = () => {
     setAccountEntries(updatedEntries);
   };
 
+  // Add a new key account to entries
   const addKeyAccount = (accountId) => {
     const account = availableKeyAccounts.find(acc => acc.key_account === accountId);
     if (account) {
@@ -298,6 +319,7 @@ const NewCreditRequest = () => {
     }
   };
 
+  // Remove a key account from entries
   const removeKeyAccount = (index) => {
     const updatedEntries = [...accountEntries];
     updatedEntries.splice(index, 1);
@@ -350,12 +372,13 @@ const NewCreditRequest = () => {
         (entry) => entry.key_account_id && entry.amount && parseFloat(entry.amount) > 0 && entry.reason
       );
 
+      // Create a single credit request with multiple entries
       const payload = {
         department_id: parseInt(formData.department_id),
         entries: validEntries.map(entry => ({
           key_account_id: entry.key_account_id,
           amount: parseFloat(entry.amount),
-          reason: entry.reason || '',
+          reason: entry.reason,
         })),
         version: formData.version,
         status: 'pending',
@@ -390,34 +413,28 @@ const NewCreditRequest = () => {
       return;
     }
 
-    const validEntries = accountEntries.filter((entry) => entry.key_account_id);
-    if (validEntries.length === 0) {
-      setError('Please add at least one valid account entry');
-      return;
-    }
-
     try {
       setIsSubmitting(true);
       setError(null);
 
       const payload = {
         department_id: parseInt(formData.department_id),
-        entries: validEntries.map((entry) => ({
-          key_account_id: entry.key_account_id,
-          amount: parseFloat(entry.amount) || 0,
-          reason: entry.reason || '',
-        })),
+        entries: accountEntries
+          .filter((entry) => entry.key_account_id)
+          .map((entry) => ({
+            key_account_id: entry.key_account_id,
+            amount: parseFloat(entry.amount) || 0,
+            reason: entry.reason,
+          })),
         version: formData.version,
         status: 'draft',
       };
-
-      console.log('Saving draft payload:', payload);
 
       await creditService.saveDraftCreditRequest(payload);
       setSuccess('Request saved as draft');
     } catch (err) {
       console.error('Error saving draft:', err);
-      setError(err.response?.data?.message || 'Failed to save draft');
+      setError('Failed to save draft');
     } finally {
       setIsSubmitting(false);
     }
@@ -452,6 +469,7 @@ const NewCreditRequest = () => {
     );
   }
 
+  // Group accounts by type for display
   const accountsByType = accountEntries.reduce((groups, account) => {
     if (!account.type) account.type = 'Uncategorized';
     if (!groups[account.type]) groups[account.type] = [];
@@ -516,6 +534,7 @@ const NewCreditRequest = () => {
 
             {formData.department_id ? (
               <div>
+                {/* Display accounts grouped by type */}
                 {Object.keys(accountsByType).length > 0 ? (
                   <div className="space-y-6">
                     {Object.keys(accountsByType).map(type => (
@@ -612,6 +631,7 @@ const NewCreditRequest = () => {
                       </div>
                     ))}
                     
+                    {/* Dropdown to add more key accounts */}
                     {!isSubmitted && availableKeyAccounts.length > 0 && (
                       <div className="mt-4 border-t pt-4">
                         <div className="flex items-center">
