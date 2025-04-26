@@ -1,137 +1,227 @@
 // backend/models/keyAccountModel.js
+
 const db = require('../config/db');
 
-/**
- * Get all key accounts
- * @returns {Promise} Promise with key accounts data
- */
-exports.getAllKeyAccounts = () => {
-  const query = 'SELECT * FROM budget_key_accounts ORDER BY id';
-  return db.query(query);
-};
-
-/**
- * Get key account by ID
- * @param {String} id - Key Account ID
- * @returns {Promise} Promise with key account data
- */
-exports.getKeyAccountById = (id) => {
-  const query = 'SELECT * FROM budget_key_accounts WHERE id = ?';
-  return db.query(query, [id]);
-};
-
-/**
- * Create or update key account
- * @param {Object} accountData - Key account data
- * @returns {Promise} Promise with result
- */
-exports.upsertKeyAccount = async (accountData) => {
-  const { id, name, account_type, total_budget } = accountData;
-  
-  // Check if key account exists
-  const existing = await db.query('SELECT * FROM budget_key_accounts WHERE id = ?', [id]);
-  
-  if (existing && existing.length > 0) {
-    // Update existing account
-    const query = `
-      UPDATE budget_key_accounts 
-      SET name = ?, account_type = ?, total_budget = ?, updated_at = CURRENT_TIMESTAMP
-      WHERE id = ?
-    `;
-    return db.query(query, [name, account_type, total_budget, id]);
-  } else {
-    // Create new account
-    const query = `
-      INSERT INTO budget_key_accounts (id, name, account_type, total_budget)
-      VALUES (?, ?, ?, ?)
-    `;
-    return db.query(query, [id, name, account_type, total_budget]);
+exports.getAllKeyAccounts = async () => {
+  try {
+    const [rows] = await pool.query(`
+      SELECT * 
+      FROM key_accounts
+      ORDER BY name ASC
+    `);
+    return rows;
+  } catch (error) {
+    console.error('Error fetching key accounts:', error);
+    throw error;
   }
 };
 
-/**
- * Get total budget allocated across all key accounts
- * @returns {Promise} Promise with total budget data
- */
-exports.getTotalBudget = async () => {
-  const query = `
-    SELECT SUM(total_budget) as total_allocated, 
-           SUM(used_amount) as total_used 
-    FROM budget_key_accounts
-  `;
-  const result = await db.query(query);
-  return result[0];
+exports.getKeyAccountById = async (id) => {
+  try {
+    const [rows] = await pool.query(`
+      SELECT * 
+      FROM key_accounts
+      WHERE id = ?
+    `, [id]);
+    
+    return rows[0];
+  } catch (error) {
+    console.error('Error fetching key account:', error);
+    throw error;
+  }
 };
 
-/**
- * Get key accounts with usage data
- * @returns {Promise} Promise with key accounts and usage data
- */
+exports.getKeyAccountWithUsage = async (id) => {
+  try {
+    // Get the account and its total budget
+    const [accounts] = await pool.query(`
+      SELECT *
+      FROM key_accounts
+      WHERE id = ?
+    `, [id]);
+    
+    if (accounts.length === 0) {
+      return null;
+    }
+    
+    const account = accounts[0];
+    
+    // Calculate the used amount from transactions
+    const [usageResults] = await pool.query(`
+      SELECT SUM(amount) as used_amount
+      FROM budget_transactions
+      WHERE key_account_id = ?
+    `, [id]);
+    
+    const usedAmount = usageResults[0].used_amount || 0;
+    const availableAmount = account.total_budget - usedAmount;
+    
+    return {
+      ...account,
+      used_amount: usedAmount,
+      available_amount: availableAmount,
+      usage_percentage: account.total_budget > 0 ? (usedAmount / account.total_budget) * 100 : 0
+    };
+  } catch (error) {
+    console.error('Error fetching key account with usage:', error);
+    throw error;
+  }
+};
+
 exports.getKeyAccountsWithUsage = async () => {
-  const query = `
-    SELECT id, name, account_type, total_budget, used_amount,
-           (total_budget - used_amount) as available_amount,
-           CASE 
-             WHEN total_budget > 0 THEN (used_amount / total_budget) * 100
-             ELSE 0
-           END as usage_percentage
-    FROM budget_key_accounts
-    ORDER BY account_type, id
-  `;
-  return db.query(query);
+  try {
+    // Get all accounts
+    const [accounts] = await pool.query(`
+      SELECT *
+      FROM key_accounts
+      ORDER BY name ASC
+    `);
+    
+    // Get usage data for all accounts
+    const [usageResults] = await pool.query(`
+      SELECT key_account_id, SUM(amount) as used_amount
+      FROM budget_transactions
+      GROUP BY key_account_id
+    `);
+    
+    // Create a map of account ID to used amount
+    const usageMap = {};
+    usageResults.forEach(result => {
+      usageMap[result.key_account_id] = result.used_amount || 0;
+    });
+    
+    // Combine accounts with their usage data
+    const accountsWithUsage = accounts.map(account => {
+      const usedAmount = usageMap[account.id] || 0;
+      const availableAmount = account.total_budget - usedAmount;
+      
+      return {
+        ...account,
+        used_amount: usedAmount,
+        available_amount: availableAmount,
+        usage_percentage: account.total_budget > 0 ? (usedAmount / account.total_budget) * 100 : 0
+      };
+    });
+    
+    return accountsWithUsage;
+  } catch (error) {
+    console.error('Error fetching key accounts with usage:', error);
+    throw error;
+  }
 };
 
-/**
- * Update used amount for a key account
- * @param {String} accountId - Key Account ID
- * @param {Number} amount - Amount to add to used amount (can be negative)
- * @returns {Promise} Promise with update result
- */
-exports.updateUsedAmount = async (accountId, amount) => {
-  const query = `
-    UPDATE budget_key_accounts
-    SET used_amount = used_amount + ?
-    WHERE id = ?
-  `;
-  return db.query(query, [amount, accountId]);
+exports.upsertKeyAccount = async (accountData) => {
+  const connection = await pool.getConnection();
+  
+  try {
+    await connection.beginTransaction();
+    
+    // Check if the account exists
+    const [existingAccounts] = await connection.query(
+      `SELECT * FROM key_accounts WHERE id = ?`,
+      [accountData.id]
+    );
+    
+    if (existingAccounts.length > 0) {
+      // Update existing account
+      await connection.query(
+        `UPDATE key_accounts
+         SET name = ?, account_type = ?, total_budget = ?
+         WHERE id = ?`,
+        [accountData.name, accountData.account_type, accountData.total_budget, accountData.id]
+      );
+    } else {
+      // Insert new account
+      await connection.query(
+        `INSERT INTO key_accounts (id, name, account_type, total_budget)
+         VALUES (?, ?, ?, ?)`,
+        [accountData.id, accountData.name, accountData.account_type, accountData.total_budget]
+      );
+    }
+    
+    await connection.commit();
+    return { success: true };
+  } catch (error) {
+    await connection.rollback();
+    console.error('Error upserting key account:', error);
+    throw error;
+  } finally {
+    connection.release();
+  }
 };
 
-/**
- * Get department-wise spending for a key account
- * @param {String} accountId - Key Account ID
- * @returns {Promise} Promise with department spending data
- */
-exports.getDepartmentSpendingByAccount = async (accountId) => {
-  const query = `
-    SELECT d.id, d.name as department_name, 
-           COALESCE(SUM(wr.amount), 0) as total_spent
-    FROM budget_departments d
-    LEFT JOIN budget_withdrawal_requests wr ON d.id = wr.department_id 
-                                           AND wr.key_account_id = ?
-                                           AND wr.status = 'approved'
-    GROUP BY d.id, d.name
-    ORDER BY total_spent DESC
-  `;
-  return db.query(query, [accountId]);
-};
-
-/**
- * Get account-wise spending for a department
- * @param {Number} departmentId - Department ID
- * @returns {Promise} Promise with account spending data
- */
 exports.getAccountSpendingByDepartment = async (departmentId) => {
-  const query = `
-    SELECT ka.id, ka.name as account_name, ka.account_type,
-           COALESCE(SUM(wr.amount), 0) as total_spent,
-           ka.total_budget,
-           ka.used_amount
-    FROM budget_key_accounts ka
-    LEFT JOIN budget_withdrawal_requests wr ON ka.id = wr.key_account_id 
-                                           AND wr.department_id = ?
-                                           AND wr.status = 'approved'
-    GROUP BY ka.id, ka.name, ka.account_type, ka.total_budget, ka.used_amount
-    ORDER BY ka.account_type, ka.id
-  `;
-  return db.query(query, [departmentId]);
+  try {
+    const [rows] = await pool.query(`
+      SELECT 
+        ka.id, 
+        ka.name as account_name, 
+        ka.account_type, 
+        ka.total_budget,
+        COALESCE(SUM(t.amount), 0) as total_spent
+      FROM key_accounts ka
+      LEFT JOIN budget_transactions t ON ka.id = t.key_account_id
+      LEFT JOIN budget_withdrawal_requests r ON t.request_id = r.id AND r.department_id = ?
+      GROUP BY ka.id
+      ORDER BY ka.account_type, ka.name
+    `, [departmentId]);
+    
+    return rows.map(row => ({
+      ...row,
+      total_spent: row.total_spent || 0
+    }));
+  } catch (error) {
+    console.error('Error fetching account spending by department:', error);
+    throw error;
+  }
+};
+
+exports.getDepartmentSpendingByAccount = async (accountId) => {
+  try {
+    const [rows] = await pool.query(`
+      SELECT 
+        d.id as department_id, 
+        d.name as department_name,
+        COALESCE(SUM(t.amount), 0) as total_spent
+      FROM budget_departments d
+      LEFT JOIN budget_withdrawal_requests r ON d.id = r.department_id
+      LEFT JOIN budget_transactions t ON r.id = t.request_id AND t.key_account_id = ?
+      GROUP BY d.id
+      ORDER BY total_spent DESC
+    `, [accountId]);
+    
+    return rows;
+  } catch (error) {
+    console.error('Error fetching department spending by account:', error);
+    throw error;
+  }
+};
+
+exports.getBudgetSummary = async () => {
+  try {
+    // Get total allocated budget
+    const [totalBudgetResult] = await pool.query(`
+      SELECT SUM(total_budget) as total_allocated
+      FROM key_accounts
+    `);
+    
+    // Get total used budget
+    const [totalUsedResult] = await pool.query(`
+      SELECT SUM(amount) as total_used
+      FROM budget_transactions
+    `);
+    
+    const totalAllocated = totalBudgetResult[0].total_allocated || 0;
+    const totalUsed = totalUsedResult[0].total_used || 0;
+    
+    return {
+      total_allocated: totalAllocated,
+      total_used: totalUsed,
+      total_available: totalAllocated - totalUsed,
+      usage_percentage: totalAllocated > 0 ? (totalUsed / totalAllocated) * 100 : 0
+    };
+  } catch (error) {
+    console.error('Error fetching budget summary:', error);
+    throw error;
+  }
 };

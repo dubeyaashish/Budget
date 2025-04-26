@@ -1,3 +1,4 @@
+// frontend/src/services/creditService.js
 import api from './api';
 
 const creditService = {
@@ -157,11 +158,35 @@ const creditService = {
 
   getBudgetMasterData: async () => {
     try {
-      const response = await api.get('/budget-master');
+      const response = await api.get('/credits/budget-master');
       return response;
     } catch (error) {
       console.error('Error fetching budget master data:', error);
       // Return empty array instead of throwing to make the app more resilient
+      return [];
+    }
+  },
+  
+  // Add the missing function
+  getDepartmentBudgetMasterData: async (departmentId) => {
+    try {
+      const response = await api.get(`/credits/budget-master/department/${departmentId}`);
+      return response;
+    } catch (error) {
+      console.error(`Error fetching budget master data for department ${departmentId}:`, error);
+      // Return empty array for graceful failure
+      return [];
+    }
+  },
+  
+  // For backward compatibility with any code that might be using this
+  getKeyAccounts: async () => {
+    try {
+      // This is a simple proxy to the key account service
+      const response = await api.get('/key-accounts');
+      return response;
+    } catch (error) {
+      console.error('Error fetching key accounts:', error);
       return [];
     }
   }
