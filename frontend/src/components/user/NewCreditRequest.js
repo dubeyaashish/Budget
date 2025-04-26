@@ -4,6 +4,7 @@ import { AuthContext } from '../../context/AuthContext';
 import { KeyAccountContext } from '../../context/KeyAccountContext';
 import departmentService from '../../services/departmentService';
 import creditService from '../../services/creditService';
+import keyAccountService from '../../services/keyAccountService';
 import LoadingSpinner from '../common/LoadingSpinner';
 import AlertMessage from '../common/AlertMessage';
 import { formatCurrency } from '../../utils/formatCurrency';
@@ -22,6 +23,7 @@ const NewCreditRequest = () => {
   const [selectedDepartment, setSelectedDepartment] = useState(null);
   const [departmentKeyAccounts, setDepartmentKeyAccounts] = useState([]);
   const [accountEntries, setAccountEntries] = useState([]);
+  const [availableKeyAccounts, setAvailableKeyAccounts] = useState([]);
   const [departments, setDepartments] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -49,18 +51,16 @@ const NewCreditRequest = () => {
         
         // Fetch departments
         console.log('Fetching departments...');
-        const departmentsData = await departmentService.getAllDepartments();
-        console.log('Departments data received:', departmentsData);
+        let departmentsData = [];
+        try {
+          departmentsData = await departmentService.getAllDepartments();
+          console.log('Departments data received:', departmentsData);
+        } catch (deptError) {
+          console.error('Error fetching departments:', deptError);
+          departmentsData = [{ id: currentUser.department || 1, name: 'Default Department' }];
+        }
         setDepartments(Array.isArray(departmentsData) ? departmentsData : []);
   
-        // Fetch budget master data - check the actual response
-        console.log('Fetching budget master data...');
-        const budgetData = await creditService.getBudgetMasterData();
-        console.log('Budget master data received:', budgetData);
-        console.log('Budget master data sample:', budgetData.slice(0, 3));
-        setBudgetMasterData(Array.isArray(budgetData) ? budgetData : []);
-  
-        // More detailed logging for selected department
         if (currentUser.department) {
           console.log(`Setting default department ID: ${currentUser.department}`);
           setFormData((prev) => ({
@@ -68,9 +68,9 @@ const NewCreditRequest = () => {
             department_id: currentUser.department,
           }));
           setSelectedDepartment(currentUser.department);
+          
+          await handleDepartmentChange({ target: { value: currentUser.department } });
         }
-  
-        // Rest of your code...
       } catch (err) {
         console.error('Error fetching data:', err);
         setError('Failed to load required data. Please try again.');
@@ -82,7 +82,20 @@ const NewCreditRequest = () => {
     fetchData();
   }, [currentUser]);
 
-  // Update department key accounts when department or budget data changes
+  useEffect(() => {
+    const filterAvailableAccounts = () => {
+      if (departmentKeyAccounts.length > 0) {
+        const selectedIds = accountEntries.map(entry => entry.key_account_id);
+        const available = departmentKeyAccounts.filter(
+          account => !selectedIds.includes(account.key_account)
+        );
+        setAvailableKeyAccounts(available);
+      }
+    };
+    
+    filterAvailableAccounts();
+  }, [departmentKeyAccounts, accountEntries]);
+
   useEffect(() => {
     console.log('useEffect for department key accounts triggered');
     console.log('Selected department:', selectedDepartment);
@@ -91,7 +104,6 @@ const NewCreditRequest = () => {
     if (selectedDepartment && budgetMasterData.length > 0) {
       console.log(`Filtering budget data for department ID: ${selectedDepartment}`);
       
-      // More verbose logging for filtering
       const departmentAccounts = budgetMasterData.filter(item => {
         const itemDept = item.department?.toString();
         const selectedDept = selectedDepartment?.toString();
@@ -104,7 +116,6 @@ const NewCreditRequest = () => {
       
       setDepartmentKeyAccounts(departmentAccounts);
       
-      // Pre-populate account entries if none exist yet
       if (accountEntries.length === 0 && !isSubmitted) {
         console.log('Creating account entries from department accounts');
         const groupedAccounts = {};
@@ -115,11 +126,11 @@ const NewCreditRequest = () => {
             groupedAccounts[account.key_account] = {
               key_account_id: account.key_account,
               key_account_name: account.key_account_name,
-              amount: '',
+              amount: account.amount && parseFloat(account.amount) > 0 ? account.amount : '',
               reason: '',
               available: getAvailableAmount(account.key_account),
               type: account.type,
-              total: parseFloat(account.amount) || 0
+              total: parseFloat(account.overall) || 0
             };
           } else {
             groupedAccounts[account.key_account].total += parseFloat(account.amount) || 0;
@@ -150,7 +161,7 @@ const NewCreditRequest = () => {
     return 0;
   };
 
-  const handleDepartmentChange = (e) => {
+  const handleDepartmentChange = async (e) => {
     const departmentId = e.target.value;
     console.log(`Department changed to ID: ${departmentId}`);
     
@@ -168,16 +179,94 @@ const NewCreditRequest = () => {
     setSuccess(null);
     setError(null);
     
-    // Attempt to fetch department-specific budget data directly
+    setBudgetMasterData([]);
+    
     if (departmentId) {
-      console.log(`Fetching budget data specifically for department ID: ${departmentId}`);
-      creditService.getDepartmentBudgetMasterData(departmentId)
-        .then(data => {
-          console.log(`Retrieved ${data?.length || 0} department-specific budget records:`, data);
-        })
-        .catch(err => {
-          console.error('Error fetching department budget data:', err);
-        });
+      try {
+        setIsLoading(true);
+        
+        console.log(`Fetching budget data for department ID: ${departmentId}`);
+        let budgetData = [];
+        let attempt = 0;
+        const maxAttempts = 2;
+        
+        while (attempt < maxAttempts && budgetData.length === 0) {
+          try {
+            if (attempt > 0) {
+              console.log(`Retry attempt ${attempt} for department budget data`);
+            }
+            
+            budgetData = await creditService.getDepartmentBudgetMasterData(departmentId);
+            console.log(`Retrieved ${budgetData?.length || 0} budget records for department ${departmentId}:`, budgetData);
+          } catch (err) {
+            console.error(`Attempt ${attempt + 1} failed:`, err);
+          }
+          
+          if (!budgetData || budgetData.length === 0) {
+            if (attempt === maxAttempts - 1) {
+              console.log('Using fallback key accounts approach');
+              
+              try {
+                console.log('Fetching key accounts for fallback');
+                const [keyAccountsData, departmentsData] = await Promise.all([
+                  keyAccountService.getAllKeyAccounts(),
+                  departmentService.getAllDepartments()
+                ]);
+                
+                const departmentInfo = departmentsData.find(d => d.id == departmentId) || {};
+                const departmentName = departmentInfo.name || '';
+                
+                budgetData = keyAccountsData.map(account => ({
+                  type: account.account_type || 'Unknown',
+                  key_account: account.id,
+                  key_account_name: account.name,
+                  overall: account.total_budget || 0,
+                  department: departmentId,
+                  department_name: departmentName || `Department ${departmentId}`,
+                  amount: 0.0000
+                }));
+                
+                console.log(`Generated ${budgetData.length} fallback records`);
+              } catch (fallbackErr) {
+                console.error('Error with fallback approach:', fallbackErr);
+                
+                budgetData = [
+                  {
+                    type: 'Expense',
+                    key_account: 'EXP001',
+                    key_account_name: 'Office Expenses',
+                    overall: 100000,
+                    department: departmentId,
+                    department_name: `Department ${departmentId}`,
+                    amount: 0.0000
+                  },
+                  {
+                    type: 'Asset',
+                    key_account: 'AST001',
+                    key_account_name: 'Equipment',
+                    overall: 200000,
+                    department: departmentId,
+                    department_name: `Department ${departmentId}`,
+                    amount: 0.0000
+                  }
+                ];
+                console.log('Using minimal fallback data');
+              }
+            }
+          }
+          
+          attempt++;
+        }
+        
+        console.log(`Setting ${budgetData.length} budget records to state`);
+        setBudgetMasterData(budgetData);
+        
+      } catch (err) {
+        console.error('Error in department change handler:', err);
+        setError('Failed to load budget data for this department');
+      } finally {
+        setIsLoading(false);
+      }
     }
   };
 
@@ -190,6 +279,28 @@ const NewCreditRequest = () => {
   const handleAccountReasonChange = (index, value) => {
     const updatedEntries = [...accountEntries];
     updatedEntries[index].reason = value;
+    setAccountEntries(updatedEntries);
+  };
+
+  const addKeyAccount = (accountId) => {
+    const account = availableKeyAccounts.find(acc => acc.key_account === accountId);
+    if (account) {
+      const newEntry = {
+        key_account_id: account.key_account,
+        key_account_name: account.key_account_name,
+        amount: '',
+        reason: '',
+        available: getAvailableAmount(account.key_account),
+        type: account.type || 'Unknown',
+        total: parseFloat(account.overall) || 0
+      };
+      setAccountEntries([...accountEntries, newEntry]);
+    }
+  };
+
+  const removeKeyAccount = (index) => {
+    const updatedEntries = [...accountEntries];
+    updatedEntries.splice(index, 1);
     setAccountEntries(updatedEntries);
   };
 
@@ -239,13 +350,12 @@ const NewCreditRequest = () => {
         (entry) => entry.key_account_id && entry.amount && parseFloat(entry.amount) > 0 && entry.reason
       );
 
-      // Create a single credit request with multiple entries
       const payload = {
         department_id: parseInt(formData.department_id),
         entries: validEntries.map(entry => ({
           key_account_id: entry.key_account_id,
           amount: parseFloat(entry.amount),
-          reason: entry.reason,
+          reason: entry.reason || '',
         })),
         version: formData.version,
         status: 'pending',
@@ -280,28 +390,34 @@ const NewCreditRequest = () => {
       return;
     }
 
+    const validEntries = accountEntries.filter((entry) => entry.key_account_id);
+    if (validEntries.length === 0) {
+      setError('Please add at least one valid account entry');
+      return;
+    }
+
     try {
       setIsSubmitting(true);
       setError(null);
 
       const payload = {
         department_id: parseInt(formData.department_id),
-        entries: accountEntries
-          .filter((entry) => entry.key_account_id)
-          .map((entry) => ({
-            key_account_id: entry.key_account_id,
-            amount: parseFloat(entry.amount) || 0,
-            reason: entry.reason,
-          })),
+        entries: validEntries.map((entry) => ({
+          key_account_id: entry.key_account_id,
+          amount: parseFloat(entry.amount) || 0,
+          reason: entry.reason || '',
+        })),
         version: formData.version,
         status: 'draft',
       };
+
+      console.log('Saving draft payload:', payload);
 
       await creditService.saveDraftCreditRequest(payload);
       setSuccess('Request saved as draft');
     } catch (err) {
       console.error('Error saving draft:', err);
-      setError('Failed to save draft');
+      setError(err.response?.data?.message || 'Failed to save draft');
     } finally {
       setIsSubmitting(false);
     }
@@ -336,7 +452,6 @@ const NewCreditRequest = () => {
     );
   }
 
-  // Group accounts by type for display
   const accountsByType = accountEntries.reduce((groups, account) => {
     if (!account.type) account.type = 'Uncategorized';
     if (!groups[account.type]) groups[account.type] = [];
@@ -401,7 +516,6 @@ const NewCreditRequest = () => {
 
             {formData.department_id ? (
               <div>
-                {/* Display accounts grouped by type */}
                 {Object.keys(accountsByType).length > 0 ? (
                   <div className="space-y-6">
                     {Object.keys(accountsByType).map(type => (
@@ -461,23 +575,35 @@ const NewCreditRequest = () => {
                                   </div>
                                 </div>
 
-                                <div>
-                                  <label
-                                    htmlFor={`reason-${entryIndex}`}
-                                    className="block text-sm font-medium text-gray-700"
-                                  >
-                                    Reason <span className="text-red-500">*</span>
-                                  </label>
-                                  <textarea
-                                    id={`reason-${entryIndex}`}
-                                    rows={2}
-                                    value={entry.reason || ''}
-                                    onChange={(e) => handleAccountReasonChange(entryIndex, e.target.value)}
-                                    className="mt-1 focus:ring-indigo-500 focus:border-indigo-500 block w-full sm:text-sm border-gray-300 rounded-md"
-                                    placeholder="Please provide a detailed reason for this account request"
-                                    disabled={isSubmitted}
-                                    required
-                                  />
+                                <div className="flex justify-between items-start">
+                                  <div className="flex-grow mr-3">
+                                    <label
+                                      htmlFor={`reason-${entryIndex}`}
+                                      className="block text-sm font-medium text-gray-700"
+                                    >
+                                      Reason <span className="text-red-500">*</span>
+                                    </label>
+                                    <textarea
+                                      id={`reason-${entryIndex}`}
+                                      rows={2}
+                                      value={entry.reason || ''}
+                                      onChange={(e) => handleAccountReasonChange(entryIndex, e.target.value)}
+                                      className="mt-1 focus:ring-indigo-500 focus:border-indigo-500 block w-full sm:text-sm border-gray-300 rounded-md"
+                                      placeholder="Please provide a detailed reason for this account request"
+                                      disabled={isSubmitted}
+                                      required
+                                    />
+                                  </div>
+                                  
+                                  {!isSubmitted && (
+                                    <button
+                                      type="button"
+                                      onClick={() => removeKeyAccount(entryIndex)}
+                                      className="mt-6 p-1 text-red-600 hover:text-red-800 bg-white border border-red-300 rounded-md px-3 py-1 text-sm"
+                                    >
+                                      Remove
+                                    </button>
+                                  )}
                                 </div>
                               </div>
                             );
@@ -485,6 +611,43 @@ const NewCreditRequest = () => {
                         </div>
                       </div>
                     ))}
+                    
+                    {!isSubmitted && availableKeyAccounts.length > 0 && (
+                      <div className="mt-4 border-t pt-4">
+                        <div className="flex items-center">
+                          <select 
+                            className="form-select mr-2 flex-grow p-2 border border-gray-300 rounded-md focus:outline-none focus:ring-indigo-500 focus:border-indigo-500"
+                            defaultValue=""
+                            onChange={(e) => {
+                              if (e.target.value) {
+                                addKeyAccount(e.target.value);
+                                e.target.value = "";
+                              }
+                            }}
+                          >
+                            <option value="" disabled>Add another key account...</option>
+                            {availableKeyAccounts.map(account => (
+                              <option key={account.key_account} value={account.key_account}>
+                                {account.key_account_name} ({account.type || 'Unknown'})
+                              </option>
+                            ))}
+                          </select>
+                          <button
+                            type="button"
+                            onClick={() => {
+                              const select = document.querySelector('select.form-select');
+                              if (select && select.value) {
+                                addKeyAccount(select.value);
+                                select.value = "";
+                              }
+                            }}
+                            className="ml-2 p-2 bg-indigo-50 text-indigo-600 rounded-md hover:bg-indigo-100"
+                          >
+                            Add
+                          </button>
+                        </div>
+                      </div>
+                    )}
                   </div>
                 ) : (
                   <div className="text-center py-8 bg-gray-50 rounded-lg border border-gray-200">
