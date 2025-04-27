@@ -288,7 +288,47 @@ const creditService = {
       console.error('Error in batchUpdateRevisions:', error);
       throw error;
     }
+  },
+  // frontend/src/services/creditService.js - Update these functions
+
+// Approve a credit request (admin only)
+approveCreditRequest: async (id, data = {}) => {
+  try {
+    console.log(`Approving credit request ID: ${id} with data:`, data);
+    // Ensure we're using the correct endpoint
+    const response = await api.put(`/credits/${id}/approve`, data);
+    console.log('Approval response:', response);
+    return response;
+  } catch (error) {
+    console.error('Error in approveCreditRequest:', error);
+    throw error;
   }
+},
+
+// Batch approve multiple credit requests
+batchApproveCreditRequests: async (requestIds, feedbackData = {}) => {
+  try {
+    if (!Array.isArray(requestIds) || requestIds.length === 0) {
+      throw new Error('No request IDs provided for batch approval');
+    }
+    
+    console.log(`Batch approving ${requestIds.length} credit requests with feedback:`, feedbackData);
+    
+    const response = await api.post('/credits/batch/approve', {
+      requestIds,
+      feedback: feedbackData.feedback || ''
+    });
+    
+    console.log('Batch approval response:', response);
+    return response;
+  } catch (error) {
+    console.error('Error in batchApproveCreditRequests:', error);
+    throw error;
+  }
+}
+
 };
+
+
 
 export default creditService;

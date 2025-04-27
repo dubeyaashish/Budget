@@ -338,6 +338,7 @@ exports.getCreditRequestVersions = async (req, res) => {
  * @param {Object} req - Express request object
  * @param {Object} res - Express response object
  */
+// backend/controllers/creditController.js - Updated approveCreditRequest function
 exports.approveCreditRequest = async (req, res) => {
   try {
     const requestId = req.params.id;
@@ -348,9 +349,109 @@ exports.approveCreditRequest = async (req, res) => {
       return res.status(403).json({ message: 'Access denied. Admin rights required.' });
     }
     
-    await creditModel.approveCreditRequest(requestId, adminId, feedback);
+    // Begin transaction
+    await db.promisePool.query('START TRANSACTION');
     
-    res.json({ message: 'Credit request approved successfully' });
+    try {
+      // 1. Get request details
+      const requestQuery = `
+        SELECT * FROM budget_withdrawal_requests 
+        WHERE id = ?`;
+      const [request] = await db.query(requestQuery, [requestId]);
+      
+      if (!request) {
+        await db.promisePool.query('ROLLBACK');
+        return res.status(404).json({ message: 'Credit request not found' });
+      }
+      
+      // 2. Update request status
+      await db.query(
+        `UPDATE budget_withdrawal_requests
+         SET status = 'approved', feedback = ?, reviewed_by = ?, reviewed_at = CURRENT_TIMESTAMP
+         WHERE id = ?`,
+        [feedback, adminId, requestId]
+      );
+      
+      // 3. Record transaction
+      await db.query(
+        `INSERT INTO budget_transactions
+         (request_id, key_account_id, amount, admin_id, transaction_date)
+         VALUES (?, ?, ?, ?, CURRENT_TIMESTAMP)`,
+        [requestId, request.key_account_id, request.amount, adminId]
+      );
+      
+      // 4. Update budget_master table - THIS IS THE NEW STEP
+      // First check if entry exists
+      const checkMasterQuery = `
+        SELECT * FROM budget_master 
+        WHERE key_account = ? 
+        AND department = (SELECT name FROM budget_departments WHERE id = ?)`;
+      
+      const masterEntries = await db.query(checkMasterQuery, [
+        request.key_account_id, 
+        request.department_id
+      ]);
+      
+      // Get department name
+      const [deptResult] = await db.query(
+        `SELECT name FROM budget_departments WHERE id = ?`, 
+        [request.department_id]
+      );
+      
+      const departmentName = deptResult ? deptResult.name : null;
+      
+      // Get key account details
+      const [accountResult] = await db.query(
+        `SELECT name, account_type FROM budget_key_accounts WHERE id = ?`, 
+        [request.key_account_id]
+      );
+      
+      if (masterEntries && masterEntries.length > 0) {
+        // Entry exists, update it
+        await db.query(
+          `UPDATE budget_master 
+           SET amount = amount + ? 
+           WHERE key_account = ? 
+           AND department = ?`,
+          [request.amount, request.key_account_id, departmentName]
+        );
+      } else if (departmentName) {
+        // Entry doesn't exist, create it
+        await db.query(
+          `INSERT INTO budget_master 
+           (key_account, key_account_name, type, department, amount) 
+           VALUES (?, ?, ?, ?, ?)`,
+          [
+            request.key_account_id, 
+            accountResult ? accountResult.name : 'Unknown Account',
+            accountResult ? accountResult.account_type : 'Expense',
+            departmentName, 
+            request.amount
+          ]
+        );
+      }
+      
+      // 5. Record history
+      await db.query(
+        `INSERT INTO budget_withdrawal_history
+         (request_id, previous_status, new_status, changed_by, change_reason)
+         VALUES (?, ?, 'approved', ?, ?)`,
+        [requestId, request.status, adminId, feedback || 'Request approved']
+      );
+      
+      // Commit transaction
+      await db.promisePool.query('COMMIT');
+      
+      res.json({ 
+        message: 'Credit request approved successfully',
+        updated_master: true
+      });
+    } catch (innerError) {
+      // Rollback transaction on error
+      await db.promisePool.query('ROLLBACK');
+      console.error('Transaction error in approveCreditRequest:', innerError);
+      throw innerError;
+    }
   } catch (error) {
     console.error('Error approving credit request:', error);
     res.status(500).json({ message: 'Server error approving credit request' });
@@ -563,6 +664,7 @@ exports.getUserDraftCreditRequests = async (req, res) => {
  * @param {Object} res - Express response object
  */
 
+// backend/controllers/creditController.js - Updated batchApproveCreditRequests function
 exports.batchApproveCreditRequests = async (req, res) => {
   try {
     const { requestIds, feedback } = req.body;
@@ -572,22 +674,127 @@ exports.batchApproveCreditRequests = async (req, res) => {
       return res.status(400).json({ message: 'Request IDs array is required' });
     }
     
-    // Process each request
-    const results = await Promise.all(
-      requestIds.map(async (id) => {
-        try {
-          await creditModel.approveCreditRequest(id, adminId, feedback);
-          return { id, success: true };
-        } catch (err) {
-          return { id, success: false, error: err.message };
-        }
-      })
-    );
+    if (req.user.role !== 'admin') {
+      return res.status(403).json({ message: 'Access denied. Admin rights required.' });
+    }
     
-    res.json({
-      message: `${results.filter(r => r.success).length} out of ${requestIds.length} requests approved successfully`,
-      results
-    });
+    // Begin transaction for the entire batch
+    await db.promisePool.query('START TRANSACTION');
+    
+    try {
+      // Process each request
+      const results = await Promise.all(
+        requestIds.map(async (id) => {
+          try {
+            // 1. Get request details
+            const [request] = await db.query(
+              `SELECT * FROM budget_withdrawal_requests WHERE id = ?`,
+              [id]
+            );
+            
+            if (!request) {
+              return { id, success: false, error: 'Request not found' };
+            }
+            
+            // 2. Update request status
+            await db.query(
+              `UPDATE budget_withdrawal_requests
+               SET status = 'approved', feedback = ?, reviewed_by = ?, reviewed_at = CURRENT_TIMESTAMP
+               WHERE id = ?`,
+              [feedback, adminId, id]
+            );
+            
+            // 3. Record transaction
+            await db.query(
+              `INSERT INTO budget_transactions
+               (request_id, key_account_id, amount, admin_id, transaction_date)
+               VALUES (?, ?, ?, ?, CURRENT_TIMESTAMP)`,
+              [id, request.key_account_id, request.amount, adminId]
+            );
+            
+            // 4. Update budget_master table - THIS IS THE NEW STEP
+            // First check if entry exists
+            const checkMasterQuery = `
+              SELECT * FROM budget_master 
+              WHERE key_account = ? 
+              AND department = (SELECT name FROM budget_departments WHERE id = ?)`;
+            
+            const masterEntries = await db.query(checkMasterQuery, [
+              request.key_account_id, 
+              request.department_id
+            ]);
+            
+            // Get department name
+            const [deptResult] = await db.query(
+              `SELECT name FROM budget_departments WHERE id = ?`, 
+              [request.department_id]
+            );
+            
+            const departmentName = deptResult ? deptResult.name : null;
+            
+            // Get key account details
+            const [accountResult] = await db.query(
+              `SELECT name, account_type FROM budget_key_accounts WHERE id = ?`, 
+              [request.key_account_id]
+            );
+            
+            if (masterEntries && masterEntries.length > 0) {
+              // Entry exists, update it
+              await db.query(
+                `UPDATE budget_master 
+                 SET amount = amount + ? 
+                 WHERE key_account = ? 
+                 AND department = ?`,
+                [request.amount, request.key_account_id, departmentName]
+              );
+            } else if (departmentName) {
+              // Entry doesn't exist, create it
+              await db.query(
+                `INSERT INTO budget_master 
+                 (key_account, key_account_name, type, department, amount) 
+                 VALUES (?, ?, ?, ?, ?)`,
+                [
+                  request.key_account_id, 
+                  accountResult ? accountResult.name : 'Unknown Account',
+                  accountResult ? accountResult.account_type : 'Expense',
+                  departmentName, 
+                  request.amount
+                ]
+              );
+            }
+            
+            // 5. Record history
+            await db.query(
+              `INSERT INTO budget_withdrawal_history
+               (request_id, previous_status, new_status, changed_by, change_reason)
+               VALUES (?, ?, 'approved', ?, ?)`,
+              [id, request.status, adminId, feedback || 'Request approved']
+            );
+            
+            return { id, success: true };
+          } catch (err) {
+            console.error(`Error processing request ${id}:`, err);
+            return { id, success: false, error: err.message };
+          }
+        })
+      );
+      
+      // Commit transaction if we got here
+      await db.promisePool.query('COMMIT');
+      
+      const successCount = results.filter(result => result.success).length;
+      
+      res.json({
+        message: `${successCount} out of ${requestIds.length} requests approved successfully`,
+        results,
+        updated_master: true
+      });
+    } catch (batchError) {
+      // Rollback the entire batch on error
+      await db.promisePool.query('ROLLBACK');
+      console.error('Error in batch approve transaction:', batchError);
+      throw batchError;
+    }
   } catch (error) {
     console.error('Error in batch approve:', error);
     res.status(500).json({ message: 'Server error during batch approval' });

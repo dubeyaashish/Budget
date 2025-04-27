@@ -139,77 +139,113 @@ const CreditApproval = () => {
     }
   };
 
-  const handleApprove = async (requestId) => {
-    if (!requestId) {
-      setError('No request selected');
-      return;
-    }
+// frontend/components/admin/CreditApproval.js - Updated handleApprove function
+const handleApprove = async (requestId) => {
+  if (!requestId) {
+    setError('No request selected');
+    return;
+  }
 
-    try {
-      setIsSubmitting(true);
-      setError(null);
-      
-      await creditService.approveCreditRequest(requestId, { feedback: remark });
-      
-      setSuccess('Credit request approved successfully');
-      
-      // Update the UI by removing the approved request
-      setPendingRequests(pendingRequests.filter(req => req.id !== requestId));
-      setRevisionRequests(revisionRequests.filter(req => req.id !== requestId));
-      setSelectedRequests(selectedRequests.filter(req => req.id !== requestId));
-      
-      if (detailedRequest?.id === requestId) {
-        setDetailedRequest(null);
-        setEditedAmount('');
-        setRemark('');
-        setVersionHistory([]);
-      }
-      
-      setTimeout(() => {
-        navigate('/admin/credit');
-      }, 2000);
-    } catch (err) {
-      console.error('Error approving credit request:', err);
-      setError(err.response?.data?.message || 'Failed to approve credit request');
-    } finally {
-      setIsSubmitting(false);
-    }
-  };
-
-  const handleReject = async (requestId) => {
-    if (!remark.trim()) {
-      setError('Please provide a reason for rejection');
-      return;
+  try {
+    setIsSubmitting(true);
+    setError(null);
+    
+    // Make the API call and get the expanded response
+    const response = await creditService.approveCreditRequest(requestId, { feedback: remark });
+    
+    // Handle the updated_master flag if it exists
+    const successMessage = response.updated_master 
+      ? 'Credit request approved successfully and budget master updated'
+      : 'Credit request approved successfully';
+    
+    setSuccess(successMessage);
+    
+    // Update the UI by removing the approved request
+    setPendingRequests(pendingRequests.filter(req => req.id !== requestId));
+    setRevisionRequests(revisionRequests.filter(req => req.id !== requestId));
+    setSelectedRequests(selectedRequests.filter(req => req.id !== requestId));
+    
+    if (detailedRequest?.id === requestId) {
+      setDetailedRequest(null);
+      setEditedAmount('');
+      setRemark('');
+      setVersionHistory([]);
     }
     
-    try {
-      setIsSubmitting(true);
-      setError(null);
-      
-      await creditService.rejectCreditRequest(requestId, { reason: remark });
-      
-      setSuccess('Credit request rejected successfully');
-      setPendingRequests(pendingRequests.filter(req => req.id !== requestId));
-      setRevisionRequests(revisionRequests.filter(req => req.id !== requestId));
-      setSelectedRequests(selectedRequests.filter(req => req.id !== requestId));
-      
-      if (detailedRequest?.id === requestId) {
-        setDetailedRequest(null);
-        setEditedAmount('');
-        setRemark('');
-        setVersionHistory([]);
-      }
-      
+    // Refresh key account data if the context provides that function
+    if (accountsWithUsage && typeof fetchKeyAccounts === 'function') {
       setTimeout(() => {
-        navigate('/admin/credit');
-      }, 2000);
-    } catch (err) {
-      console.error('Error rejecting credit request:', err);
-      setError(err.response?.data?.message || 'Failed to reject credit request');
-    } finally {
-      setIsSubmitting(false);
+        fetchKeyAccounts();
+      }, 1000);
     }
-  };
+    
+    setTimeout(() => {
+      navigate('/admin/credit');
+    }, 2000);
+  } catch (err) {
+    console.error('Error approving credit request:', err);
+    setError(err.response?.data?.message || 'Failed to approve credit request');
+  } finally {
+    setIsSubmitting(false);
+  }
+};
+
+// In CreditApproval.js - Add or update this function
+const handleBatchApprove = async () => {
+  if (selectedRequests.length === 0) {
+    setError('Please select at least one request to approve');
+    return;
+  }
+
+  try {
+    setIsSubmitting(true);
+    setError(null);
+    
+    const requestIds = selectedRequests.map(req => req.id);
+    
+    // Call the batch approve endpoint
+    const response = await creditService.batchApproveCreditRequests(
+      requestIds, 
+      { feedback: remark || 'Batch approved' }
+    );
+    
+    // Handle the updated_master flag if it exists
+    const successMessage = response.updated_master 
+      ? `${response.results.filter(r => r.success).length} requests approved successfully and budget master updated`
+      : `${response.results.filter(r => r.success).length} requests approved successfully`;
+    
+    setSuccess(successMessage);
+    
+    // Update UI by removing approved requests
+    const approvedIds = response.results
+      .filter(result => result.success)
+      .map(result => result.id);
+    
+    setPendingRequests(pendingRequests.filter(req => !approvedIds.includes(req.id)));
+    setRevisionRequests(revisionRequests.filter(req => !approvedIds.includes(req.id)));
+    setSelectedRequests([]);
+    
+    // Refresh key account data if the context provides that function
+    if (accountsWithUsage && typeof fetchKeyAccounts === 'function') {
+      setTimeout(() => {
+        fetchKeyAccounts();
+      }, 1000);
+    }
+    
+    // Reset the detailed request if it was approved
+    if (detailedRequest && approvedIds.includes(detailedRequest.id)) {
+      setDetailedRequest(null);
+      setEditedAmount('');
+      setRemark('');
+      setVersionHistory([]);
+    }
+  } catch (err) {
+    console.error('Error in batch approve:', err);
+    setError(err.response?.data?.message || 'Failed to approve requests');
+  } finally {
+    setIsSubmitting(false);
+  }
+};
 
   const handleRequestRevision = async () => {
     if (selectedRequests.length === 0 && !detailedRequest) {
