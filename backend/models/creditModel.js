@@ -74,16 +74,17 @@ exports.getDepartmentBudgetMasterData = async (departmentId) => {
  * @param {Object} requestData - Credit request data
  * @returns {Promise} Promise with insert result
  */
+// Updated createCreditRequest function for backend/models/creditModel.js
+
 exports.createCreditRequest = async (requestData) => {
-  let connection;
-  
+  // Get a connection from the pool instead of trying to manually manage one
   try {
-    connection = await db.pool.getConnection();
-    await connection.query('START TRANSACTION');
+    // Begin transaction
+    await db.promisePool.query('START TRANSACTION');
     
     const entries = [];
     for (const entry of requestData.entries) {
-      const [result] = await connection.query(
+      const [result] = await db.promisePool.query(
         `INSERT INTO budget_withdrawal_requests
          (user_id, department_id, key_account_id, amount, reason, status, version, parent_request_id)
          VALUES (?, ?, ?, ?, ?, ?, ?, ?)`,
@@ -106,18 +107,13 @@ exports.createCreditRequest = async (requestData) => {
       });
     }
     
-    await connection.query('COMMIT');
+    await db.promisePool.query('COMMIT');
     return { success: true, entries };
   } catch (error) {
-    if (connection) {
-      await connection.query('ROLLBACK');
-    }
+    // Rollback transaction if something went wrong
+    await db.promisePool.query('ROLLBACK');
     console.error('Error creating credit request:', error);
     throw error;
-  } finally {
-    if (connection) {
-      connection.release();
-    }
   }
 };
 /**
@@ -385,57 +381,242 @@ exports.rejectCreditRequest = async (requestId, adminId, reason) => {
  * @param {Number} suggestedAmount - Admin suggested amount (optional)
  * @returns {Promise} Promise with revision result
  */
-exports.createRevisionRequest = async (requestId, adminId, feedback, suggestedAmount = null) => {
+// In backend/controllers/creditController.js - replace this function:
+
+exports.createRevisionRequest = async (req, res) => {
   try {
-    // Begin transaction
-    await db.promisePool.query('START TRANSACTION');
+    const requestId = req.params.id;
+    const adminId = req.user.id;
+    const { feedback, suggested_amount } = req.body;
     
-    // Get current status
-    const [requestResult] = await db.query(
-      `SELECT status FROM budget_withdrawal_requests WHERE id = ?`,
-      [requestId]
-    );
+    // Get the original request to check if amount has changed
+    const originalRequest = await creditModel.getCreditRequestById(requestId);
     
-    if (!requestResult) {
-      throw new Error('Request not found');
+    if (!originalRequest) {
+      return res.status(404).json({ message: 'Credit request not found' });
     }
     
-    const previousStatus = requestResult.status;
+    // Only require feedback if the amount has been changed
+    const amountChanged = suggested_amount && 
+                         parseFloat(suggested_amount) !== parseFloat(originalRequest.amount);
     
-    // Mark the original request as in revision
-    const updateQuery = `
-      UPDATE budget_withdrawal_requests 
-      SET 
-        status = 'revision', 
-        feedback = ?, 
-        suggested_amount = ?, 
-        reviewed_by = ?,
-        reviewed_at = CURRENT_TIMESTAMP,
-        updated_at = CURRENT_TIMESTAMP
-      WHERE id = ?
-    `;
+    if (amountChanged && !feedback) {
+      return res.status(400).json({ 
+        message: 'Feedback is required when suggesting a different amount' 
+      });
+    }
     
-    await db.query(updateQuery, [feedback, suggestedAmount, adminId, requestId]);
+    // Default feedback for unchanged amounts
+    const finalFeedback = feedback || 
+                        (amountChanged ? '' : 'Please review and confirm this request.');
     
-    // Create a revision history entry
-    const historyQuery = `
-      INSERT INTO budget_withdrawal_history
-      (request_id, previous_status, new_status, changed_by, change_reason)
-      VALUES (?, ?, 'revision', ?, ?)
-    `;
+    if (req.user.role !== 'admin') {
+      return res.status(403).json({ message: 'Access denied. Admin rights required.' });
+    }
     
-    await db.query(historyQuery, [requestId, previousStatus, adminId, feedback]);
+    const result = await creditModel.createRevisionRequest(
+      requestId, 
+      adminId, 
+      finalFeedback, 
+      suggested_amount
+    );
     
-    await db.promisePool.query('COMMIT');
+    res.json({
+      message: 'Revision requested successfully',
+      requestId: result.requestId
+    });
+  } catch (err) {
+    console.error('Error creating revision request:', err);
+    res.status(500).json({ message: 'Server error creating revision request' });
+  }
+};
+
+/**
+ * Batch approve multiple credit requests (admin only)
+ * POST /api/credits/batch/approve
+ */
+exports.batchApproveCreditRequests = async (req, res) => {
+  try {
+    const { requestIds, feedback } = req.body;
+    const adminId = req.user.id;
     
-    return { 
-      success: true, 
-      requestId
-    };
+    if (!requestIds || !Array.isArray(requestIds) || requestIds.length === 0) {
+      return res.status(400).json({ message: 'Request IDs array is required' });
+    }
+    
+    if (req.user.role !== 'admin') {
+      return res.status(403).json({ message: 'Access denied. Admin rights required.' });
+    }
+    
+    const results = await Promise.all(
+      requestIds.map(async (id) => {
+        try {
+          await creditModel.approveCreditRequest(id, adminId, feedback);
+          return { id, success: true };
+        } catch (err) {
+          return { id, success: false, error: err.message };
+        }
+      })
+    );
+    
+    const successCount = results.filter(result => result.success).length;
+    
+    res.json({
+      message: `${successCount} out of ${requestIds.length} requests approved successfully`,
+      results
+    });
   } catch (error) {
-    await db.promisePool.query('ROLLBACK');
-    console.error('Error creating revision request:', error);
-    throw error;
+    console.error('Error in batch approve:', error);
+    res.status(500).json({ message: 'Server error during batch approval' });
+  }
+};
+
+/**
+ * Batch reject multiple credit requests (admin only)
+ * POST /api/credits/batch/reject
+ */
+exports.batchRejectCreditRequests = async (req, res) => {
+  try {
+    const { requestIds, reason } = req.body;
+    const adminId = req.user.id;
+    
+    if (!requestIds || !Array.isArray(requestIds) || requestIds.length === 0) {
+      return res.status(400).json({ message: 'Request IDs array is required' });
+    }
+    
+    if (!reason) {
+      return res.status(400).json({ message: 'Rejection reason is required' });
+    }
+    
+    if (req.user.role !== 'admin') {
+      return res.status(403).json({ message: 'Access denied. Admin rights required.' });
+    }
+    
+    const results = await Promise.all(
+      requestIds.map(async (id) => {
+        try {
+          await creditModel.rejectCreditRequest(id, adminId, reason);
+          return { id, success: true };
+        } catch (err) {
+          return { id, success: false, error: err.message };
+        }
+      })
+    );
+    
+    const successCount = results.filter(result => result.success).length;
+    
+    res.json({
+      message: `${successCount} out of ${requestIds.length} requests rejected successfully`,
+      results
+    });
+  } catch (error) {
+    console.error('Error in batch reject:', error);
+    res.status(500).json({ message: 'Server error during batch rejection' });
+  }
+};
+
+/**
+ * Batch create revision requests (admin only)
+ * POST /api/credits/batch/revision
+ */
+exports.batchCreateRevisionRequests = async (req, res) => {
+  try {
+    const { requestIds, feedback, suggestedAmount } = req.body;
+    const adminId = req.user.id;
+    
+    if (!requestIds || !Array.isArray(requestIds) || requestIds.length === 0) {
+      return res.status(400).json({ message: 'Request IDs array is required' });
+    }
+    
+    if (req.user.role !== 'admin') {
+      return res.status(403).json({ message: 'Access denied. Admin rights required.' });
+    }
+    
+    const results = await Promise.all(
+      requestIds.map(async (id) => {
+        try {
+          // If individual amount adjustments are provided, use them
+          const amount = suggestedAmount && typeof suggestedAmount === 'object' 
+            ? suggestedAmount[id] 
+            : suggestedAmount;
+          
+          const result = await creditModel.createRevisionRequest(
+            id, adminId, feedback, amount
+          );
+          return { id, success: true, requestId: result.requestId };
+        } catch (err) {
+          return { id, success: false, error: err.message };
+        }
+      })
+    );
+    
+    const successCount = results.filter(result => result.success).length;
+    
+    res.json({
+      message: `${successCount} out of ${requestIds.length} revision requests created successfully`,
+      results
+    });
+  } catch (error) {
+    console.error('Error in batch revision creation:', error);
+    res.status(500).json({ message: 'Server error during batch revision creation' });
+  }
+};
+
+/**
+ * Batch update multiple revision requests
+ * POST /api/credits/batch/update-revisions
+ */
+exports.batchUpdateRevisions = async (req, res) => {
+  try {
+    const { revisions } = req.body;
+    const userId = req.user.id;
+    
+    if (!revisions || !Array.isArray(revisions) || revisions.length === 0) {
+      return res.status(400).json({ message: 'Revision array is required' });
+    }
+    
+    const results = await Promise.all(
+      revisions.map(async (revision) => {
+        try {
+          if (!revision.id || !revision.amount || !revision.reason) {
+            return { 
+              id: revision.id || 'unknown', 
+              success: false, 
+              error: 'Missing required fields (id, amount, reason)' 
+            };
+          }
+          
+          const result = await creditModel.updateRevisionRequest(
+            revision.id, 
+            userId, 
+            {
+              amount: parseFloat(revision.amount),
+              reason: revision.reason,
+              key_account_id: revision.key_account_id
+            }
+          );
+          
+          return { 
+            id: revision.id, 
+            success: true, 
+            newRequestId: result.newRequestId,
+            version: result.version
+          };
+        } catch (err) {
+          return { id: revision.id, success: false, error: err.message };
+        }
+      })
+    );
+    
+    const successCount = results.filter(result => result.success).length;
+    
+    res.json({
+      message: `${successCount} out of ${revisions.length} revisions updated successfully`,
+      results
+    });
+  } catch (error) {
+    console.error('Error in batch update revisions:', error);
+    res.status(500).json({ message: 'Server error during batch revision update' });
   }
 };
 

@@ -207,7 +207,90 @@ const creditService = {
       console.error(`Error in getDepartmentBudgetMasterData for ID ${departmentId}:`, error);
       return [];
     }
+  },
+  // Batch approve multiple credit requests
+  batchApproveCreditRequests: async (requestIds, feedbackData = {}) => {
+    try {
+      if (!Array.isArray(requestIds) || requestIds.length === 0) {
+        throw new Error('No request IDs provided for batch approval');
+      }
+      
+      const response = await api.post('/credits/batch/approve', {
+        requestIds,
+        feedback: feedbackData.feedback || ''
+      });
+      
+      return response;
+    } catch (error) {
+      console.error('Error in batchApproveCreditRequests:', error);
+      throw error;
+    }
+  },
+
+  // Batch reject multiple credit requests
+  batchRejectCreditRequests: async (requestIds, rejectionData) => {
+    try {
+      if (!Array.isArray(requestIds) || requestIds.length === 0) {
+        throw new Error('No request IDs provided for batch rejection');
+      }
+      
+      if (!rejectionData.reason) {
+        throw new Error('Rejection reason is required for batch rejection');
+      }
+      
+      const response = await api.post('/credits/batch/reject', {
+        requestIds,
+        reason: rejectionData.reason
+      });
+      
+      return response;
+    } catch (error) {
+      console.error('Error in batchRejectCreditRequests:', error);
+      throw error;
+    }
+  },
+
+  // Batch request revision for multiple credit requests
+  batchCreateRevisionRequests: async (requestIds, revisionData) => {
+    try {
+      if (!Array.isArray(requestIds) || requestIds.length === 0) {
+        throw new Error('No request IDs provided for batch revision');
+      }
+      
+      const response = await api.post('/credits/batch/revision', {
+        requestIds,
+        feedback: revisionData.feedback || '',
+        suggestedAmount: revisionData.suggestedAmount || null
+      });
+      
+      return response;
+    } catch (error) {
+      console.error('Error in batchCreateRevisionRequests:', error);
+      throw error;
+    }
+  },
+
+  // Batch update revisions
+  batchUpdateRevisions: async (revisions) => {
+    try {
+      if (!Array.isArray(revisions) || revisions.length === 0) {
+        throw new Error('No revision data provided for batch update');
+      }
+      
+      const response = await api.post('/credits/batch/update-revisions', {
+        revisions
+      });
+      
+      return response;
+    } catch (error) {
+      console.error('Error in batchUpdateRevisions:', error);
+      throw error;
+    }
   }
+
+  
 };
+
+
 
 export default creditService;

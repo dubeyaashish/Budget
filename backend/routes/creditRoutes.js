@@ -62,4 +62,16 @@ router.post('/draft', authenticateToken, creditController.saveDraftCreditRequest
 // Get user draft credit requests
 router.get('/draft', authenticateToken, creditController.getUserDraftCreditRequests);
 
+// Batch approve credit requests (admin only)
+router.post('/batch/approve', authenticateToken, isAdmin, creditController.batchApproveCreditRequests);
+
+// Batch reject credit requests (admin only)
+router.post('/batch/reject', authenticateToken, isAdmin, creditController.batchRejectCreditRequests);
+
+// Batch create revision requests (admin only)
+router.post('/batch/revision', authenticateToken, isAdmin, creditController.batchCreateRevisionRequests);
+
+// Batch update revisions
+router.post('/batch/update-revisions', authenticateToken, creditController.batchUpdateRevisions);
+
 module.exports = router;
