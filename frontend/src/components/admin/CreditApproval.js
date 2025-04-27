@@ -27,8 +27,11 @@ const CreditApproval = () => {
   const [showRevisionModal, setShowRevisionModal] = useState(false);
   const [batchRevisions, setBatchRevisions] = useState([]);
 
+  // Include all request types
+  const allRequests = [...pendingRequests, ...revisionRequests];
+
   // Group requests by department
-  const groupedRequests = [...pendingRequests, ...revisionRequests].reduce((acc, req) => {
+  const groupedRequests = allRequests.reduce((acc, req) => {
     const dept = req.department_name || 'Uncategorized';
     if (!acc[dept]) acc[dept] = [];
     acc[dept].push(req);
@@ -44,18 +47,27 @@ const CreditApproval = () => {
           creditService.getAllPendingRequests(),
           creditService.getAllRevisionRequests()
         ]);
-        setPendingRequests(pending);
-        setRevisionRequests(revisions);
+        
+        console.log('Pending requests:', pending);
+        console.log('Revision requests:', revisions);
+        
+        setPendingRequests(pending || []);
+        setRevisionRequests(revisions || []);
         
         if (id) {
           const requestData = await creditService.getCreditRequestById(id);
           if (requestData) {
             setDetailedRequest(requestData);
             setSelectedDepartment(requestData.department_name || 'Uncategorized');
-            setEditedAmount(requestData.amount.toString());
+            setEditedAmount(requestData.amount?.toString() || '');
             // Fetch version history
-            const versions = await creditService.getCreditRequestVersions(requestData.id);
-            setVersionHistory(versions);
+            try {
+              const versions = await creditService.getCreditRequestVersions(requestData.id);
+              setVersionHistory(versions || []);
+            } catch (err) {
+              console.error('Error fetching versions:', err);
+              setVersionHistory([]);
+            }
           }
         }
       } catch (err) {
@@ -68,6 +80,23 @@ const CreditApproval = () => {
 
     fetchData();
   }, [id]);
+
+  const refreshData = useCallback(async () => {
+    try {
+      setIsLoading(true);
+      const [pending, revisions] = await Promise.all([
+        creditService.getAllPendingRequests(),
+        creditService.getAllRevisionRequests()
+      ]);
+      setPendingRequests(pending || []);
+      setRevisionRequests(revisions || []);
+    } catch (err) {
+      console.error('Error refreshing data:', err);
+      setError('Failed to refresh data');
+    } finally {
+      setIsLoading(false);
+    }
+  }, []);
 
   const selectDepartment = (dept) => {
     setSelectedDepartment(dept);
@@ -91,27 +120,40 @@ const CreditApproval = () => {
   };
 
   const selectRequestForDetails = async (req) => {
-    setDetailedRequest(req);
-    setEditedAmount(req.amount.toString());
-    setRemark('');
     try {
+      setIsLoading(true);
+      setDetailedRequest(req);
+      setEditedAmount(req.amount?.toString() || '');
+      setRemark('');
+      
+      // Fetch version history
       const versions = await creditService.getCreditRequestVersions(req.id);
-      setVersionHistory(versions);
+      setVersionHistory(versions || []);
+      
+      navigate(`/admin/credit/${req.id}`, { replace: true });
     } catch (err) {
-      console.error('Error fetching version history:', err);
-      setError('Failed to load version history');
+      console.error('Error fetching request details:', err);
+      setError('Failed to load request details');
+    } finally {
+      setIsLoading(false);
     }
-    navigate(`/admin/credit/${req.id}`, { replace: true });
   };
 
   const handleApprove = async (requestId) => {
+    if (!requestId) {
+      setError('No request selected');
+      return;
+    }
+
     try {
       setIsSubmitting(true);
       setError(null);
       
-      await creditService.approveCreditRequest(requestId);
+      await creditService.approveCreditRequest(requestId, { feedback: remark });
       
       setSuccess('Credit request approved successfully');
+      
+      // Update the UI by removing the approved request
       setPendingRequests(pendingRequests.filter(req => req.id !== requestId));
       setRevisionRequests(revisionRequests.filter(req => req.id !== requestId));
       setSelectedRequests(selectedRequests.filter(req => req.id !== requestId));
@@ -304,6 +346,11 @@ const CreditApproval = () => {
         setVersionHistory([]);
       }
       
+      // Refresh data to get the newly pending request
+      setTimeout(() => {
+        refreshData();
+      }, 1000);
+      
       setTimeout(() => {
         navigate('/admin/credit');
       }, 2000);
@@ -368,24 +415,41 @@ const CreditApproval = () => {
             ) : Object.keys(groupedRequests).length > 0 ? (
               <div className="overflow-y-auto max-h-96">
                 <ul className="divide-y divide-gray-200">
-                  {Object.entries(groupedRequests).map(([dept, reqs]) => (
-                    <li
-                      key={dept}
-                      className={`py-4 px-4 cursor-pointer hover:bg-gray-50 ${
-                        selectedDepartment === dept ? 'bg-indigo-50' : ''
-                      }`}
-                      onClick={() => selectDepartment(dept)}
-                    >
-                      <div className="flex justify-between">
-                        <span className="font-medium">{dept}</span>
-                        <span className="text-sm text-gray-500">{reqs.length}</span>
-                      </div>
-                    </li>
-                  ))}
+                  {Object.entries(groupedRequests).map(([dept, reqs]) => {
+                    // Count requests by status
+                    const pendingCount = reqs.filter(r => r.status === 'pending').length;
+                    const revisionCount = reqs.filter(r => r.status === 'revision').length;
+                    
+                    return (
+                      <li
+                        key={dept}
+                        className={`py-4 px-4 cursor-pointer hover:bg-gray-50 ${
+                          selectedDepartment === dept ? 'bg-indigo-50' : ''
+                        }`}
+                        onClick={() => selectDepartment(dept)}
+                      >
+                        <div className="flex justify-between">
+                          <span className="font-medium">{dept}</span>
+                          <div className="flex space-x-2">
+                            {pendingCount > 0 && (
+                              <span className="px-2 py-1 text-xs text-blue-800 bg-blue-100 rounded-full">
+                                {pendingCount} pending
+                              </span>
+                            )}
+                            {revisionCount > 0 && (
+                              <span className="px-2 py-1 text-xs text-yellow-800 bg-yellow-100 rounded-full">
+                                {revisionCount} revision
+                              </span>
+                            )}
+                          </div>
+                        </div>
+                      </li>
+                    );
+                  })}
                 </ul>
               </div>
             ) : (
-              <p className="px-4 text-gray-500">No departments found.</p>
+              <p className="px-4 text-gray-500">No departments found with requests.</p>
             )}
           </div>
         </div>
@@ -394,7 +458,7 @@ const CreditApproval = () => {
         <div className="bg-white rounded-lg shadow">
           <div className="p-6 border-b border-gray-200">
             <h2 className="text-lg font-medium text-gray-900">
-              {selectedDepartment || 'Select a Department'}
+              {selectedDepartment ? `Requests: ${selectedDepartment}` : 'Select a Department'}
             </h2>
           </div>
           
@@ -432,9 +496,18 @@ const CreditApproval = () => {
                               {formatCurrency(req.amount)}
                               {req.status === 'revision' && ` (Version ${req.version || 1})`}
                             </span>
-                            <span className="text-xs text-gray-500 mt-1">
-                              {new Date(req.created_at).toLocaleString()}
-                            </span>
+                            <div className="flex items-center mt-1">
+                              <span className={`px-2 py-1 text-xs font-medium rounded-full ${
+                                req.status === 'pending' ? 'bg-blue-100 text-blue-800' :
+                                req.status === 'revision' ? 'bg-yellow-100 text-yellow-800' :
+                                'bg-green-100 text-green-800'
+                              }`}>
+                                {req.status}
+                              </span>
+                              <span className="ml-2 text-xs text-gray-500">
+                                {new Date(req.created_at).toLocaleString()}
+                              </span>
+                            </div>
                           </div>
                         </div>
                       </div>
@@ -501,7 +574,16 @@ const CreditApproval = () => {
                   </div>
                   <div>
                     <h3 className="text-sm font-medium text-gray-500">Status</h3>
-                    <p className="mt-1 text-lg font-medium text-gray-900 capitalize">{detailedRequest.status}</p>
+                    <p className="mt-1">
+                      <span className={`px-2 py-1 inline-flex text-xs leading-5 font-semibold rounded-full ${
+                        detailedRequest.status === 'pending' ? 'bg-blue-100 text-blue-800' :
+                        detailedRequest.status === 'revision' ? 'bg-yellow-100 text-yellow-800' :
+                        detailedRequest.status === 'approved' ? 'bg-green-100 text-green-800' :
+                        'bg-red-100 text-red-800'
+                      }`}>
+                        {detailedRequest.status}
+                      </span>
+                    </p>
                   </div>
                 </div>
                 
@@ -640,36 +722,41 @@ const CreditApproval = () => {
                 </div>
                 
                 <div className="flex justify-end space-x-3">
-                  <button
-                    onClick={() => handleRequestRevision()}
-                    disabled={isSubmitting}
-                    className="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md text-yellow-700 bg-yellow-100 hover:bg-yellow-200 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-yellow-500"
-                  >
-                    Request Revision
-                  </button>
+                  {detailedRequest.status === 'pending' && (
+                    <>
+                      <button
+                        onClick={() => handleRequestRevision()}
+                        disabled={isSubmitting}
+                        className="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md text-yellow-700 bg-yellow-100 hover:bg-yellow-200 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-yellow-500"
+                      >
+                        Request Revision
+                      </button>
+                      <button
+                        onClick={() => handleReject(detailedRequest.id)}
+                        disabled={isSubmitting || !remark.trim()}
+                        className="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md text-white bg-red-600 hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500"
+                      >
+                        {isSubmitting ? <LoadingSpinner /> : 'Reject'}
+                      </button>
+                      <button
+                        onClick={() => handleApprove(detailedRequest.id)}
+                        disabled={isSubmitting}
+                        className="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md text-white bg-green-600 hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500"
+                      >
+                        {isSubmitting ? <LoadingSpinner /> : 'Approve'}
+                      </button>
+                    </>
+                  )}
+                  
                   {detailedRequest.status === 'revision' && (
                     <button
                       onClick={() => handleResolve(detailedRequest.id)}
                       disabled={isSubmitting}
                       className="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
                     >
-                      {isSubmitting ? <LoadingSpinner /> : 'Resolve'}
+                      {isSubmitting ? <LoadingSpinner /> : 'Resolve Revision'}
                     </button>
                   )}
-                  <button
-                    onClick={() => handleReject(detailedRequest.id)}
-                    disabled={isSubmitting || !remark.trim()}
-                    className="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md text-white bg-red-600 hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500"
-                  >
-                    {isSubmitting ? <LoadingSpinner /> : 'Reject'}
-                  </button>
-                  <button
-                    onClick={() => handleApprove(detailedRequest.id)}
-                    disabled={isSubmitting}
-                    className="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md text-white bg-green-600 hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500"
-                  >
-                    {isSubmitting ? <LoadingSpinner /> : 'Approve'}
-                  </button>
                 </div>
               </div>
             ) : (

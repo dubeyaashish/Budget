@@ -17,7 +17,7 @@ const NewCreditRequest = () => {
   const [formData, setFormData] = useState({
     department_id: '',
     version: 1,
-    status: 'draft',
+    status: 'pending',
     request_id: null,
   });
 
@@ -155,7 +155,7 @@ const NewCreditRequest = () => {
         setAccountEntries(newEntries);
       }
     }
-  }, [selectedDepartment, budgetMasterData, isSubmitted]);
+  }, [selectedDepartment, budgetMasterData, isSubmitted, accountEntries.length]);
 
   const getAvailableAmount = (accountId) => {
     if (!accountId) return 0;
@@ -181,7 +181,7 @@ const NewCreditRequest = () => {
       ...formData,
       department_id: departmentId,
       version: 1, 
-      status: 'draft',
+      status: 'pending',
       request_id: null
     });
     
@@ -341,6 +341,7 @@ const NewCreditRequest = () => {
       return false;
     }
 
+    // Check if any entry exceeds available balance
     const invalidEntry = accountEntries.find(
       (entry) => entry.amount && parseFloat(entry.amount) > entry.available
     );
@@ -357,60 +358,30 @@ const NewCreditRequest = () => {
     return true;
   };
 
-  const handleSubmit = async (e) => {
-    e.preventDefault();
-    
-    if (!validateForm()) {
-      return;
-    }
+// This is the fixed handleSubmit function to replace in NewCreditRequest.js
 
-    try {
-      setIsSubmitting(true);
-      setError(null);
-
-      const validEntries = accountEntries.filter(
-        (entry) => entry.key_account_id && entry.amount && parseFloat(entry.amount) > 0 && entry.reason
-      );
-
-      // Create a single credit request with multiple entries
-      const payload = {
-        department_id: parseInt(formData.department_id),
-        entries: validEntries.map(entry => ({
-          key_account_id: entry.key_account_id,
-          amount: parseFloat(entry.amount),
-          reason: entry.reason,
-        })),
-        version: formData.version,
-        status: 'pending',
-        parent_request_id: formData.request_id
-      };
-
-      console.log('Submitting credit request:', payload);
-      
-      const response = await creditService.createCreditRequest(payload);
-      
-      console.log('Credit request response:', response);
-      
-      setSuccess('Credit request submitted successfully!');
-      setIsSubmitted(true);
-      setFormData(prev => ({
-        ...prev,
-        request_id: response.requestId,
-        status: 'pending'
-      }));
-      
-    } catch (err) {
-      console.error('Error submitting credit request:', err);
-      setError(err.response?.data?.message || 'Failed to submit credit request');
-    } finally {
-      setIsSubmitting(false);
-    }
-  };
-
-// Fixed saveAsDraft function for NewCreditRequest.js
-const saveAsDraft = async () => {
+const handleSubmit = async (e) => {
+  e.preventDefault();
+  console.log("Submit button clicked");
+  
+  // Basic validation with visible error messages
   if (!formData.department_id) {
     setError('Please select a department');
+    return;
+  }
+
+  // Check for at least one valid entry
+  const validEntries = accountEntries.filter(
+    (entry) => entry.key_account_id && 
+               entry.amount && 
+               parseFloat(entry.amount) > 0 && 
+               entry.reason
+  );
+
+  console.log("Valid entries:", validEntries);
+
+  if (validEntries.length === 0) {
+    setError('Please add at least one account with a valid amount and reason');
     return;
   }
 
@@ -418,37 +389,49 @@ const saveAsDraft = async () => {
     setIsSubmitting(true);
     setError(null);
 
-    // Create payload with minimal validation - drafts can be incomplete
+    // Create payload with explicit status set to 'pending'
     const payload = {
       department_id: parseInt(formData.department_id),
-      entries: accountEntries
-        .filter((entry) => entry.key_account_id) // Keep only entries with key account ID
-        .map((entry) => ({
-          key_account_id: entry.key_account_id,
-          amount: parseFloat(entry.amount) || 0, // Parse amount with fallback to 0
-          reason: entry.reason || '',
-        })),
-      version: formData.version,
-      status: 'draft',
+      entries: validEntries.map(entry => ({
+        key_account_id: entry.key_account_id,
+        amount: parseFloat(entry.amount),
+        reason: entry.reason,
+      })),
+      version: formData.version || 1,
+      status: 'pending'
     };
 
-    console.log('Saving draft with payload:', payload);
-
-    const response = await creditService.saveDraftCreditRequest(payload);
+    console.log('Submitting credit request with payload:', payload);
     
-    console.log('Draft save response:', response);
-    setSuccess('Request saved as draft');
-    
-    // Optionally set request_id if returned from the API
-    if (response && response.data && response.data.id) {
-      setFormData(prev => ({
-        ...prev,
-        request_id: response.data.id
-      }));
+    // Make the API call with explicit error handling
+    try {
+      const response = await creditService.createCreditRequest(payload);
+      console.log('Credit request response:', response);
+      
+      setSuccess('Credit request submitted successfully!');
+      setIsSubmitted(true);
+      
+      // Store request ID if available in response
+      if (response.requestId || response.id || (response.entries && response.entries.length > 0)) {
+        const requestId = response.requestId || response.id || response.entries[0].id;
+        setFormData(prev => ({
+          ...prev,
+          request_id: requestId,
+          status: 'pending'
+        }));
+      }
+      
+      // Show success message for 3 seconds then navigate to credit history
+      setTimeout(() => {
+        navigate('/credit-history');
+      }, 3000);
+    } catch (apiError) {
+      console.error('API Error:', apiError);
+      setError(apiError.message || 'Error communicating with server');
     }
   } catch (err) {
-    console.error('Error saving draft:', err);
-    setError('Failed to save draft: ' + (err.response?.data?.message || err.message || 'Unknown error'));
+    console.error('General error in submit handler:', err);
+    setError(err.message || 'Failed to submit credit request');
   } finally {
     setIsSubmitting(false);
   }
@@ -458,7 +441,7 @@ const saveAsDraft = async () => {
     setFormData({
       department_id: currentUser?.department || '',
       version: 1,
-      status: 'draft',
+      status: 'pending',
       request_id: null,
     });
     setAccountEntries([]);
@@ -709,14 +692,6 @@ const saveAsDraft = async () => {
               </button>
 
               <button
-                type="button"
-                onClick={saveAsDraft}
-                className="bg-gray-100 py-2 px-4 border border-gray-300 rounded-md shadow-sm text-sm font-medium text-gray-700 hover:bg-gray-200 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-gray-500"
-              >
-                Save as Draft
-              </button>
-
-              <button
                 type="submit"
                 disabled={isSubmitting || accountEntries.length === 0}
                 className="inline-flex justify-center py-2 px-4 border border-transparent shadow-sm text-sm font-medium rounded-md text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500"
@@ -752,9 +727,11 @@ const saveAsDraft = async () => {
                     Date: {new Date(Date.now() - 86400000).toLocaleDateString()}
                   </span>
                 </div>
-                <p className="mt-2 text-sm text-gray-600">
-                  Admin feedback: Please adjust the amount and provide more details.
-                </p>
+                {formData.feedback && (
+                  <p className="mt-2 text-sm text-gray-600">
+                    Admin feedback: {formData.feedback}
+                  </p>
+                )}
               </div>
             )}
           </div>

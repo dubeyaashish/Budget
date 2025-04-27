@@ -1,6 +1,6 @@
 // frontend/src/components/user/RevisionRequests.js
 import React, { useState, useEffect, useContext } from 'react';
-import { Link } from 'react-router-dom';
+import { useNavigate } from 'react-router-dom';
 import { AuthContext } from '../../context/AuthContext';
 import { KeyAccountContext } from '../../context/KeyAccountContext';
 import creditService from '../../services/creditService';
@@ -12,6 +12,7 @@ import { formatCurrency } from '../../utils/formatCurrency';
 const RevisionRequests = () => {
   const { currentUser } = useContext(AuthContext);
   const { keyAccounts } = useContext(KeyAccountContext);
+  const navigate = useNavigate();
   
   const [revisionRequests, setRevisionRequests] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
@@ -40,11 +41,11 @@ const RevisionRequests = () => {
       // Get revision requests for the current user
       const requests = await creditService.getUserCreditRevisionRequests();
       console.log('Fetched revision requests:', requests);
-      setRevisionRequests(requests);
+      setRevisionRequests(requests || []);
       
       // Get available key accounts for selection
       const accounts = await keyAccountService.getAllKeyAccounts();
-      setAvailableKeyAccounts(accounts);
+      setAvailableKeyAccounts(accounts || []);
     } catch (err) {
       console.error('Error fetching revision requests:', err);
       setError('Failed to load revision requests');
@@ -58,12 +59,17 @@ const RevisionRequests = () => {
       setIsLoading(true);
       
       // Fetch version history to see previous versions
-      const versions = await creditService.getCreditRequestVersions(request.id);
-      setVersionHistory(versions);
+      try {
+        const versions = await creditService.getCreditRequestVersions(request.id);
+        setVersionHistory(versions || []);
+      } catch (err) {
+        console.error('Error fetching versions:', err);
+        setVersionHistory([]);
+      }
       
       setSelectedRequest(request);
       setFormData({
-        amount: request.amount || '',
+        amount: request.suggested_amount || request.amount || '',
         reason: request.reason || '',
         key_account_id: request.key_account_id || ''
       });
@@ -119,6 +125,11 @@ const RevisionRequests = () => {
       
       // Refresh the data
       fetchData();
+      
+      // After 2 seconds, redirect to credit history to see the updated request
+      setTimeout(() => {
+        navigate('/credit-history');
+      }, 2000);
     } catch (err) {
       console.error('Error submitting revision:', err);
       setError(err.response?.data?.message || 'Failed to update revision');
@@ -159,7 +170,7 @@ const RevisionRequests = () => {
             <div className="flex justify-center py-8">
               <LoadingSpinner size="large" />
             </div>
-          ) : revisionRequests.length > 0 ? (
+          ) : revisionRequests && revisionRequests.length > 0 ? (
             <div className="overflow-x-auto">
               <table className="min-w-full divide-y divide-gray-200">
                 <thead className="bg-gray-50">
@@ -197,10 +208,10 @@ const RevisionRequests = () => {
                         {new Date(request.created_at).toLocaleDateString()}
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                        {request.department_name}
+                        {request.department_name || 'N/A'}
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                        {request.account_name}
+                        {request.account_name || 'N/A'}
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
                         {formatCurrency(request.amount)}

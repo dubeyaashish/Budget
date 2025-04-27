@@ -75,15 +75,15 @@ exports.getDepartmentBudgetMasterData = async (departmentId) => {
  * @returns {Promise} Promise with insert result
  */
 exports.createCreditRequest = async (requestData) => {
-  const connection = await db.pool.getConnection();
+  let connection;
   
   try {
-    await connection.beginTransaction();
+    connection = await db.pool.getConnection();
+    await connection.query('START TRANSACTION');
     
-    // Insert entries for the request
     const entries = [];
     for (const entry of requestData.entries) {
-      const result = await db.query(
+      const [result] = await connection.query(
         `INSERT INTO budget_withdrawal_requests
          (user_id, department_id, key_account_id, amount, reason, status, version, parent_request_id)
          VALUES (?, ?, ?, ?, ?, ?, ?, ?)`,
@@ -106,17 +106,20 @@ exports.createCreditRequest = async (requestData) => {
       });
     }
     
-    await connection.commit();
+    await connection.query('COMMIT');
     return { success: true, entries };
   } catch (error) {
-    await connection.rollback();
+    if (connection) {
+      await connection.query('ROLLBACK');
+    }
     console.error('Error creating credit request:', error);
     throw error;
   } finally {
-    connection.release();
+    if (connection) {
+      connection.release();
+    }
   }
 };
-
 /**
  * Get latest user credit request
  * @param {Number} userId - User ID
