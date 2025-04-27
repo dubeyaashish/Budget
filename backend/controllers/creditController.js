@@ -557,5 +557,194 @@ exports.getUserDraftCreditRequests = async (req, res) => {
   }
 };
 
+/**
+ * Get user draft credit requests
+ * @param {Object} req - Express request object
+ * @param {Object} res - Express response object
+ */
+
+exports.batchApproveCreditRequests = async (req, res) => {
+  try {
+    const { requestIds, feedback } = req.body;
+    const adminId = req.user.id;
+    
+    if (!requestIds || !Array.isArray(requestIds) || requestIds.length === 0) {
+      return res.status(400).json({ message: 'Request IDs array is required' });
+    }
+    
+    // Process each request
+    const results = await Promise.all(
+      requestIds.map(async (id) => {
+        try {
+          await creditModel.approveCreditRequest(id, adminId, feedback);
+          return { id, success: true };
+        } catch (err) {
+          return { id, success: false, error: err.message };
+        }
+      })
+    );
+    
+    res.json({
+      message: `${results.filter(r => r.success).length} out of ${requestIds.length} requests approved successfully`,
+      results
+    });
+  } catch (error) {
+    console.error('Error in batch approve:', error);
+    res.status(500).json({ message: 'Server error during batch approval' });
+  }
+};
+
+/**
+ * Batch reject multiple credit requests (admin only)
+ * @param {Object} req - Express request object
+ * @param {Object} res - Express response object
+ */
+exports.batchRejectCreditRequests = async (req, res) => {
+  try {
+    const { requestIds, reason } = req.body;
+    const adminId = req.user.id;
+    
+    if (!requestIds || !Array.isArray(requestIds) || requestIds.length === 0) {
+      return res.status(400).json({ message: 'Request IDs array is required' });
+    }
+    
+    if (!reason) {
+      return res.status(400).json({ message: 'Rejection reason is required' });
+    }
+    
+    if (req.user.role !== 'admin') {
+      return res.status(403).json({ message: 'Access denied. Admin rights required.' });
+    }
+    
+    const results = await Promise.all(
+      requestIds.map(async (id) => {
+        try {
+          await creditModel.rejectCreditRequest(id, adminId, reason);
+          return { id, success: true };
+        } catch (err) {
+          return { id, success: false, error: err.message };
+        }
+      })
+    );
+    
+    const successCount = results.filter(result => result.success).length;
+    
+    res.json({
+      message: `${successCount} out of ${requestIds.length} requests rejected successfully`,
+      results
+    });
+  } catch (error) {
+    console.error('Error in batch reject:', error);
+    res.status(500).json({ message: 'Server error during batch rejection' });
+  }
+};
+
+/**
+ * Batch create revision requests (admin only)
+ * @param {Object} req - Express request object
+ * @param {Object} res - Express response object
+ */
+exports.batchCreateRevisionRequests = async (req, res) => {
+  try {
+    const { requestIds, feedback, suggestedAmount } = req.body;
+    const adminId = req.user.id;
+    
+    if (!requestIds || !Array.isArray(requestIds) || requestIds.length === 0) {
+      return res.status(400).json({ message: 'Request IDs array is required' });
+    }
+    
+    if (req.user.role !== 'admin') {
+      return res.status(403).json({ message: 'Access denied. Admin rights required.' });
+    }
+    
+    const results = await Promise.all(
+      requestIds.map(async (id) => {
+        try {
+          // If individual amount adjustments are provided, use them
+          const amount = suggestedAmount && typeof suggestedAmount === 'object' 
+            ? suggestedAmount[id] 
+            : suggestedAmount;
+          
+          const result = await creditModel.createRevisionRequest(
+            id, adminId, feedback, amount
+          );
+          return { id, success: true, requestId: result.requestId };
+        } catch (err) {
+          return { id, success: false, error: err.message };
+        }
+      })
+    );
+    
+    const successCount = results.filter(result => result.success).length;
+    
+    res.json({
+      message: `${successCount} out of ${requestIds.length} revision requests created successfully`,
+      results
+    });
+  } catch (error) {
+    console.error('Error in batch revision creation:', error);
+    res.status(500).json({ message: 'Server error during batch revision creation' });
+  }
+};
+
+/**
+ * Batch update multiple revision requests
+ * @param {Object} req - Express request object
+ * @param {Object} res - Express response object
+ */
+exports.batchUpdateRevisions = async (req, res) => {
+  try {
+    const { revisions } = req.body;
+    const userId = req.user.id;
+    
+    if (!revisions || !Array.isArray(revisions) || revisions.length === 0) {
+      return res.status(400).json({ message: 'Revision array is required' });
+    }
+    
+    const results = await Promise.all(
+      revisions.map(async (revision) => {
+        try {
+          if (!revision.id || !revision.amount || !revision.reason) {
+            return { 
+              id: revision.id || 'unknown', 
+              success: false, 
+              error: 'Missing required fields (id, amount, reason)' 
+            };
+          }
+          
+          const result = await creditModel.updateRevisionRequest(
+            revision.id, 
+            userId, 
+            {
+              amount: parseFloat(revision.amount),
+              reason: revision.reason,
+              key_account_id: revision.key_account_id
+            }
+          );
+          
+          return { 
+            id: revision.id, 
+            success: true, 
+            newRequestId: result.newRequestId,
+            version: result.version
+          };
+        } catch (err) {
+          return { id: revision.id, success: false, error: err.message };
+        }
+      })
+    );
+    
+    const successCount = results.filter(result => result.success).length;
+    
+    res.json({
+      message: `${successCount} out of ${revisions.length} revisions updated successfully`,
+      results
+    });
+  } catch (error) {
+    console.error('Error in batch update revisions:', error);
+    res.status(500).json({ message: 'Server error during batch revision update' });
+  }
+};
+
 
 module.exports = exports;

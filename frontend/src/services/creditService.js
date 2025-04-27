@@ -2,7 +2,7 @@
 import api from './api';
 
 const creditService = {
-  // Create a new credit request (always with status 'pending')
+  // Create a new credit request
   createCreditRequest: async (data) => {
     try {
       console.log('Creating credit request with data:', data);
@@ -100,9 +100,10 @@ const creditService = {
     }
   },
 
-  // Approve a credit request (admin only) - this affects master data
+  // Approve a credit request (admin only)
   approveCreditRequest: async (id, data = {}) => {
     try {
+      // Ensure we're using the correct endpoint
       const response = await api.put(`/credits/${id}/approve`, data);
       return response;
     } catch (error) {
@@ -208,6 +209,7 @@ const creditService = {
       return [];
     }
   },
+  
   // Batch approve multiple credit requests
   batchApproveCreditRequests: async (requestIds, feedbackData = {}) => {
     try {
@@ -287,10 +289,6 @@ const creditService = {
       throw error;
     }
   }
-
-  
 };
-
-
 
 export default creditService;
