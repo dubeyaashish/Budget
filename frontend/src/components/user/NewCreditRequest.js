@@ -22,6 +22,7 @@ const NewCreditRequest = () => {
   });
 
   const [selectedDepartment, setSelectedDepartment] = useState(null);
+  const [departmentName, setDepartmentName] = useState('');
   const [departmentKeyAccounts, setDepartmentKeyAccounts] = useState([]);
   const [accountEntries, setAccountEntries] = useState([]);
   const [availableKeyAccounts, setAvailableKeyAccounts] = useState([]);
@@ -38,53 +39,51 @@ const NewCreditRequest = () => {
   // Calculate total amount
   const totalAmount = accountEntries.reduce((sum, entry) => sum + (parseFloat(entry.amount) || 0), 0);
 
-  useEffect(() => {
-    const fetchData = async () => {
-      if (!currentUser || !currentUser.id) {
-        console.warn('No valid currentUser, skipping fetch');
-        setError('User not authenticated');
-        setIsLoading(false);
-        return;
-      }
+// In frontend/src/components/user/NewCreditRequest.js
+
+useEffect(() => {
+  const fetchData = async () => {
+    if (!currentUser || !currentUser.id) {
+      console.warn('No valid currentUser, skipping fetch');
+      setError('User not authenticated');
+      setIsLoading(false);
+      return;
+    }
   
-      try {
-        setIsLoading(true);
+    try {
+      setIsLoading(true);
+      
+      // Get user's department directly from currentUser
+      if (currentUser.department) {
+        console.log(`User's department: ${currentUser.department}`);
+        setDepartmentName(currentUser.department);
         
-        // Fetch departments
-        console.log('Fetching departments...');
-        let departmentsData = [];
-        try {
-          departmentsData = await departmentService.getAllDepartments();
-          console.log('Departments data received:', departmentsData);
-        } catch (deptError) {
-          console.error('Error fetching departments:', deptError);
-          // Set a default department if we can't fetch real ones
-          departmentsData = [{id: currentUser.department || 1, name: 'Default Department'}];
-        }
-        setDepartments(Array.isArray(departmentsData) ? departmentsData : []);
-  
-        // More detailed logging for selected department
-        if (currentUser.department) {
-          console.log(`Setting default department ID: ${currentUser.department}`);
-          setFormData((prev) => ({
-            ...prev,
-            department_id: currentUser.department,
-          }));
-          setSelectedDepartment(currentUser.department);
+        // Get the department ID (we need to look up the ID by name)
+        const departmentsData = await departmentService.getAllDepartments();
+        const userDept = departmentsData.find(d => d.name === currentUser.department);
+        
+        if (userDept) {
+          setSelectedDepartment(userDept.id);
+          setFormData(prev => ({ ...prev, department_id: userDept.id }));
           
-          // Fetch budget data for the current user's department
-          await handleDepartmentChange({ target: { value: currentUser.department } });
+          // Load budget data for this department
+          await loadDepartmentData(userDept.id);
+        } else {
+          setError('Could not find your department. Please contact an administrator.');
         }
-      } catch (err) {
-        console.error('Error fetching data:', err);
-        setError('Failed to load required data. Please try again.');
-      } finally {
-        setIsLoading(false);
+      } else {
+        setError('You are not assigned to any department. Please contact an administrator.');
       }
-    };
-  
-    fetchData();
-  }, [currentUser]);
+    } catch (err) {
+      console.error('Error in fetchData:', err);
+      setError('Failed to load required data. Please try again.');
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  fetchData();
+}, [currentUser]);
 
   // Update available key accounts when department or entries change
   useEffect(() => {
@@ -97,7 +96,7 @@ const NewCreditRequest = () => {
         const available = departmentKeyAccounts.filter(
           account => !selectedIds.includes(account.key_account)
         );
-        
+
         setAvailableKeyAccounts(available);
       }
     };
@@ -173,9 +172,8 @@ const NewCreditRequest = () => {
     return 0;
   };
 
-  const handleDepartmentChange = async (e) => {
-    const departmentId = e.target.value;
-    console.log(`Department changed to ID: ${departmentId}`);
+  const loadDepartmentData = async (departmentId) => {
+    console.log(`Loading data for department ID: ${departmentId}`);
     
     setFormData({
       ...formData,
@@ -326,120 +324,94 @@ const NewCreditRequest = () => {
     setAccountEntries(updatedEntries);
   };
 
-  const validateForm = () => {
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+    console.log("Submit button clicked");
+    
+    // Basic validation with visible error messages
     if (!formData.department_id) {
       setError('Please select a department');
-      return false;
+      return;
     }
 
+    // Check for at least one valid entry
     const validEntries = accountEntries.filter(
-      (entry) => entry.key_account_id && entry.amount && parseFloat(entry.amount) > 0 && entry.reason
-    );
-
-    if (validEntries.length === 0) {
-      setError('Please add at least one account with a valid amount and reason');
-      return false;
-    }
-
-    // Check if any entry exceeds available balance
-    const invalidEntry = accountEntries.find(
-      (entry) => entry.amount && parseFloat(entry.amount) > entry.available
-    );
-
-    if (invalidEntry) {
-      setError(
-        `Amount for account ${invalidEntry.key_account_name} exceeds available credit of ${formatCurrency(
-          invalidEntry.available
-        )}`
-      );
-      return false;
-    }
-
-    return true;
-  };
-
-// This is the fixed handleSubmit function to replace in NewCreditRequest.js
-
-const handleSubmit = async (e) => {
-  e.preventDefault();
-  console.log("Submit button clicked");
-  
-  // Basic validation with visible error messages
-  if (!formData.department_id) {
-    setError('Please select a department');
-    return;
-  }
-
-  // Check for at least one valid entry
-  const validEntries = accountEntries.filter(
-    (entry) => entry.key_account_id && 
+      (entry) => entry.key_account_id && 
                entry.amount && 
                parseFloat(entry.amount) > 0 && 
                entry.reason
-  );
+    );
 
-  console.log("Valid entries:", validEntries);
+    console.log("Valid entries:", validEntries);
 
-  if (validEntries.length === 0) {
-    setError('Please add at least one account with a valid amount and reason');
-    return;
-  }
-
-  try {
-    setIsSubmitting(true);
-    setError(null);
-
-    // Create payload with explicit status set to 'pending'
-    const payload = {
-      department_id: parseInt(formData.department_id),
-      entries: validEntries.map(entry => ({
-        key_account_id: entry.key_account_id,
-        amount: parseFloat(entry.amount),
-        reason: entry.reason,
-      })),
-      version: formData.version || 1,
-      status: 'pending'
-    };
-
-    console.log('Submitting credit request with payload:', payload);
-    
-    // Make the API call with explicit error handling
-    try {
-      const response = await creditService.createCreditRequest(payload);
-      console.log('Credit request response:', response);
-      
-      setSuccess('Credit request submitted successfully!');
-      setIsSubmitted(true);
-      
-      // Store request ID if available in response
-      if (response.requestId || response.id || (response.entries && response.entries.length > 0)) {
-        const requestId = response.requestId || response.id || response.entries[0].id;
-        setFormData(prev => ({
-          ...prev,
-          request_id: requestId,
-          status: 'pending'
-        }));
-      }
-      
-      // Show success message for 3 seconds then navigate to credit history
-      setTimeout(() => {
-        navigate('/credit-history');
-      }, 3000);
-    } catch (apiError) {
-      console.error('API Error:', apiError);
-      setError(apiError.message || 'Error communicating with server');
+    if (validEntries.length === 0) {
+      setError('Please add at least one account with a valid amount and reason');
+      return;
     }
-  } catch (err) {
-    console.error('General error in submit handler:', err);
-    setError(err.message || 'Failed to submit credit request');
-  } finally {
-    setIsSubmitting(false);
-  }
-};
+
+    try {
+      setIsSubmitting(true);
+      setError(null);
+
+      // Create payload with explicit status set to 'pending'
+      const payload = {
+        department_id: parseInt(formData.department_id),
+        entries: validEntries.map(entry => ({
+          key_account_id: entry.key_account_id,
+          amount: parseFloat(entry.amount),
+          reason: entry.reason,
+        })),
+        version: formData.version || 1,
+        status: 'pending'
+      };
+
+      console.log('Submitting credit request with payload:', payload);
+      
+      // Make the API call with explicit error handling
+      try {
+        const response = await creditService.createCreditRequest(payload);
+        console.log('Credit request response:', response);
+        
+        setSuccess('Credit request submitted successfully!');
+        setIsSubmitted(true);
+        
+        // Store request ID if available in response
+        if (response.requestId || response.id || (response.entries && response.entries.length > 0)) {
+          const requestId = response.requestId || response.id || response.entries[0].id;
+          setFormData(prev => ({
+            ...prev,
+            request_id: requestId,
+            status: 'pending'
+          }));
+        }
+        
+        // Show success message for 3 seconds then navigate to credit history
+        setTimeout(() => {
+          navigate('/credit-history');
+        }, 3000);
+      } catch (apiError) {
+        console.error('API Error:', apiError);
+        setError(apiError.message || 'Error communicating with server');
+      }
+    } catch (err) {
+      console.error('General error in submit handler:', err);
+      setError(err.message || 'Failed to submit credit request');
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
 
   const startNewRequest = () => {
+    // Determine department ID from currentUser
+    let deptId = '';
+    if (currentUser.departments && currentUser.departments.length > 0) {
+      deptId = currentUser.departments[0].id;
+    } else if (currentUser.department_id) {
+      deptId = currentUser.department_id;
+    }
+
     setFormData({
-      department_id: currentUser?.department || '',
+      department_id: deptId,
       version: 1,
       status: 'pending',
       request_id: null,
@@ -448,6 +420,11 @@ const handleSubmit = async (e) => {
     setIsSubmitted(false);
     setSuccess(null);
     setError(null);
+    
+    // Reload department data
+    if (deptId) {
+      loadDepartmentData(deptId);
+    }
   };
 
   if (!currentUser || !currentUser.id) {
@@ -499,23 +476,13 @@ const handleSubmit = async (e) => {
               <label htmlFor="department_id" className="block text-sm font-medium text-gray-700">
                 Department <span className="text-red-500">*</span>
               </label>
-              <select
-                id="department_id"
-                name="department_id"
-                className="mt-1 block w-full pl-3 pr-10 py-2 text-base border-gray-300 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm rounded-md"
-                value={formData.department_id || ''}
-                onChange={handleDepartmentChange}
-                disabled={isSubmitted}
-                required
-              >
-                <option value="">Select Department</option>
-                {Array.isArray(departments) &&
-                  departments.map((dept) => (
-                    <option key={dept.id} value={dept.id}>
-                      {dept.name}
-                    </option>
-                  ))}
-              </select>
+              <div className="mt-1 text-sm py-2 px-3 bg-gray-100 border border-gray-300 rounded-md">
+                {departmentName || 'Loading department...'}
+                <input type="hidden" name="department_id" value={formData.department_id} />
+              </div>
+              <p className="mt-1 text-xs text-gray-500">
+                You can only submit requests for your assigned department
+              </p>
             </div>
             <div className="flex items-end">
               <p className="text-sm font-medium text-gray-700">
@@ -669,14 +636,14 @@ const handleSubmit = async (e) => {
                 ) : (
                   <div className="text-center py-8 bg-gray-50 rounded-lg border border-gray-200">
                     <p className="text-gray-500">
-                      No key accounts found for this department. Please select a different department.
+                      No key accounts found for this department. Please contact an administrator.
                     </p>
                   </div>
                 )}
               </div>
             ) : (
               <div className="text-center py-8 bg-gray-50 rounded-lg border border-gray-200">
-                <p className="text-gray-500">Please select a department to see available key accounts.</p>
+                <p className="text-gray-500">Loading department data...</p>
               </div>
             )}
           </div>

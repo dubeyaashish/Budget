@@ -163,32 +163,25 @@ const Register = () => {
             </div>
             <div>
               <label htmlFor="department" className="block text-sm font-medium text-gray-700">Department</label>
-              <div className="mt-1 relative">
-                <input
-                  type="text"
-                  name="department"
-                  id="department"
-                  className="appearance-none relative block w-full px-3 py-2 border border-gray-300 placeholder-gray-500 text-gray-900 rounded-md focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 focus:z-10 sm:text-sm"
-                  placeholder="Type or select department"
-                  value={formData.department}
-                  onChange={handleChange}
-                  list="department-options"
-                  required
-                />
-                <datalist id="department-options">
-                  <option value="MIS">MIS</option>
-                  <option value="Finance">Finance</option>
-                  {departmentsLoading ? (
-                    <option disabled>Loading departments...</option>
-                  ) : (
-                    departments.map(dept => (
-                      <option key={dept.id} value={dept.name}>
-                        {dept.name}
-                      </option>
-                    ))
-                  )}
-                </datalist>
-              </div>
+              <select
+                id="department"
+                name="department"
+                className="mt-1 block w-full pl-3 pr-10 py-2 text-base border-gray-300 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm rounded-md"
+                value={formData.department}
+                onChange={handleChange}
+                required
+              >
+                <option value="">Select Department</option>
+                {departmentsLoading ? (
+                  <option disabled>Loading departments...</option>
+                ) : (
+                  departments.map(dept => (
+                    <option key={dept.id} value={dept.name}>
+                      {dept.name}
+                    </option>
+                  ))
+                )}
+              </select>
             </div>
             <div>
               <label htmlFor="password" className="block text-sm font-medium text-gray-700">Password</label>

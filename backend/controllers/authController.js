@@ -189,7 +189,8 @@ exports.login = (req, res) => {
             surname: user.surname,
             email: user.email,
             employeeId: user.employee_id,
-            role: user.role
+            role: user.role,
+            department: user.department
           }
         });
       });

@@ -911,7 +911,7 @@ exports.approveCreditRequest = async (req, res) => {
         // Entry exists, update it
         await db.query(
           `UPDATE budget_master 
-           SET amount = amount + ? 
+           SET amount = ? 
            WHERE key_account = ? 
            AND department = ?`,
           [request.amount, request.key_account_id, departmentName]

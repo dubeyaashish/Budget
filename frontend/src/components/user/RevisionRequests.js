@@ -5,6 +5,7 @@ import { AuthContext } from '../../context/AuthContext';
 import { KeyAccountContext } from '../../context/KeyAccountContext';
 import creditService from '../../services/creditService';
 import keyAccountService from '../../services/keyAccountService';
+import departmentService from '../../services/departmentService';
 import LoadingSpinner from '../common/LoadingSpinner';
 import AlertMessage from '../common/AlertMessage';
 import { formatCurrency } from '../../utils/formatCurrency';
@@ -15,6 +16,8 @@ const RevisionRequests = () => {
   const navigate = useNavigate();
   
   const [revisionRequests, setRevisionRequests] = useState([]);
+  const [filteredRequests, setFilteredRequests] = useState([]);
+  const [userDepartment, setUserDepartment] = useState(null);
   const [isLoading, setIsLoading] = useState(true);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [error, setError] = useState(null);
@@ -34,9 +37,73 @@ const RevisionRequests = () => {
     fetchData();
   }, []);
 
+  // Filter requests when user department or revision requests change
+  useEffect(() => {
+    if (userDepartment && revisionRequests.length > 0) {
+      // Filter requests to only show those for the user's department
+      const filtered = revisionRequests.filter(request => {
+        // If the request has a department_name, filter by that
+        if (request.department_name) {
+          return request.department_name === userDepartment.name;
+        }
+        // If the request has a department_id, filter by ID
+        if (request.department_id) {
+          return request.department_id == userDepartment.id;
+        }
+        // Otherwise, just return true (better to show than hide in case of data issues)
+        return true;
+      });
+      
+      console.log(`Filtered ${revisionRequests.length} requests to ${filtered.length} for department: ${userDepartment.name}`);
+      setFilteredRequests(filtered);
+    } else {
+      // If no department is set yet, just show all requests
+      setFilteredRequests(revisionRequests);
+    }
+  }, [userDepartment, revisionRequests]);
+
   const fetchData = async () => {
     try {
       setIsLoading(true);
+      
+      // Get user's department
+      let userDept = null;
+      if (currentUser.department) {
+        // If department is already in user object, use it
+        console.log(`User has department ${currentUser.department} in their profile`);
+        
+        // Get the department ID if we only have the name
+        try {
+          const departments = await departmentService.getAllDepartments();
+          const matchingDept = departments.find(dept => dept.name === currentUser.department);
+          if (matchingDept) {
+            userDept = matchingDept;
+          } else {
+            console.log('Could not find department by name, will try to fetch by ID if available');
+          }
+        } catch (err) {
+          console.error('Error fetching departments:', err);
+        }
+      } else if (currentUser.departments && currentUser.departments.length > 0) {
+        // If user has departments array from auth context, use the first one
+        console.log('User has departments array in their profile');
+        userDept = currentUser.departments[0];
+      } else if (currentUser.department_id) {
+        // If user has department_id, fetch the full department
+        console.log(`User has department_id: ${currentUser.department_id}`);
+        try {
+          userDept = await departmentService.getDepartmentById(currentUser.department_id);
+        } catch (err) {
+          console.error('Error fetching department by ID:', err);
+        }
+      }
+      
+      if (userDept) {
+        console.log('Setting user department:', userDept);
+        setUserDepartment(userDept);
+      } else {
+        console.warn('Could not determine user department');
+      }
       
       // Get revision requests for the current user
       const requests = await creditService.getUserCreditRevisionRequests();
@@ -44,8 +111,11 @@ const RevisionRequests = () => {
       setRevisionRequests(requests || []);
       
       // Get available key accounts for selection
-      const accounts = await keyAccountService.getAllKeyAccounts();
-      setAvailableKeyAccounts(accounts || []);
+      // Filter key accounts to only those from the user's department
+      const allAccounts = await keyAccountService.getAllKeyAccounts();
+      
+      // Set all accounts for now - we'll filter in the modal when we know the department
+      setAvailableKeyAccounts(allAccounts || []);
     } catch (err) {
       console.error('Error fetching revision requests:', err);
       setError('Failed to load revision requests');
@@ -73,6 +143,25 @@ const RevisionRequests = () => {
         reason: request.reason || '',
         key_account_id: request.key_account_id || ''
       });
+      
+      // When selecting a request to revise, filter key accounts to the request's department
+      if (request.department_id) {
+        try {
+          const departmentAccounts = await keyAccountService.getAccountSpendingByDepartment(request.department_id);
+          // Extract just the key accounts from the spending data
+          const filteredAccounts = departmentAccounts.map(acct => ({
+            id: acct.id,
+            name: acct.account_name,
+            account_type: acct.account_type
+          }));
+          
+          console.log(`Filtered key accounts for department ${request.department_id}:`, filteredAccounts);
+          setAvailableKeyAccounts(filteredAccounts);
+        } catch (err) {
+          console.error('Error filtering key accounts by department:', err);
+          // Keep the full list as fallback
+        }
+      }
       
       setShowModal(true);
     } catch (err) {
@@ -162,6 +251,9 @@ const RevisionRequests = () => {
           <h2 className="text-lg font-medium text-gray-900">Pending Revisions</h2>
           <p className="text-sm text-gray-500 mt-1">
             These are requests that require your attention following admin review
+            {userDepartment && (
+              <span className="ml-1">for {userDepartment.name} department</span>
+            )}
           </p>
         </div>
         
@@ -170,7 +262,7 @@ const RevisionRequests = () => {
             <div className="flex justify-center py-8">
               <LoadingSpinner size="large" />
             </div>
-          ) : revisionRequests && revisionRequests.length > 0 ? (
+          ) : filteredRequests && filteredRequests.length > 0 ? (
             <div className="overflow-x-auto">
               <table className="min-w-full divide-y divide-gray-200">
                 <thead className="bg-gray-50">
@@ -202,7 +294,7 @@ const RevisionRequests = () => {
                   </tr>
                 </thead>
                 <tbody className="bg-white divide-y divide-gray-200">
-                  {revisionRequests.map(request => (
+                  {filteredRequests.map(request => (
                     <tr key={request.id} className="hover:bg-gray-50">
                       <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
                         {new Date(request.created_at).toLocaleDateString()}
@@ -319,7 +411,6 @@ const RevisionRequests = () => {
                       <option 
                         key={account.id} 
                         value={account.id}
-                        selected={account.id === selectedRequest.key_account_id}
                       >
                         {account.name} ({account.account_type || 'Unknown'})
                       </option>

@@ -103,15 +103,15 @@ exports.deletePending = (email, callback) => {
  * @param {Function} callback - Callback function
  */
 exports.createUser = (userData, callback) => {
-  const { name, surname, employeeId, email, role, passwordHash } = userData;
+  const { name, surname, employeeId, email, role,department, passwordHash } = userData;
   
   const query = `
     INSERT INTO budget_users
-    (name, surname, employee_id, email, password, role)
+    (name, surname, employee_id, email, password, role, department)
     VALUES (?, ?, ?, ?, ?, ?)
   `;
   
-  db.query(query, [name, surname, employeeId, email, passwordHash, role])
+  db.query(query, [name, surname, employeeId, email, passwordHash, role, department])
     .then((result) => {
       // Get the ID of the newly created user
       const userId = result.insertId;
