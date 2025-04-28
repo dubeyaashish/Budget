@@ -1,6 +1,15 @@
 import api from './api';
+import axios from 'axios';
+
+const API_URL = '/api/departments';
+
 
 const departmentService = {
+
+  getPublicDepartments: async () => {
+    const response = await axios.get(API_URL);
+    return response.data;
+  },
   // Get all departments
   getAllDepartments: async () => {
     try {

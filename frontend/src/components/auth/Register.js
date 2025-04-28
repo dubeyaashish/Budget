@@ -26,7 +26,7 @@ const Register = () => {
   useEffect(() => {
     const fetchDepartments = async () => {
       try {
-        const data = await departmentService.getAllDepartments();
+        const data = await departmentService.getPublicDepartments(); // Use getPublicDepartments
         setDepartments(data);
       } catch (err) {
         console.error('Error fetching departments:', err);
@@ -34,7 +34,7 @@ const Register = () => {
         setDepartmentsLoading(false);
       }
     };
-
+  
     fetchDepartments();
   }, []);
 

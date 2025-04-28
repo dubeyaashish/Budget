@@ -60,24 +60,44 @@ exports.findPendingByEmail = (email, callback) => {
  * @param {Object} userData - User data
  * @param {Function} callback - Callback function
  */
+// backend/models/userModel.js
 exports.createPending = (userData, callback) => {
-  const { name, surname, employeeId, email, role, department, passwordHash, otp, otp_expiry } = userData;
-  
+  const {
+    name,
+    surname,
+    employeeId,
+    email,
+    role,
+    department,    // ← string
+    passwordHash,
+    otp,
+    otp_expiry
+  } = userData;
+
   const query = `
     INSERT INTO budget_pending_users 
-    (name, surname, employee_id, email, password, role, otp, otp_expiry) 
-    VALUES (?, ?, ?, ?, ?, ?, ?, ?)
+      (name, surname, employee_id, email, password, role, department, otp, otp_expiry)
+    VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
   `;
-  
-  db.query(query, [name, surname, employeeId, email, passwordHash, role, otp, otp_expiry])
-    .then(() => {
-      callback(null);
-    })
-    .catch(error => {
-      console.error('DB Error in createPending:', error);
-      callback(error);
+
+  db.query(query, [
+    name,
+    surname,
+    employeeId,
+    email,
+    passwordHash,
+    role,
+    department,   // ← stores the name
+    otp,
+    otp_expiry
+  ])
+    .then(() => callback(null))
+    .catch(err => {
+      console.error('DB Error in createPending:', err);
+      callback(err);
     });
 };
+
 
 /**
  * Delete pending registration
@@ -102,45 +122,40 @@ exports.deletePending = (email, callback) => {
  * @param {Object} userData - User data
  * @param {Function} callback - Callback function
  */
+// backend/models/userModel.js
 exports.createUser = (userData, callback) => {
-  const { name, surname, employeeId, email, role,department, passwordHash } = userData;
-  
+  const {
+    name,
+    surname,
+    employeeId,
+    email,
+    role,
+    department,   // ← the string name
+    passwordHash
+  } = userData;
+
   const query = `
     INSERT INTO budget_users
-    (name, surname, employee_id, email, password, role, department)
-    VALUES (?, ?, ?, ?, ?, ?)
+      (name, surname, employee_id, email, password, role, department)
+    VALUES (?, ?, ?, ?, ?, ?, ?)
   `;
-  
-  db.query(query, [name, surname, employeeId, email, passwordHash, role, department])
-    .then((result) => {
-      // Get the ID of the newly created user
-      const userId = result.insertId;
-      
-      // If department is provided, we'll need to create department user mapping
-      if (userData.department) {
-        const departmentQuery = `
-          INSERT INTO budget_department_users
-          (department_id, user_id)
-          VALUES (?, ?)
-        `;
-        
-        return db.query(departmentQuery, [userData.department, userId])
-          .then(() => {
-            callback(null);
-          })
-          .catch(error => {
-            console.error('DB Error in createUser (department mapping):', error);
-            callback(error);
-          });
-      }
-      
-      callback(null);
-    })
-    .catch(error => {
-      console.error('DB Error in createUser:', error);
-      callback(error);
+
+  db.query(query, [
+    name,
+    surname,
+    employeeId,
+    email,
+    passwordHash,
+    role,
+    department    // ← stores the name
+  ])
+    .then(() => callback(null))
+    .catch(err => {
+      console.error('DB Error in createUser:', err);
+      callback(err);
     });
 };
+
 
 /**
  * Get all users
