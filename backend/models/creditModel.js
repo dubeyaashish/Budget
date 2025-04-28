@@ -383,54 +383,76 @@ exports.rejectCreditRequest = async (requestId, adminId, reason) => {
  */
 // In backend/controllers/creditController.js - replace this function:
 
+// Fix for the controller function
+// In creditController.js
+
 exports.createRevisionRequest = async (req, res) => {
   try {
     const requestId = req.params.id;
     const adminId = req.user.id;
     const { feedback, suggested_amount } = req.body;
     
-    // Get the original request to check if amount has changed
-    const originalRequest = await creditModel.getCreditRequestById(requestId);
-    
-    if (!originalRequest) {
-      return res.status(404).json({ message: 'Credit request not found' });
+    if (!feedback) {
+      return res.status(400).json({ message: 'Feedback is required for revision' });
     }
-    
-    // Only require feedback if the amount has been changed
-    const amountChanged = suggested_amount && 
-                         parseFloat(suggested_amount) !== parseFloat(originalRequest.amount);
-    
-    if (amountChanged && !feedback) {
-      return res.status(400).json({ 
-        message: 'Feedback is required when suggesting a different amount' 
-      });
-    }
-    
-    // Default feedback for unchanged amounts
-    const finalFeedback = feedback || 
-                        (amountChanged ? '' : 'Please review and confirm this request.');
     
     if (req.user.role !== 'admin') {
       return res.status(403).json({ message: 'Access denied. Admin rights required.' });
     }
     
-    const result = await creditModel.createRevisionRequest(
-      requestId, 
-      adminId, 
-      finalFeedback, 
-      suggested_amount
-    );
+    // Begin transaction
+    await db.promisePool.query('START TRANSACTION');
     
-    res.json({
-      message: 'Revision requested successfully',
-      requestId: result.requestId
-    });
-  } catch (err) {
-    console.error('Error creating revision request:', err);
-    res.status(500).json({ message: 'Server error creating revision request' });
+    try {
+      // Get original request to check if it exists
+      const [originalRequest] = await db.query(
+        `SELECT * FROM budget_withdrawal_requests WHERE id = ?`,
+        [requestId]
+      );
+      
+      if (!originalRequest) {
+        await db.promisePool.query('ROLLBACK');
+        return res.status(404).json({ message: 'Credit request not found' });
+      }
+      
+      // Update the request status to 'revision'
+      await db.query(
+        `UPDATE budget_withdrawal_requests
+         SET status = 'revision', 
+             feedback = ?, 
+             reviewed_by = ?, 
+             reviewed_at = CURRENT_TIMESTAMP,
+             suggested_amount = ?
+         WHERE id = ?`,
+        [feedback, adminId, suggested_amount || null, requestId]
+      );
+      
+      // Record history
+      await db.query(
+        `INSERT INTO budget_withdrawal_history
+         (request_id, previous_status, new_status, changed_by, change_reason)
+         VALUES (?, ?, 'revision', ?, ?)`,
+        [requestId, originalRequest.status, adminId, feedback]
+      );
+      
+      // Commit the transaction
+      await db.promisePool.query('COMMIT');
+      
+      res.json({
+        message: 'Revision requested successfully',
+        requestId: requestId
+      });
+    } catch (innerError) {
+      // Rollback on error
+      await db.promisePool.query('ROLLBACK');
+      console.error('Error in createRevisionRequest transaction:', innerError);
+      throw innerError;
+    }
+  } catch (error) {
+    console.error('Error creating revision request:', error);
+    res.status(500).json({ message: 'Server error creating revision request: ' + error.message });
   }
 };
-
 /**
  * Batch approve multiple credit requests (admin only)
  * POST /api/credits/batch/approve
@@ -519,6 +541,9 @@ exports.batchRejectCreditRequests = async (req, res) => {
  * Batch create revision requests (admin only)
  * POST /api/credits/batch/revision
  */
+// Fix for the batch revision function
+// In creditController.js
+
 exports.batchCreateRevisionRequests = async (req, res) => {
   try {
     const { requestIds, feedback, suggestedAmount } = req.body;
@@ -532,33 +557,75 @@ exports.batchCreateRevisionRequests = async (req, res) => {
       return res.status(403).json({ message: 'Access denied. Admin rights required.' });
     }
     
-    const results = await Promise.all(
-      requestIds.map(async (id) => {
-        try {
-          // If individual amount adjustments are provided, use them
-          const amount = suggestedAmount && typeof suggestedAmount === 'object' 
-            ? suggestedAmount[id] 
-            : suggestedAmount;
-          
-          const result = await creditModel.createRevisionRequest(
-            id, adminId, feedback, amount
-          );
-          return { id, success: true, requestId: result.requestId };
-        } catch (err) {
-          return { id, success: false, error: err.message };
-        }
-      })
-    );
+    // Begin transaction
+    await db.promisePool.query('START TRANSACTION');
     
-    const successCount = results.filter(result => result.success).length;
-    
-    res.json({
-      message: `${successCount} out of ${requestIds.length} revision requests created successfully`,
-      results
-    });
+    try {
+      // Process each request
+      const results = await Promise.all(
+        requestIds.map(async (id) => {
+          try {
+            // Get the original request
+            const [originalRequest] = await db.query(
+              `SELECT * FROM budget_withdrawal_requests WHERE id = ?`,
+              [id]
+            );
+            
+            if (!originalRequest) {
+              return { id, success: false, error: 'Request not found' };
+            }
+            
+            // Determine amount to suggest - could be specific per request or a general value
+            const amount = suggestedAmount && typeof suggestedAmount === 'object' 
+              ? suggestedAmount[id] 
+              : suggestedAmount;
+            
+            // Update to revision status
+            await db.query(
+              `UPDATE budget_withdrawal_requests
+               SET status = 'revision', 
+                   feedback = ?, 
+                   reviewed_by = ?, 
+                   reviewed_at = CURRENT_TIMESTAMP,
+                   suggested_amount = ?
+               WHERE id = ?`,
+              [feedback, adminId, amount || null, id]
+            );
+            
+            // Record history
+            await db.query(
+              `INSERT INTO budget_withdrawal_history
+               (request_id, previous_status, new_status, changed_by, change_reason)
+               VALUES (?, ?, 'revision', ?, ?)`,
+              [id, originalRequest.status, adminId, feedback]
+            );
+            
+            return { id, success: true };
+          } catch (err) {
+            console.error(`Error processing revision request ${id}:`, err);
+            return { id, success: false, error: err.message };
+          }
+        })
+      );
+      
+      // Commit the transaction
+      await db.promisePool.query('COMMIT');
+      
+      const successCount = results.filter(result => result.success).length;
+      
+      res.json({
+        message: `${successCount} out of ${requestIds.length} revision requests created successfully`,
+        results
+      });
+    } catch (batchError) {
+      // Rollback the transaction
+      await db.promisePool.query('ROLLBACK');
+      console.error('Error in batch revision transaction:', batchError);
+      throw batchError;
+    }
   } catch (error) {
     console.error('Error in batch revision creation:', error);
-    res.status(500).json({ message: 'Server error during batch revision creation' });
+    res.status(500).json({ message: 'Server error during batch revision creation: ' + error.message });
   }
 };
 

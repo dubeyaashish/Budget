@@ -375,7 +375,7 @@ exports.approveCreditRequest = async (req, res) => {
       // 3. Record transaction
       await db.query(
         `INSERT INTO budget_transactions
-         (request_id, key_account_id, amount, admin_id, transaction_date)
+         (request_id, key_account_id, amount, admin_id, created_at)
          VALUES (?, ?, ?, ?, CURRENT_TIMESTAMP)`,
         [requestId, request.key_account_id, request.amount, adminId]
       );
@@ -505,20 +505,57 @@ exports.createRevisionRequest = async (req, res) => {
       return res.status(403).json({ message: 'Access denied. Admin rights required.' });
     }
     
-    const result = await creditModel.createRevisionRequest(
-      requestId, 
-      adminId, 
-      feedback, 
-      suggested_amount
-    );
+    // Begin transaction
+    await db.promisePool.query('START TRANSACTION');
     
-    res.json({
-      message: 'Revision requested successfully',
-      requestId: result.requestId
-    });
-  } catch (err) {
-    console.error('Error creating revision request:', err);
-    res.status(500).json({ message: 'Server error creating revision request' });
+    try {
+      // Get original request to check if it exists
+      const [originalRequest] = await db.query(
+        `SELECT * FROM budget_withdrawal_requests WHERE id = ?`,
+        [requestId]
+      );
+      
+      if (!originalRequest) {
+        await db.promisePool.query('ROLLBACK');
+        return res.status(404).json({ message: 'Credit request not found' });
+      }
+      
+      // Update the request status to 'revision'
+      await db.query(
+        `UPDATE budget_withdrawal_requests
+         SET status = 'revision', 
+             feedback = ?, 
+             reviewed_by = ?, 
+             reviewed_at = CURRENT_TIMESTAMP,
+             suggested_amount = ?
+         WHERE id = ?`,
+        [feedback, adminId, suggested_amount || null, requestId]
+      );
+      
+      // Record history
+      await db.query(
+        `INSERT INTO budget_withdrawal_history
+         (request_id, previous_status, new_status, changed_by, change_reason)
+         VALUES (?, ?, 'revision', ?, ?)`,
+        [requestId, originalRequest.status, adminId, feedback]
+      );
+      
+      // Commit the transaction
+      await db.promisePool.query('COMMIT');
+      
+      res.json({
+        message: 'Revision requested successfully',
+        requestId: requestId
+      });
+    } catch (innerError) {
+      // Rollback on error
+      await db.promisePool.query('ROLLBACK');
+      console.error('Error in createRevisionRequest transaction:', innerError);
+      throw innerError;
+    }
+  } catch (error) {
+    console.error('Error creating revision request:', error);
+    res.status(500).json({ message: 'Server error creating revision request: ' + error.message });
   }
 };
 
@@ -658,13 +695,7 @@ exports.getUserDraftCreditRequests = async (req, res) => {
   }
 };
 
-/**
- * Get user draft credit requests
- * @param {Object} req - Express request object
- * @param {Object} res - Express response object
- */
-
-// backend/controllers/creditController.js - Updated batchApproveCreditRequests function
+// Updated batchApproveCreditRequests function with collation fix
 exports.batchApproveCreditRequests = async (req, res) => {
   try {
     const { requestIds, feedback } = req.body;
@@ -704,27 +735,15 @@ exports.batchApproveCreditRequests = async (req, res) => {
               [feedback, adminId, id]
             );
             
-            // 3. Record transaction
+            // 3. Record transaction with the correct column name (created_at)
             await db.query(
               `INSERT INTO budget_transactions
-               (request_id, key_account_id, amount, admin_id, transaction_date)
+               (request_id, key_account_id, amount, admin_id, created_at)
                VALUES (?, ?, ?, ?, CURRENT_TIMESTAMP)`,
               [id, request.key_account_id, request.amount, adminId]
             );
             
-            // 4. Update budget_master table - THIS IS THE NEW STEP
-            // First check if entry exists
-            const checkMasterQuery = `
-              SELECT * FROM budget_master 
-              WHERE key_account = ? 
-              AND department = (SELECT name FROM budget_departments WHERE id = ?)`;
-            
-            const masterEntries = await db.query(checkMasterQuery, [
-              request.key_account_id, 
-              request.department_id
-            ]);
-            
-            // Get department name
+            // 4. Get department name directly first to avoid collation issues
             const [deptResult] = await db.query(
               `SELECT name FROM budget_departments WHERE id = ?`, 
               [request.department_id]
@@ -732,19 +751,31 @@ exports.batchApproveCreditRequests = async (req, res) => {
             
             const departmentName = deptResult ? deptResult.name : null;
             
-            // Get key account details
+            // 5. Check if entry exists in budget_master using direct comparison with collation
+            const checkMasterQuery = `
+              SELECT * FROM budget_master 
+              WHERE key_account = ? 
+              AND department = ? COLLATE utf8mb4_unicode_ci`;
+            
+            const masterEntries = await db.query(checkMasterQuery, [
+              request.key_account_id, 
+              departmentName
+            ]);
+            
+            // 6. Get key account details
             const [accountResult] = await db.query(
               `SELECT name, account_type FROM budget_key_accounts WHERE id = ?`, 
               [request.key_account_id]
             );
             
+// Key change: replacement instead of addition
             if (masterEntries && masterEntries.length > 0) {
-              // Entry exists, update it
+              // Entry exists, REPLACE instead of adding to the amount
               await db.query(
                 `UPDATE budget_master 
-                 SET amount = amount + ? 
-                 WHERE key_account = ? 
-                 AND department = ?`,
+                SET amount = ? 
+                WHERE key_account = ? 
+                AND department = ?`,
                 [request.amount, request.key_account_id, departmentName]
               );
             } else if (departmentName) {
@@ -763,7 +794,7 @@ exports.batchApproveCreditRequests = async (req, res) => {
               );
             }
             
-            // 5. Record history
+            // 7. Record history
             await db.query(
               `INSERT INTO budget_withdrawal_history
                (request_id, previous_status, new_status, changed_by, change_reason)
@@ -797,7 +828,134 @@ exports.batchApproveCreditRequests = async (req, res) => {
     }
   } catch (error) {
     console.error('Error in batch approve:', error);
-    res.status(500).json({ message: 'Server error during batch approval' });
+    res.status(500).json({ message: 'Server error during batch approval: ' + error.message });
+  }
+};
+
+/**
+ * Get user draft credit requests
+ * @param {Object} req - Express request object
+ * @param {Object} res - Express response object
+ */
+
+// backend/controllers/creditController.js - Updated batchApproveCreditRequests function
+// Updated approveCreditRequest function with collation fix
+exports.approveCreditRequest = async (req, res) => {
+  try {
+    const requestId = req.params.id;
+    const adminId = req.user.id;
+    const { feedback } = req.body;
+    
+    if (req.user.role !== 'admin') {
+      return res.status(403).json({ message: 'Access denied. Admin rights required.' });
+    }
+    
+    // Begin transaction
+    await db.promisePool.query('START TRANSACTION');
+    
+    try {
+      // 1. Get request details
+      const requestQuery = `
+        SELECT * FROM budget_withdrawal_requests 
+        WHERE id = ?`;
+      const [request] = await db.query(requestQuery, [requestId]);
+      
+      if (!request) {
+        await db.promisePool.query('ROLLBACK');
+        return res.status(404).json({ message: 'Credit request not found' });
+      }
+      
+      // 2. Update request status
+      await db.query(
+        `UPDATE budget_withdrawal_requests
+         SET status = 'approved', feedback = ?, reviewed_by = ?, reviewed_at = CURRENT_TIMESTAMP
+         WHERE id = ?`,
+        [feedback, adminId, requestId]
+      );
+      
+      // 3. Record transaction with the correct column name (created_at)
+      await db.query(
+        `INSERT INTO budget_transactions
+         (request_id, key_account_id, amount, admin_id, created_at)
+         VALUES (?, ?, ?, ?, CURRENT_TIMESTAMP)`,
+        [requestId, request.key_account_id, request.amount, adminId]
+      );
+      
+      // 4. Get department name directly first to avoid collation issues
+      const [deptResult] = await db.query(
+        `SELECT name FROM budget_departments WHERE id = ?`, 
+        [request.department_id]
+      );
+      
+      const departmentName = deptResult ? deptResult.name : null;
+      
+      // 5. Check if entry exists in budget_master using direct comparison
+      // with explicit collation to avoid collation mismatch
+      const checkMasterQuery = `
+        SELECT * FROM budget_master 
+        WHERE key_account = ? 
+        AND department = ? COLLATE utf8mb4_unicode_ci`;
+      
+      const masterEntries = await db.query(checkMasterQuery, [
+        request.key_account_id, 
+        departmentName
+      ]);
+      
+      // 6. Get key account details
+      const [accountResult] = await db.query(
+        `SELECT name, account_type FROM budget_key_accounts WHERE id = ?`, 
+        [request.key_account_id]
+      );
+      
+      if (masterEntries && masterEntries.length > 0) {
+        // Entry exists, update it
+        await db.query(
+          `UPDATE budget_master 
+           SET amount = amount + ? 
+           WHERE key_account = ? 
+           AND department = ?`,
+          [request.amount, request.key_account_id, departmentName]
+        );
+      } else if (departmentName) {
+        // Entry doesn't exist, create it
+        await db.query(
+          `INSERT INTO budget_master 
+           (key_account, key_account_name, type, department, amount) 
+           VALUES (?, ?, ?, ?, ?)`,
+          [
+            request.key_account_id, 
+            accountResult ? accountResult.name : 'Unknown Account',
+            accountResult ? accountResult.account_type : 'Expense',
+            departmentName, 
+            request.amount
+          ]
+        );
+      }
+      
+      // 7. Record history
+      await db.query(
+        `INSERT INTO budget_withdrawal_history
+         (request_id, previous_status, new_status, changed_by, change_reason)
+         VALUES (?, ?, 'approved', ?, ?)`,
+        [requestId, request.status, adminId, feedback || 'Request approved']
+      );
+      
+      // Commit transaction
+      await db.promisePool.query('COMMIT');
+      
+      res.json({ 
+        message: 'Credit request approved successfully',
+        updated_master: true
+      });
+    } catch (innerError) {
+      // Rollback transaction on error
+      await db.promisePool.query('ROLLBACK');
+      console.error('Transaction error in approveCreditRequest:', innerError);
+      throw innerError;
+    }
+  } catch (error) {
+    console.error('Error approving credit request:', error);
+    res.status(500).json({ message: 'Server error approving credit request: ' + error.message });
   }
 };
 

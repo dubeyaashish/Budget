@@ -10,7 +10,7 @@ import { formatCurrency } from '../../utils/formatCurrency';
 const CreditApproval = () => {
   const { id } = useParams();
   const navigate = useNavigate();
-  const { accountsWithUsage } = useContext(KeyAccountContext);
+  const { accountsWithUsage, fetchKeyAccounts } = useContext(KeyAccountContext);
   
   const [pendingRequests, setPendingRequests] = useState([]);
   const [revisionRequests, setRevisionRequests] = useState([]);
@@ -136,6 +136,48 @@ const CreditApproval = () => {
       setError('Failed to load request details');
     } finally {
       setIsLoading(false);
+    }
+  };
+
+  const handleReject = async (requestId) => {
+    if (!requestId) {
+      setError('No request selected');
+      return;
+    }
+    
+    if (!remark.trim()) {
+      setError('Please provide a reason for rejection');
+      return;
+    }
+
+    try {
+      setIsSubmitting(true);
+      setError(null);
+      
+      await creditService.rejectCreditRequest(requestId, { reason: remark });
+      
+      setSuccess('Credit request rejected successfully');
+      
+      // Update the UI by removing the rejected request
+      setPendingRequests(pendingRequests.filter(req => req.id !== requestId));
+      setRevisionRequests(revisionRequests.filter(req => req.id !== requestId));
+      setSelectedRequests(selectedRequests.filter(req => req.id !== requestId));
+      
+      if (detailedRequest?.id === requestId) {
+        setDetailedRequest(null);
+        setEditedAmount('');
+        setRemark('');
+        setVersionHistory([]);
+      }
+      
+      setTimeout(() => {
+        navigate('/admin/credit');
+      }, 2000);
+    } catch (err) {
+      console.error('Error rejecting credit request:', err);
+      setError(err.response?.data?.message || 'Failed to reject credit request');
+    } finally {
+      setIsSubmitting(false);
     }
   };
 
