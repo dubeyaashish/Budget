@@ -1,4 +1,3 @@
-// backend/controllers/keyAccountController.js
 const keyAccountModel = require('../models/keyAccountModel');
 
 /**
@@ -110,14 +109,24 @@ exports.getAccountSpendingByDepartment = async (req, res) => {
 
 /**
  * Get total budget summary
- * GET /api/key-accounts/summary
+ * GET /api/key-accounts/summary/budget
  */
 exports.getBudgetSummary = async (req, res) => {
   try {
+    // Verify admin role
+    if (!req.user || req.user.role !== 'admin') {
+      return res.status(403).json({ message: 'Access denied. Admin rights required.' });
+    }
+
     const summary = await keyAccountModel.getTotalBudget();
     res.json(summary);
   } catch (error) {
-    console.error('Error getting budget summary:', error);
+    console.error('Error getting budget summary:', {
+      message: error.message,
+      stack: error.stack,
+      sqlMessage: error.sqlMessage,
+      sql: error.sql
+    });
     res.status(500).json({ message: 'Server error fetching budget summary.' });
   }
 };

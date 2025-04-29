@@ -30,9 +30,9 @@ const CreditApproval = () => {
   // Include all request types
   const allRequests = [...pendingRequests, ...revisionRequests];
 
-  // Group requests by department
+  // Group requests by department with fallback for missing department_name
   const groupedRequests = allRequests.reduce((acc, req) => {
-    const dept = req.department_name || 'Uncategorized';
+    const dept = req.department_name || (req.department_id ? `Department ID: ${req.department_id}` : 'Uncategorized');
     if (!acc[dept]) acc[dept] = [];
     acc[dept].push(req);
     return acc;
@@ -47,19 +47,31 @@ const CreditApproval = () => {
           creditService.getAllPendingRequests(),
           creditService.getAllRevisionRequests()
         ]);
+
+        // Log API responses for debugging in deployed environment
+
+
+        setPendingRequests(Array.isArray(pending) ? pending : []);
+        setRevisionRequests(Array.isArray(revisions) ? revisions : []);
+
+        console.log('Pending Requests Response:', pending);
+        console.log('Revision Requests Response:', revisions);
         
-        setPendingRequests(pending || []);
-        setRevisionRequests(revisions || []);
         
         if (id) {
           const requestData = await creditService.getCreditRequestById(id);
+          console.log('Detailed Request Response:', requestData);
           if (requestData) {
             setDetailedRequest(requestData);
-            setSelectedDepartment(requestData.department_name || 'Uncategorized');
+            setSelectedDepartment(
+              requestData.department_name || 
+              (requestData.department_id ? `Department ID: ${requestData.department_id}` : 'Uncategorized')
+            );
             setEditedAmount(requestData.amount?.toString() || '');
             try {
               const versions = await creditService.getCreditRequestVersions(requestData.id);
-              setVersionHistory(versions || []);
+              console.log('Version History Response:', versions);
+              setVersionHistory(Array.isArray(versions) ? versions : []);
             } catch (err) {
               console.error('Error fetching versions:', err);
               setVersionHistory([]);
@@ -84,8 +96,10 @@ const CreditApproval = () => {
         creditService.getAllPendingRequests(),
         creditService.getAllRevisionRequests()
       ]);
-      setPendingRequests(pending || []);
-      setRevisionRequests(revisions || []);
+      console.log('Refreshed Pending Requests:', pending);
+      console.log('Refreshed Revision Requests:', revisions);
+      setPendingRequests(Array.isArray(pending) ? pending : []);
+      setRevisionRequests(Array.isArray(revisions) ? revisions : []);
     } catch (err) {
       console.error('Error refreshing data:', err);
       setError('Failed to refresh data');
@@ -123,7 +137,7 @@ const CreditApproval = () => {
       setRemark('');
       
       const versions = await creditService.getCreditRequestVersions(req.id);
-      setVersionHistory(versions || []);
+      setVersionHistory(Array.isArray(versions) ? versions : []);
       
       navigate(`/admin/credit/${req.id}`, { replace: true });
     } catch (err) {
@@ -242,31 +256,15 @@ const CreditApproval = () => {
       
       const requestIds = selectedRequests.map(req => req.id);
       
-      const departmentGroups = {};
-      selectedRequests.forEach(req => {
-        const dept = req.department_name || 'Unknown';
-        if (!departmentGroups[dept]) {
-          departmentGroups[dept] = {
-            count: 0,
-            totalAmount: 0
-          };
-        }
-        departmentGroups[dept].count++;
-        departmentGroups[dept].totalAmount += parseFloat(req.amount) || 0;
-      });
-      
       const response = await creditService.batchApproveCreditRequests(
         requestIds, 
         { feedback: remark || 'Batch approved' }
       );
       
-      const deptSummary = Object.entries(departmentGroups)
-        .map(([dept, data]) => `${dept}: ${data.count} requests, ${formatCurrency(data.totalAmount)}`)
-        .join('\n');
-        
+      const successCount = response.results.filter(r => r.success).length;
       const successMessage = response.updated_master 
-        ? `${response.results.filter(r => r.success).length} requests approved successfully.\n\nBudget master updated for:\n${deptSummary}`
-        : `${response.results.filter(r => r.success).length} requests approved successfully`;
+        ? `${successCount} requests approved successfully and budget master updated`
+        : `${successCount} requests approved successfully`;
       
       setSuccess(successMessage);
       
@@ -513,15 +511,13 @@ const CreditApproval = () => {
       {error && <AlertMessage type="error" message={error} />}
       {success && <AlertMessage type="success" message={success} />}
       
-      {/* Batch Processing Overlay */}
+      {/* Top-Right Loading Indicator */}
       {isBatchProcessing && (
-        <div className="fixed inset-0 bg-gray-600 bg-opacity-50 flex items-center justify-center z-50">
-          <div className="bg-white p-6 rounded-lg shadow-xl flex items-center space-x-4">
-            <LoadingSpinner size="large" />
-            <span className="text-lg font-medium text-gray-700">
-              Processing {selectedRequests.length} request(s)...
-            </span>
-          </div>
+        <div className="fixed top-4 right-4 z-50 flex items-center space-x-2 bg-white p-3 rounded-lg shadow-lg border border-gray-200">
+          <LoadingSpinner size="medium" />
+          <span className="text-sm font-medium text-gray-700">
+            Processing {selectedRequests.length} request(s)...
+          </span>
         </div>
       )}
 
@@ -592,18 +588,21 @@ const CreditApproval = () => {
                 <button
                   onClick={handleSelectAll}
                   className="py-1 px-3 border border-gray-300 text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50"
+                  disabled={isBatchProcessing}
                 >
                   Select All
                 </button>
                 <button
                   onClick={handleSelectAllPending}
                   className="py-1 px-3 border border-gray-300 text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50"
+                  disabled={isBatchProcessing}
                 >
                   Select All Pending
                 </button>
                 <button
                   onClick={handleSelectAllRevision}
                   className="py-1 px-3 border border-gray-300 text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50"
+                  disabled={isBatchProcessing}
                 >
                   Select All Revision
                 </button>
@@ -630,6 +629,7 @@ const CreditApproval = () => {
                           checked={selectedRequests.some(r => r.id === req.id)}
                           onChange={() => toggleRequestSelection(req)}
                           className="h-4 w-4 text-indigo-600 focus:ring-indigo-500 border-gray-300 rounded"
+                          disabled={isBatchProcessing}
                         />
                         <div className="flex-1" onClick={() => selectRequestForDetails(req)}>
                           <div className="flex flex-col">
@@ -723,7 +723,10 @@ const CreditApproval = () => {
                   </div>
                   <div>
                     <h3 className="text-sm font-medium text-gray-500">Department</h3>
-                    <p className="mt-1 text-lg font-medium text-gray-900">{detailedRequest.department_name}</p>
+                    <p className="mt-1 text-lg font-medium text-gray-900">
+                      {detailedRequest.department_name || 
+                       (detailedRequest.department_id ? `Department ID: ${detailedRequest.department_id}` : 'Uncategorized')}
+                    </p>
                   </div>
                   <div>
                     <h3 className="text-sm font-medium text-gray-500">Version</h3>
@@ -779,6 +782,7 @@ const CreditApproval = () => {
                             placeholder="0.00"
                             step="0.01"
                             min="0"
+                            disabled={isBatchProcessing}
                           />
                         </div>
                         <p className="mt-1 text-xs text-gray-500">
@@ -829,7 +833,7 @@ const CreditApproval = () => {
                 <div className="mb-6">
                   <h3 className="text-sm font-medium text-gray-500">Reason</h3>
                   <p className="mt-2 text-gray-900 bg-gray-50 p-4 rounded-md border border-gray-200">
-                    {detailedRequest.reason}
+                    {detailedRequest.reason || 'No reason provided'}
                   </p>
                 </div>
                 
@@ -844,6 +848,7 @@ const CreditApproval = () => {
                     placeholder="Provide feedback or remarks for the revision or rejection"
                     value={remark}
                     onChange={(e) => setRemark(e.target.value)}
+                    disabled={isBatchProcessing}
                   />
                 </div>
                 
@@ -883,21 +888,21 @@ const CreditApproval = () => {
                     <>
                       <button
                         onClick={() => handleRequestRevision()}
-                        disabled={isSubmitting}
+                        disabled={isSubmitting || isBatchProcessing}
                         className="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md text-yellow-700 bg-yellow-100 hover:bg-yellow-200 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-yellow-500"
                       >
                         Request Revision
                       </button>
                       <button
                         onClick={() => handleReject(detailedRequest.id)}
-                        disabled={isSubmitting || !remark.trim()}
+                        disabled={isSubmitting || isBatchProcessing || !remark.trim()}
                         className="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md text-white bg-red-600 hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500"
                       >
                         {isSubmitting ? <LoadingSpinner /> : 'Reject'}
                       </button>
                       <button
                         onClick={() => handleApprove(detailedRequest.id)}
-                        disabled={isSubmitting}
+                        disabled={isSubmitting || isBatchProcessing}
                         className="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md text-white bg-green-600 hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500"
                       >
                         {isSubmitting ? <LoadingSpinner /> : 'Approve'}
@@ -908,7 +913,7 @@ const CreditApproval = () => {
                   {detailedRequest.status === 'revision' && (
                     <button
                       onClick={() => handleResolve(detailedRequest.id)}
-                      disabled={isSubmitting}
+                      disabled={isSubmitting || isBatchProcessing}
                       className="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
                     >
                       {isSubmitting ? <LoadingSpinner /> : 'Resolve Revision'}
@@ -967,6 +972,7 @@ const CreditApproval = () => {
                           placeholder="0.00"
                           step="0.01"
                           min="0"
+                          disabled={isBatchProcessing}
                         />
                       </div>
                       
@@ -999,6 +1005,7 @@ const CreditApproval = () => {
                         onChange={(e) => updateBatchRevision(rev.id, 'remark', e.target.value)}
                         className="shadow-sm focus:ring-indigo-500 focus:border-indigo-500 block w-full sm:text-sm border-gray-300 rounded-md"
                         placeholder="Explain why changes are needed..."
+                        disabled={isBatchProcessing}
                       />
                     </div>
                   </div>
@@ -1011,12 +1018,13 @@ const CreditApproval = () => {
                 type="button"
                 className="bg-white py-2 px-4 border border-gray-300 rounded-md shadow-sm text-sm font-medium text-gray-700 hover:bg-gray-50 focus:outline-none"
                 onClick={closeRevisionModal}
+                disabled={isBatchProcessing}
               >
                 Cancel
               </button>
               <button
                 type="button"
-                disabled={isSubmitting}
+                disabled={isSubmitting || isBatchProcessing}
                 className="inline-flex justify-center py-2 px-4 border border-transparent shadow-sm text-sm font-medium rounded-md text-white bg-yellow-600 hover:bg-yellow-700 focus:outline-none"
                 onClick={handleRequestRevision}
               >

@@ -1,4 +1,3 @@
-// frontend/src/components/admin/Dashboard.js
 import React, { useState, useEffect, useContext, useCallback } from 'react';
 import { Link } from 'react-router-dom';
 import { KeyAccountContext } from '../../context/KeyAccountContext';
@@ -9,17 +8,15 @@ import AlertMessage from '../common/AlertMessage';
 import { formatCurrency } from '../../utils/formatCurrency';
 
 const AdminDashboard = () => {
-  const { accountsWithUsage, getBudgetSummary } = useContext(KeyAccountContext);
+  const { accountsWithUsage } = useContext(KeyAccountContext);
 
   const [isLoading, setIsLoading] = useState(true);
-  const [error, setError]       = useState(null);
+  const [error, setError] = useState(null);
   const [dashboardData, setDashboardData] = useState({
     pendingRequests: [],
-    departments:     0,
-    pendingCount:    0,
-    revisionCount:   0,
-    totalBudget:     0,
-    totalUsed:       0
+    departments: 0,
+    pendingCount: 0,
+    revisionCount: 0
   });
   const [topAccounts, setTopAccounts] = useState([]);
 
@@ -29,27 +26,27 @@ const AdminDashboard = () => {
     setError(null);
 
     try {
-      const [pendingRequests, departments, budgetSummary] = await Promise.all([
+      const [pendingRequests, departments] = await Promise.all([
         withdrawalService.getAllPendingRequests(),
-        departmentService.getAllDepartments(),
-        getBudgetSummary()
+        departmentService.getAllDepartments()
       ]);
 
+      // Normalize pendingRequests to ensure it's an array
+      const normalizedPendingRequests = Array.isArray(pendingRequests) ? pendingRequests : [];
+
       setDashboardData({
-        pendingRequests: pendingRequests.slice(0, 5),
-        departments:     departments.length,
-        pendingCount:    pendingRequests.length,
-        revisionCount:   0, // TODO: hook up real revision count endpoint
-        totalBudget:     budgetSummary?.total_allocated ?? 0,
-        totalUsed:       budgetSummary?.total_used     ?? 0
+        pendingRequests: normalizedPendingRequests.slice(0, 5),
+        departments: Array.isArray(departments) ? departments.length : 0,
+        pendingCount: normalizedPendingRequests.length,
+        revisionCount: 0 // TODO: hook up real revision count endpoint
       });
     } catch (err) {
       console.error('Error fetching dashboard data:', err);
-      setError('Failed to load dashboard data');
+      setError('Failed to load some dashboard data. Partial data displayed.');
     } finally {
       setIsLoading(false);
     }
-  }, [getBudgetSummary]);
+  }, []);
 
   // On mount, load dashboard
   useEffect(() => {
@@ -59,7 +56,7 @@ const AdminDashboard = () => {
   // Recompute top accounts whenever usage changes
   useEffect(() => {
     const sorted = [...accountsWithUsage]
-      .sort((a, b) => b.used_amount - a.used_amount)
+      .sort((a, b) => (b.used_amount || 0) - (a.used_amount || 0))
       .slice(0, 5);
     setTopAccounts(sorted);
   }, [accountsWithUsage]);
@@ -72,32 +69,23 @@ const AdminDashboard = () => {
     );
   }
 
-  const { totalBudget, totalUsed, pendingCount, pendingRequests, departments, revisionCount } = dashboardData;
-  const usagePercentage = totalBudget > 0
-    ? (totalUsed / totalBudget) * 100
-    : 0;
+  const { pendingCount, pendingRequests, departments, revisionCount } = dashboardData;
 
   return (
     <div className="flex-1 p-8 ml-64">
       <h1 className="text-2xl font-bold mb-6">Admin Dashboard</h1>
 
-      {error && <AlertMessage type="error" message={error} />}
+      {error && <AlertMessage type="warning" message={error} />}
 
       {/* Summary cards */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-8">
         <Card title="Pending Requests" value={pendingCount} link="/admin/withdrawals" />
         <Card title="Revision Requests" value={revisionCount} link="/admin/withdrawals" />
         <Card title="Departments" value={departments} link="/admin/departments" />
-        <Card title="Total Budget" value={formatCurrency(totalBudget)} link="/admin/key-account-allocation" />
       </div>
 
-      {/* Usage & Top Accounts */}
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8">
-        <UsagePanel
-          used={totalUsed}
-          total={totalBudget}
-          percentage={usagePercentage}
-        />
+      {/* Top Accounts */}
+      <div className="grid grid-cols-1 lg:grid-cols-1 gap-6 mb-8">
         <TopAccountsPanel accounts={topAccounts} />
       </div>
 
@@ -121,35 +109,6 @@ function Card({ title, value, link }) {
   );
 }
 
-function UsagePanel({ used, total, percentage }) {
-  return (
-    <div className="bg-white rounded-lg shadow">
-      <div className="p-6 border-b border-gray-200">
-        <h2 className="text-lg font-medium text-gray-900">Overall Budget Usage</h2>
-      </div>
-      <div className="p-6">
-        <div className="flex justify-between mb-2">
-          <span>Used: {formatCurrency(used)}</span>
-          <span>Total: {formatCurrency(total)}</span>
-        </div>
-        <div className="w-full bg-gray-200 rounded-full h-4">
-          <div
-            className={`h-4 rounded-full ${
-              percentage > 90 ? 'bg-red-500' :
-              percentage > 70 ? 'bg-yellow-500' :
-              'bg-green-500'
-            }`}
-            style={{ width: `${Math.min(percentage, 100)}%` }}
-          />
-        </div>
-        <div className="mt-2 text-right text-sm text-gray-500">
-          {Math.round(percentage)}% used
-        </div>
-      </div>
-    </div>
-  );
-}
-
 function TopAccountsPanel({ accounts }) {
   return (
     <div className="bg-white rounded-lg shadow">
@@ -159,9 +118,7 @@ function TopAccountsPanel({ accounts }) {
       <div className="p-6 space-y-4">
         {accounts.length > 0 ? (
           accounts.map(acc => {
-            const pct = acc.total_budget
-              ? (acc.used_amount / acc.total_budget) * 100
-              : 0;
+            const pct = acc.total_budget ? (acc.used_amount / acc.total_budget) * 100 : 0;
             return (
               <div key={acc.id} className="bg-gray-50 p-3 rounded-lg">
                 <div className="flex justify-between mb-1">
@@ -175,9 +132,7 @@ function TopAccountsPanel({ accounts }) {
                 <div className="w-full bg-gray-200 rounded-full h-2.5">
                   <div
                     className={`h-2.5 rounded-full ${
-                      pct > 90 ? 'bg-red-500' :
-                      pct > 70 ? 'bg-yellow-500' :
-                      'bg-green-500'
+                      pct > 90 ? 'bg-red-500' : pct > 70 ? 'bg-yellow-500' : 'bg-green-500'
                     }`}
                     style={{ width: `${Math.min(pct, 100)}%` }}
                   />
@@ -208,11 +163,11 @@ function RecentRequestsTable({ requests }) {
         </Link>
       </div>
       <div className="p-6 overflow-x-auto">
-        {requests.length > 0 ? (
+        {Array.isArray(requests) && requests.length > 0 ? (
           <table className="min-w-full divide-y divide-gray-200">
             <thead className="bg-gray-50">
               <tr>
-                {['Date','User','Dept','Account','Amount','Actions'].map(h => (
+                {['Date', 'User', 'Dept', 'Account', 'Amount', 'Actions'].map(h => (
                   <th
                     key={h}
                     className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
@@ -226,7 +181,7 @@ function RecentRequestsTable({ requests }) {
               {requests.map(r => (
                 <tr key={r.id}>
                   <td className="px-6 py-4 text-sm text-gray-500">
-                    {new Date(r.created_at).toLocaleDateString('en-Gb')}
+                    {new Date(r.created_at).toLocaleDateString('en-GB')}
                   </td>
                   <td className="px-6 py-4 text-sm text-gray-500">{r.requester_name}</td>
                   <td className="px-6 py-4 text-sm text-gray-500">{r.department_name}</td>

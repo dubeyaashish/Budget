@@ -1,4 +1,3 @@
-// frontend/src/services/creditService.js
 import api from './api';
 import departmentService from './departmentService';
 
@@ -11,7 +10,7 @@ const creditService = {
       console.log('API Response from credit request creation:', response);
       return response;
     } catch (error) {
-      console.error('Error in createCreditRequest:', error);
+      console.error('Error in createCreditRequest:', error.response?.data || error.message);
       throw error;
     }
   },
@@ -22,7 +21,7 @@ const creditService = {
       const response = await api.get('/credits/user');
       return response;
     } catch (error) {
-      console.error('Error in getUserCreditRequests:', error);
+      console.error('Error in getUserCreditRequests:', error.response?.data || error.message);
       throw error;
     }
   },
@@ -33,7 +32,7 @@ const creditService = {
       const response = await api.get('/credits/user/latest');
       return response;
     } catch (error) {
-      console.error('Error fetching latest user credit request:', error);
+      console.error('Error fetching latest user credit request:', error.response?.data || error.message);
       return null;
     }
   },
@@ -44,7 +43,7 @@ const creditService = {
       const response = await api.get('/credits/revisions');
       return response;
     } catch (error) {
-      console.error('Error in getUserCreditRevisionRequests:', error);
+      console.error('Error in getUserCreditRevisionRequests:', error.response?.data || error.message);
       throw error;
     }
   },
@@ -55,7 +54,7 @@ const creditService = {
       const response = await api.get('/credits/revisions/all');
       return response;
     } catch (error) {
-      console.error('Error in getAllRevisionRequests:', error);
+      console.error('Error in getAllRevisionRequests:', error.response?.data || error.message);
       throw error;
     }
   },
@@ -66,7 +65,7 @@ const creditService = {
       const response = await api.get('/credits/pending');
       return response;
     } catch (error) {
-      console.error('Error in getAllPendingRequests:', error);
+      console.error('Error in getAllPendingRequests:', error.response?.data || error.message);
       throw error;
     }
   },
@@ -81,7 +80,7 @@ const creditService = {
       const response = await api.get(`/credits/${id}`);
       return response;
     } catch (error) {
-      console.error(`Error in getCreditRequestById for ID ${id}:`, error);
+      console.error(`Error in getCreditRequestById for ID ${id}:`, error.response?.data || error.message);
       throw error;
     }
   },
@@ -96,7 +95,7 @@ const creditService = {
       const response = await api.get(`/credits/${requestId}/versions`);
       return response;
     } catch (error) {
-      console.error(`Error in getCreditRequestVersions for ID ${requestId}:`, error);
+      console.error(`Error in getCreditRequestVersions for ID ${requestId}:`, error.response?.data || error.message);
       throw error;
     }
   },
@@ -109,7 +108,7 @@ const creditService = {
       console.log('Approval response:', response);
       return response;
     } catch (error) {
-      console.error('Error in approveCreditRequest:', error);
+      console.error('Error in approveCreditRequest:', error.response?.data || error.message);
       throw error;
     }
   },
@@ -120,7 +119,7 @@ const creditService = {
       const response = await api.put(`/credits/${id}/reject`, data);
       return response;
     } catch (error) {
-      console.error('Error in rejectCreditRequest:', error);
+      console.error('Error in rejectCreditRequest:', error.response?.data || error.message);
       throw error;
     }
   },
@@ -133,7 +132,7 @@ const creditService = {
       console.log('Revision request response:', response);
       return response;
     } catch (error) {
-      console.error('Error in createRevisionRequest:', error);
+      console.error('Error in createRevisionRequest:', error.response?.data || error.message);
       throw error;
     }
   },
@@ -146,7 +145,7 @@ const creditService = {
       console.log('Update revision response:', response);
       return response;
     } catch (error) {
-      console.error('Error in updateRevisionVersion:', error);
+      console.error('Error in updateRevisionVersion:', error.response?.data || error.message);
       throw error;
     }
   },
@@ -157,7 +156,7 @@ const creditService = {
       const response = await api.put(`/credits/${id}/resolve`);
       return response;
     } catch (error) {
-      console.error('Error in resolveRevision:', error);
+      console.error('Error in resolveRevision:', error.response?.data || error.message);
       throw error;
     }
   },
@@ -168,7 +167,7 @@ const creditService = {
       const response = await api.get(`/credits/check-budget/${accountId}`);
       return response;
     } catch (error) {
-      console.error('Error in checkAvailableBudget:', error);
+      console.error('Error in checkAvailableBudget:', error.response?.data || error.message);
       throw error;
     }
   },
@@ -179,7 +178,7 @@ const creditService = {
       const response = await api.get(`/credits/summary/department/${departmentId}`);
       return response;
     } catch (error) {
-      console.error('Error in getDepartmentSpendingSummary:', error);
+      console.error('Error in getDepartmentSpendingSummary:', error.response?.data || error.message);
       throw error;
     }
   },
@@ -190,11 +189,11 @@ const creditService = {
       const response = await api.get('/credits/budget-master');
       return response;
     } catch (error) {
-      console.error('Error in getBudgetMasterData:', error);
+      console.error('Error in getBudgetMasterData:', error.response?.data || error.message);
       return [];
     }
   },
-  
+
   // Get budget master data for a specific department with robust fallbacks
   getDepartmentBudgetMasterData: async (departmentId) => {
     try {
@@ -208,10 +207,10 @@ const creditService = {
       // Try primary method first - direct endpoint
       try {
         const response = await api.get(`/credits/budget-master/department/${departmentId}`);
-        console.log(`Retrieved ${response.length} budget records from direct endpoint`);
+        console.log(`Retrieved ${response.data.length} budget records from direct endpoint`);
         
-        if (response && response.length > 0) {
-          return response;
+        if (response.data && response.data.length > 0) {
+          return response.data;
         }
       } catch (directErr) {
         console.warn(`Primary budget data endpoint failed: ${directErr.message}`);
@@ -222,9 +221,9 @@ const creditService = {
         console.log('Fetching all budget master data for filtering');
         const allData = await api.get('/credits/budget-master');
         
-        if (allData && allData.length > 0) {
+        if (allData.data && allData.data.length > 0) {
           // First try direct ID match
-          let filteredData = allData.filter(item => {
+          let filteredData = allData.data.filter(item => {
             return String(item.department || '') === String(departmentId);
           });
           
@@ -238,7 +237,7 @@ const creditService = {
             const deptInfo = await departmentService.getDepartmentById(departmentId);
             if (deptInfo && deptInfo.name) {
               // Try matching by department name
-              filteredData = allData.filter(item => {
+              filteredData = allData.data.filter(item => {
                 if (!item.department_name) return false;
                 
                 const itemDeptName = item.department_name.toLowerCase();
@@ -275,7 +274,7 @@ const creditService = {
       return [];
       
     } catch (error) {
-      console.error(`Error in getDepartmentBudgetMasterData for ID ${departmentId}:`, error);
+      console.error(`Error in getDepartmentBudgetMasterData for ID ${departmentId}:`, error.response?.data || error.message);
       return [];
     }
   },
@@ -297,7 +296,7 @@ const creditService = {
       console.log('Batch approval response:', response);
       return response;
     } catch (error) {
-      console.error('Error in batchApproveCreditRequests:', error);
+      console.error('Error in batchApproveCreditRequests:', error.response?.data || error.message);
       throw error;
     }
   },
@@ -320,7 +319,7 @@ const creditService = {
       
       return response;
     } catch (error) {
-      console.error('Error in batchRejectCreditRequests:', error);
+      console.error('Error in batchRejectCreditRequests:', error.response?.data || error.message);
       throw error;
     }
   },
@@ -340,7 +339,7 @@ const creditService = {
       
       return response;
     } catch (error) {
-      console.error('Error in batchCreateRevisionRequests:', error);
+      console.error('Error in batchCreateRevisionRequests:', error.response?.data || error.message);
       throw error;
     }
   },
@@ -358,7 +357,7 @@ const creditService = {
       
       return response;
     } catch (error) {
-      console.error('Error in batchUpdateRevisions:', error);
+      console.error('Error in batchUpdateRevisions:', error.response?.data || error.message);
       throw error;
     }
   }

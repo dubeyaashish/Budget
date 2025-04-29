@@ -10,7 +10,7 @@ const db = require('../config/db');
  */
 exports.getBudgetMasterData = async (req, res) => {
   try {
-    // Query that matches the actual structure where department contains names
+    // Use COLLATE to force the same collation for comparison
     const query = `
       SELECT 
         bm.type,
@@ -21,7 +21,7 @@ exports.getBudgetMasterData = async (req, res) => {
         bm.department as department_name,
         bm.amount
       FROM budget_master bm
-      JOIN budget_departments d ON bm.department = d.name
+      JOIN budget_departments d ON bm.department = d.name COLLATE utf8mb4_general_ci
       ORDER BY bm.department, bm.type, bm.key_account_name
     `;
     
@@ -111,18 +111,17 @@ exports.getDepartmentBudgetMasterData = async (req, res) => {
     
     // Now query budget_master using the matched department name
     const query = `
-      SELECT 
-        bm.type,
-        bm.key_account,
-        bm.key_account_name,
-        bm.overall,
-        ? as department,
-        bm.department as department_name,
-        bm.amount
-      FROM budget_master bm
-      WHERE bm.department = ?
-      ORDER BY bm.type, bm.key_account_name
-    `;
+    SELECT 
+      bm.key_account,
+      bm.key_account_name,
+      bm.type,
+      ? as department,
+      bm.department as department_name,
+      bm.amount
+    FROM budget_master bm
+    WHERE bm.department = ? COLLATE utf8mb4_unicode_ci
+    ORDER BY bm.type, bm.key_account_name
+  `;
     
     const results = await db.query(query, [departmentId, matchedDeptName]);
     
