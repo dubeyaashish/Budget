@@ -10,24 +10,36 @@ export const KeyAccountProvider = ({ children }) => {
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState(null);
 
-  // Fetch key accounts and their usage
-  const fetchKeyAccounts = useCallback(async () => {
-    try {
-      setIsLoading(true);
-      setError(null);
+// In KeyAccountContext.js, update fetchKeyAccounts:
+const fetchKeyAccounts = useCallback(async () => {
+  try {
+    setIsLoading(true);
+    setError(null);
 
-      const accounts = await keyAccountService.getAllKeyAccounts();
-      setKeyAccounts(accounts);
+    const [accountsResponse, usageResponse] = await Promise.all([
+      keyAccountService.getAllKeyAccounts(),
+      keyAccountService.getKeyAccountsWithUsage()
+    ]);
 
-      const usage = await keyAccountService.getKeyAccountsWithUsage();
-      setAccountsWithUsage(usage);
-    } catch (err) {
-      console.error('Error fetching key accounts:', err);
-      setError(err.response?.data?.message || 'Failed to fetch key accounts');
-    } finally {
-      setIsLoading(false);
+    console.log('Accounts raw response:', accountsResponse); // Debug log
+    console.log('Usage raw response:', usageResponse); // Debug log
+
+    const accounts = accountsResponse.data || [];
+    const usage = usageResponse.data || [];
+
+    if (accounts.length === 0) {
+      console.warn('No key accounts received from API');
     }
-  }, []);
+
+    setKeyAccounts(accounts);
+    setAccountsWithUsage(usage);
+  } catch (err) {
+    console.error('Error fetching key accounts:', err);
+    setError(err.response?.data?.message || 'Failed to fetch key accounts');
+  } finally {
+    setIsLoading(false);
+  }
+}, []);
 
   useEffect(() => {
     fetchKeyAccounts();
@@ -57,8 +69,8 @@ export const KeyAccountProvider = ({ children }) => {
       setIsLoading(true);
       setError(null);
 
-      const summary = await keyAccountService.getBudgetSummary();
-      return summary;
+      const summaryResponse = await keyAccountService.getBudgetSummary();
+      return summaryResponse.data;
     } catch (err) {
       console.error('Error fetching budget summary:', err);
       setError(err.response?.data?.message || 'Failed to fetch budget summary');
@@ -74,8 +86,8 @@ export const KeyAccountProvider = ({ children }) => {
       setIsLoading(true);
       setError(null);
 
-      const spending = await keyAccountService.getDepartmentSpendingByAccount(accountId);
-      return spending;
+      const spendingResponse = await keyAccountService.getDepartmentSpendingByAccount(accountId);
+      return spendingResponse.data;
     } catch (err) {
       console.error('Error fetching department spending:', err);
       setError(err.response?.data?.message || 'Failed to fetch department spending');
@@ -91,8 +103,8 @@ export const KeyAccountProvider = ({ children }) => {
       setIsLoading(true);
       setError(null);
 
-      const spending = await keyAccountService.getAccountSpendingByDepartment(departmentId);
-      return spending;
+      const spendingResponse = await keyAccountService.getAccountSpendingByDepartment(departmentId);
+      return spendingResponse.data;
     } catch (err) {
       console.error('Error fetching account spending by department:', err);
       setError(err.response?.data?.message || 'Failed to fetch account spending');

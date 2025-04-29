@@ -174,10 +174,31 @@ exports.createCreditRequest = async (req, res) => {
 
     // Validate each entry has required fields
     for (const entry of entries) {
-      if (!entry.key_account_id || !entry.amount || !entry.reason || entry.amount <= 0) {
+      if (!entry.key_account_id || !entry.amount || entry.amount <= 0) {
         return res.status(400).json({ 
-          message: 'Each entry must have a key account, valid amount, and reason'
+          message: 'Each entry must have a key account and valid amount'
         });
+      }
+      // Allow reason to be null, undefined, or empty
+    }
+
+    // Verify user exists
+    const [user] = await db.query('SELECT id FROM budget_users WHERE id = ?', [userId]);
+    if (!user) {
+      return res.status(400).json({ message: `User with id ${userId} does not exist` });
+    }
+
+    // Verify department exists
+    const [department] = await db.query('SELECT id FROM budget_departments WHERE id = ?', [department_id]);
+    if (!department) {
+      return res.status(400).json({ message: `Department with id ${department_id} does not exist` });
+    }
+
+    // Verify key_account_ids exist
+    for (const entry of entries) {
+      const [keyAccount] = await db.query('SELECT id FROM budget_key_accounts WHERE id = ?', [entry.key_account_id]);
+      if (!keyAccount) {
+        return res.status(400).json({ message: `Key account with id ${entry.key_account_id} does not exist` });
       }
     }
 
@@ -198,7 +219,7 @@ exports.createCreditRequest = async (req, res) => {
     });
   } catch (error) {
     console.error('Error creating credit request:', error);
-    res.status(500).json({ message: 'Server error creating credit request' });
+    res.status(500).json({ message: `Server error creating credit request: ${error.message}` });
   }
 };
 

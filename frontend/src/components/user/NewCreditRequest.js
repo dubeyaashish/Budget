@@ -1,4 +1,3 @@
-// frontend/src/components/user/NewCreditRequest.js
 import React, { useState, useEffect, useContext } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { AuthContext } from '../../context/AuthContext';
@@ -44,13 +43,11 @@ const NewCreditRequest = () => {
   const findDepartmentIdByName = (deptName, deptsList) => {
     if (!deptName || !deptsList || !deptsList.length) return null;
     
-    // Case-insensitive exact match
     const exactMatch = deptsList.find(
       d => d.name.toLowerCase() === deptName.toLowerCase()
     );
     if (exactMatch) return exactMatch.id;
     
-    // Partial match (department name contains part of the search or vice versa)
     const partialMatch = deptsList.find(
       d => d.name.toLowerCase().includes(deptName.toLowerCase()) || 
            deptName.toLowerCase().includes(d.name.toLowerCase())
@@ -72,7 +69,7 @@ const NewCreditRequest = () => {
       try {
         setIsLoading(true);
         
-        // Get all departments first
+        // Get all departments
         const departmentsData = await departmentService.getAllDepartments();
         setDepartments(departmentsData);
         
@@ -80,97 +77,39 @@ const NewCreditRequest = () => {
         let userDeptId = null;
         let userDeptName = null;
         
-        // STEP 1: Check all possible places where department info might be stored
         if (currentUser.department_id) {
-          // If department_id is directly available
           userDeptId = currentUser.department_id;
-          console.log(`Found department_id in user object: ${userDeptId}`);
-          
-          // Find department name for display
           const deptInfo = departmentsData.find(d => d.id == userDeptId);
-          if (deptInfo) {
-            userDeptName = deptInfo.name;
-          }
-        } 
-        else if (currentUser.departments && currentUser.departments.length > 0) {
-          // If there's a departments array
+          if (deptInfo) userDeptName = deptInfo.name;
+        } else if (currentUser.departments && currentUser.departments.length > 0) {
           userDeptId = currentUser.departments[0].id;
           userDeptName = currentUser.departments[0].name;
-          console.log(`Found department in departments array: ${userDeptId} (${userDeptName})`);
-        } 
-        else if (currentUser.department) {
-          // If only department name is available, find the ID
+        } else if (currentUser.department) {
           userDeptName = currentUser.department;
-          console.log(`Found department name in user object: ${userDeptName}`);
-          
           userDeptId = findDepartmentIdByName(userDeptName, departmentsData);
-          if (userDeptId) {
-            console.log(`Matched department name to ID: ${userDeptId}`);
-          }
         }
         
-        // STEP 2: If we still don't have a department, try to get it from the user profile
         if (!userDeptId) {
-          try {
-            console.log('Attempting to fetch user profile for department info');
-            const userProfile = await authService.getProfile();
-            
-            if (userProfile.department_id) {
-              userDeptId = userProfile.department_id;
-              console.log(`Found department_id from profile API: ${userDeptId}`);
-              
-              // Find department name for display
-              const deptInfo = departmentsData.find(d => d.id == userDeptId);
-              if (deptInfo) {
-                userDeptName = deptInfo.name;
-              }
-            } 
-            else if (userProfile.department) {
-              userDeptName = userProfile.department;
-              console.log(`Found department name from profile API: ${userDeptName}`);
-              
-              userDeptId = findDepartmentIdByName(userDeptName, departmentsData);
-              if (userDeptId) {
-                console.log(`Matched profile department name to ID: ${userDeptId}`);
-              }
-            }
-          } catch (profileErr) {
-            console.error('Error fetching user profile:', profileErr);
+          const userProfile = await authService.getProfile();
+          if (userProfile.department_id) {
+            userDeptId = userProfile.department_id;
+            const deptInfo = departmentsData.find(d => d.id == userDeptId);
+            if (deptInfo) userDeptName = deptInfo.name;
+          } else if (userProfile.department) {
+            userDeptName = userProfile.department;
+            userDeptId = findDepartmentIdByName(userDeptName, departmentsData);
           }
         }
         
-        // STEP 3: Final fallback - if we have a name but no ID, try looking it up directly
         if (userDeptName && !userDeptId) {
-          try {
-            const deptByName = await departmentService.findDepartmentByName(userDeptName);
-            if (deptByName && deptByName.id) {
-              userDeptId = deptByName.id;
-              console.log(`Found department ID via direct lookup: ${userDeptId}`);
-            }
-          } catch (lookupErr) {
-            console.error('Error in direct department lookup:', lookupErr);
-          }
+          const deptByName = await departmentService.findDepartmentByName(userDeptName);
+          if (deptByName && deptByName.id) userDeptId = deptByName.id;
         }
         
-        // STEP 4: Set the department info for the component
         if (userDeptId) {
           setSelectedDepartment(userDeptId);
-          
-          if (userDeptName) {
-            setDepartmentName(userDeptName);
-          } else {
-            // If we only have ID but no name, look up the name
-            const deptInfo = departmentsData.find(d => d.id == userDeptId);
-            if (deptInfo) {
-              setDepartmentName(deptInfo.name);
-            } else {
-              setDepartmentName(`Department ${userDeptId}`);
-            }
-          }
-          
+          setDepartmentName(userDeptName || departmentsData.find(d => d.id == userDeptId)?.name || `Department ${userDeptId}`);
           setFormData(prev => ({ ...prev, department_id: userDeptId }));
-          
-          // Load budget data for this department
           await loadDepartmentData(userDeptId);
         } else {
           setError('Could not determine your department. Please contact an administrator.');
@@ -186,78 +125,54 @@ const NewCreditRequest = () => {
     fetchData();
   }, [currentUser]);
 
-  // Update available key accounts when department or entries change
-  useEffect(() => {
-    const filterAvailableAccounts = () => {
-      if (departmentKeyAccounts.length > 0) {
-        // Get the IDs of accounts already selected
-        const selectedIds = accountEntries.map(entry => entry.key_account_id);
-        
-        // Filter available accounts to those not already selected
-        const available = departmentKeyAccounts.filter(
-          account => !selectedIds.includes(account.key_account)
-        );
-
-        setAvailableKeyAccounts(available);
-      }
-    };
+  // Update available key accounts for the dropdown
+// Update available key accounts for the dropdown
+useEffect(() => {
+  console.log('Debug - keyAccounts:', keyAccounts);
+  console.log('Debug - accountEntries:', accountEntries);
+  
+  if (keyAccounts && keyAccounts.length > 0) {
+    const selectedIds = accountEntries.map(entry => entry.key_account_id);
+    console.log('Debug - selectedIds:', selectedIds);
     
-    filterAvailableAccounts();
-  }, [departmentKeyAccounts, accountEntries]);
-
-  // Update department key accounts when department or budget data changes
-  useEffect(() => {
-    console.log('useEffect for department key accounts triggered');
-    console.log('Selected department:', selectedDepartment);
-    console.log('Budget master data length:', budgetMasterData.length);
+    // Filter out already added accounts
+    const available = keyAccounts.filter(
+      account => !selectedIds.includes(account.id)
+    );
     
+    console.log('Debug - available accounts:', available);
+    setAvailableKeyAccounts(available);
+    
+    // Only show error if there are truly no accounts in the system
+    if (keyAccounts.length === 0) {
+      setError('No key accounts available in the system. Please contact an administrator.');
+    } else if (available.length === 0 && accountEntries.length > 0) {
+      setError('All available accounts have been added to this request.');
+    } else {
+      setError(null);
+    }
+  } else {
+    setAvailableKeyAccounts([]);
+  }
+}, [keyAccounts, accountEntries]);
+
+  // Update department key accounts
+  useEffect(() => {
+    console.log('budgetMasterData:', budgetMasterData);
+    console.log('budgetMasterData type:', typeof budgetMasterData);
+    console.log('budgetMasterData isArray:', Array.isArray(budgetMasterData));
     if (selectedDepartment && budgetMasterData.length > 0) {
-      console.log(`Filtering budget data for department ID: ${selectedDepartment}`);
-      
-      // More verbose logging for filtering
-      const departmentAccounts = budgetMasterData.filter(item => {
-        // Try multiple match strategies
-        
-        // Strategy 1: Direct ID match (converting both to strings for safety)
-        const itemDeptId = String(item.department || '');
-        const selectedDeptId = String(selectedDepartment || '');
-        const directMatch = itemDeptId === selectedDeptId;
-        
-        if (directMatch) {
-          return true;
-        }
-        
-        // Strategy 2: Match by department name if available
-        if (item.department_name && departmentName) {
-          const itemDeptName = String(item.department_name || '').toLowerCase();
-          const deptNameLower = departmentName.toLowerCase();
-          
-          // Exact name match
-          if (itemDeptName === deptNameLower) {
-            return true;
-          }
-          
-          // Partial name match
-          if (itemDeptName.includes(deptNameLower) || deptNameLower.includes(itemDeptName)) {
-            return true;
-          }
-        }
-        
-        return false;
-      });
-      
-      console.log(`Found ${departmentAccounts.length} accounts for department ID: ${selectedDepartment}`);
-      console.log('Department accounts:', departmentAccounts);
-      
+      const departmentAccounts = budgetMasterData.filter(item => 
+        String(item.department) === String(selectedDepartment) ||
+        (item.department_name && departmentName && 
+         item.department_name.toLowerCase() === departmentName.toLowerCase())
+      );
+      console.log('departmentAccounts:', departmentAccounts);
       setDepartmentKeyAccounts(departmentAccounts);
       
-      // Pre-populate account entries if none exist yet or if department changed
       if (accountEntries.length === 0 && !isSubmitted) {
-        console.log('Creating account entries from department accounts');
         const groupedAccounts = {};
-        
         departmentAccounts.forEach(account => {
-          console.log('Processing account:', account);
           if (!groupedAccounts[account.key_account]) {
             groupedAccounts[account.key_account] = {
               key_account_id: account.key_account,
@@ -272,10 +187,8 @@ const NewCreditRequest = () => {
             groupedAccounts[account.key_account].total += parseFloat(account.amount) || 0;
           }
         });
-        
         const newEntries = Object.values(groupedAccounts);
-        console.log('Created account entries:', newEntries);
-        
+        console.log('Setting accountEntries:', newEntries);
         setAccountEntries(newEntries);
       }
     }
@@ -283,61 +196,41 @@ const NewCreditRequest = () => {
 
   const getAvailableAmount = (accountId) => {
     if (!accountId) return 0;
-    
-    const account = accountsWithUsage.find(a => a.id === accountId);
-    if (account && account.available_amount !== undefined) {
-      return account.available_amount;
+    const account = accountsWithUsage.find(a => a.id === accountId) || 
+                   keyAccounts.find(a => a.id === accountId);
+    if (account) {
+      return account.available_amount ?? (account.total_budget - (account.used_amount || 0));
     }
-    
-    const basicAccount = keyAccounts.find(a => a.id === accountId);
-    if (basicAccount) {
-      return basicAccount.total_budget - (basicAccount.used_amount || 0);
-    }
-    
     return 0;
   };
 
   const loadDepartmentData = async (departmentId) => {
-    console.log(`Loading data for department ID: ${departmentId}`);
-    
     setFormData({
       ...formData,
       department_id: departmentId,
-      version: 1, 
+      version: 1,
       status: 'pending',
       request_id: null
     });
-    
     setSelectedDepartment(departmentId);
     setAccountEntries([]);
     setIsSubmitted(false);
     setSuccess(null);
     setError(null);
-    
-    // Clear any existing budget data
     setBudgetMasterData([]);
     
     if (departmentId) {
       try {
         setIsLoading(true);
-        
-        // Try to get data from the specific department endpoint
-        console.log(`Fetching budget data for department ID: ${departmentId}`);
         let budgetData = [];
         let attempt = 0;
         const maxAttempts = 3;
         
         while (attempt < maxAttempts && budgetData.length === 0) {
           try {
-            if (attempt > 0) {
-              console.log(`Retry attempt ${attempt} for department budget data`);
-            }
-            
             if (attempt === 0) {
-              // First attempt: Try the dedicated endpoint
               budgetData = await creditService.getDepartmentBudgetMasterData(departmentId);
             } else if (attempt === 1) {
-              // Second attempt: Try to filter from all budget data
               const allBudgetData = await creditService.getBudgetMasterData();
               budgetData = allBudgetData.filter(item => 
                 String(item.department) === String(departmentId) ||
@@ -345,61 +238,36 @@ const NewCreditRequest = () => {
                  item.department_name.toLowerCase() === departmentName.toLowerCase())
               );
             } else {
-              // Third attempt: Look up department name if we only have ID
               if (!departmentName && departmentId) {
-                try {
-                  const deptInfo = await departmentService.getDepartmentById(departmentId);
-                  if (deptInfo && deptInfo.name) {
-                    setDepartmentName(deptInfo.name);
-                    
-                    // Try to match by name in the budget data
-                    const allBudgetData = await creditService.getBudgetMasterData();
-                    budgetData = allBudgetData.filter(item => 
-                      item.department_name && deptInfo.name &&
-                      (item.department_name.toLowerCase() === deptInfo.name.toLowerCase() ||
-                       item.department_name.toLowerCase().includes(deptInfo.name.toLowerCase()) ||
-                       deptInfo.name.toLowerCase().includes(item.department_name.toLowerCase()))
-                    );
-                  }
-                } catch (deptErr) {
-                  console.error('Error fetching department details:', deptErr);
+                const deptInfo = await departmentService.getDepartmentById(departmentId);
+                if (deptInfo && deptInfo.name) {
+                  setDepartmentName(deptInfo.name);
+                  const allBudgetData = await creditService.getBudgetMasterData();
+                  budgetData = allBudgetData.filter(item => 
+                    item.department_name && deptInfo.name &&
+                    item.department_name.toLowerCase() === deptInfo.name.toLowerCase()
+                  );
                 }
               }
             }
-            
-            console.log(`Retrieved ${budgetData?.length || 0} budget records for department ${departmentId}:`, budgetData);
           } catch (err) {
             console.error(`Attempt ${attempt + 1} failed:`, err);
           }
-          
           attempt++;
         }
         
-        // If still no data, use fallback approach
         if (!budgetData || budgetData.length === 0) {
-          console.log('Using fallback key accounts approach');
+          const [keyAccountsResponse, departmentsData] = await Promise.all([
+            keyAccountService.getAllKeyAccounts(),
+            departmentService.getAllDepartments()
+          ]);
+          const keyAccountsData = keyAccountsResponse.data || [];
+          const deptName = departmentName || departmentsData.find(d => d.id == departmentId)?.name || '';
+          if (deptName) setDepartmentName(deptName);
           
-          // Get key accounts and departments
-          try {
-            console.log('Fetching key accounts for fallback');
-            const [keyAccountsData, departmentsData] = await Promise.all([
-              keyAccountService.getAllKeyAccounts(),
-              departmentService.getAllDepartments()
-            ]);
-            
-            // Find the department name if we don't have it yet
-            let deptName = departmentName;
-            if (!deptName) {
-              const departmentInfo = departmentsData.find(d => d.id == departmentId) || {};
-              deptName = departmentInfo.name || '';
-              
-              if (deptName) {
-                setDepartmentName(deptName);
-              }
-            }
-            
-            // Generate fallback data
-            budgetData = keyAccountsData.map(account => ({
+          budgetData = keyAccountsData
+            .filter(account => !account.department_id || account.department_id == departmentId)
+            .map(account => ({
               type: account.account_type || 'Unknown',
               key_account: account.id,
               key_account_name: account.name,
@@ -408,42 +276,12 @@ const NewCreditRequest = () => {
               department_name: deptName || `Department ${departmentId}`,
               amount: 0.0000
             }));
-            
-            console.log(`Generated ${budgetData.length} fallback records`);
-          } catch (fallbackErr) {
-            console.error('Error with fallback approach:', fallbackErr);
-            
-            // Last resort - minimal fallback data
-            budgetData = [
-              {
-                type: 'Expense',
-                key_account: 'EXP001',
-                key_account_name: 'Office Expenses',
-                overall: 100000,
-                department: departmentId,
-                department_name: departmentName || `Department ${departmentId}`,
-                amount: 0.0000
-              },
-              {
-                type: 'Asset',
-                key_account: 'AST001',
-                key_account_name: 'Equipment',
-                overall: 200000,
-                department: departmentId,
-                department_name: departmentName || `Department ${departmentId}`,
-                amount: 0.0000
-              }
-            ];
-            console.log('Using minimal fallback data');
-          }
         }
         
-        // Store the budget data (either real or fallback)
-        console.log(`Setting ${budgetData.length} budget records to state`);
+        console.log('Setting budgetMasterData:', budgetData);
         setBudgetMasterData(budgetData);
-        
       } catch (err) {
-        console.error('Error in department change handler:', err);
+        console.error('Error in loadDepartmentData:', err);
         setError('Failed to load budget data for this department');
       } finally {
         setIsLoading(false);
@@ -463,24 +301,30 @@ const NewCreditRequest = () => {
     setAccountEntries(updatedEntries);
   };
 
-  // Add a new key account to entries
   const addKeyAccount = (accountId) => {
-    const account = availableKeyAccounts.find(acc => acc.key_account === accountId);
+    if (accountEntries.some(entry => entry.key_account_id === accountId)) {
+      setError('This account is already added to your request.');
+      return;
+    }
+    
+    const account = keyAccounts.find(acc => acc.id === accountId);
     if (account) {
       const newEntry = {
-        key_account_id: account.key_account,
-        key_account_name: account.key_account_name,
+        key_account_id: account.id,
+        key_account_name: account.name,
         amount: '',
         reason: '',
-        available: getAvailableAmount(account.key_account),
-        type: account.type || 'Unknown',
-        total: parseFloat(account.overall) || 0
+        available: getAvailableAmount(account.id),
+        type: account.account_type || 'Unknown',
+        total: parseFloat(account.total_budget) || 0
       };
       setAccountEntries([...accountEntries, newEntry]);
+      setError(null);
+    } else {
+      setError(`Could not find account with ID: ${accountId}`);
     }
   };
 
-  // Remove a key account from entries
   const removeKeyAccount = (index) => {
     const updatedEntries = [...accountEntries];
     updatedEntries.splice(index, 1);
@@ -489,75 +333,65 @@ const NewCreditRequest = () => {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    console.log("Submit button clicked");
+    console.log('handleSubmit called');
+    console.log('formData:', formData);
+    console.log('accountEntries:', accountEntries);
     
-    // Basic validation with visible error messages
     if (!formData.department_id) {
       setError('Please select a department');
+      console.log('Error: No department_id');
       return;
     }
-
-    // Check for at least one valid entry
+    
     const validEntries = accountEntries.filter(
-      (entry) => entry.key_account_id && 
-               entry.amount && 
-               parseFloat(entry.amount) > 0 && 
-               entry.reason
+      entry => entry.key_account_id && 
+              entry.amount && 
+              parseFloat(entry.amount) > 0
     );
-
-    console.log("Valid entries:", validEntries);
-
+    
+    console.log('validEntries:', validEntries);
+    
     if (validEntries.length === 0) {
-      setError('Please add at least one account with a valid amount and reason');
+      setError('Please add at least one account with a valid amount');
+      console.log('Error: No valid entries');
       return;
     }
-
+    
     try {
       setIsSubmitting(true);
       setError(null);
-
-      // Create payload with explicit status set to 'pending'
+      
       const payload = {
         department_id: parseInt(formData.department_id),
         entries: validEntries.map(entry => ({
           key_account_id: entry.key_account_id,
           amount: parseFloat(entry.amount),
-          reason: entry.reason,
+          reason: entry.reason || '',
         })),
         version: formData.version || 1,
         status: 'pending'
       };
-
-      console.log('Submitting credit request with payload:', payload);
       
-      // Make the API call with explicit error handling
-      try {
-        const response = await creditService.createCreditRequest(payload);
-        console.log('Credit request response:', response);
-        
-        setSuccess('Credit request submitted successfully!');
-        setIsSubmitted(true);
-        
-        // Store request ID if available in response
-        if (response.requestId || response.id || (response.entries && response.entries.length > 0)) {
-          const requestId = response.requestId || response.id || response.entries[0].id;
-          setFormData(prev => ({
-            ...prev,
-            request_id: requestId,
-            status: 'pending'
-          }));
-        }
-        
-        // Show success message for 3 seconds then navigate to credit history
-        setTimeout(() => {
-          navigate('/credit-history');
-        }, 3000);
-      } catch (apiError) {
-        console.error('API Error:', apiError);
-        setError(apiError.message || 'Error communicating with server');
+      console.log('Submitting payload:', payload);
+      const response = await creditService.createCreditRequest(payload);
+      console.log('Submission response:', response);
+      setSuccess('Credit request submitted successfully!');
+      setIsSubmitted(true);
+      
+      if (response.requestId || response.id || (response.entries && response.entries.length > 0)) {
+        const requestId = response.requestId || response.id || response.entries[0].id;
+        setFormData(prev => ({
+          ...prev,
+          request_id: requestId,
+          status: 'pending'
+        }));
       }
+      
+      setTimeout(() => {
+        navigate('/credit-history');
+      }, 3000);
     } catch (err) {
-      console.error('General error in submit handler:', err);
+      console.error('Error in handleSubmit:', err);
       setError(err.message || 'Failed to submit credit request');
     } finally {
       setIsSubmitting(false);
@@ -565,16 +399,7 @@ const NewCreditRequest = () => {
   };
 
   const startNewRequest = () => {
-    // Determine department ID from currentUser
-    let deptId = '';
-    if (currentUser.departments && currentUser.departments.length > 0) {
-      deptId = currentUser.departments[0].id;
-    } else if (currentUser.department_id) {
-      deptId = currentUser.department_id;
-    } else if (selectedDepartment) {
-      deptId = selectedDepartment;
-    }
-
+    const deptId = currentUser.departments?.[0]?.id || currentUser.department_id || selectedDepartment || '';
     setFormData({
       department_id: deptId,
       version: 1,
@@ -585,11 +410,7 @@ const NewCreditRequest = () => {
     setIsSubmitted(false);
     setSuccess(null);
     setError(null);
-    
-    // Reload department data
-    if (deptId) {
-      loadDepartmentData(deptId);
-    }
+    if (deptId) loadDepartmentData(deptId);
   };
 
   if (!currentUser || !currentUser.id) {
@@ -608,11 +429,10 @@ const NewCreditRequest = () => {
     );
   }
 
-  // Group accounts by type for display
   const accountsByType = accountEntries.reduce((groups, account) => {
-    if (!account.type) account.type = 'Uncategorized';
-    if (!groups[account.type]) groups[account.type] = [];
-    groups[account.type].push(account);
+    const type = account.type || 'Uncategorized';
+    if (!groups[type]) groups[type] = [];
+    groups[type].push(account);
     return groups;
   }, {});
 
@@ -663,7 +483,6 @@ const NewCreditRequest = () => {
 
             {formData.department_id ? (
               <div>
-                {/* Display accounts grouped by type */}
                 {Object.keys(accountsByType).length > 0 ? (
                   <div className="space-y-6">
                     {Object.keys(accountsByType).map(type => (
@@ -683,14 +502,8 @@ const NewCreditRequest = () => {
                                     </label>
                                     <div className="mt-1 text-sm text-gray-900 py-2 px-3 bg-gray-100 border border-gray-300 rounded-md">
                                       {entry.key_account_id} - {entry.key_account_name}
-                                      {entry.total > 0 && (
-                                        <span className="block mt-1 text-xs text-gray-500">
-                                          Total Budget: {formatCurrency(entry.total)}
-                                        </span>
-                                      )}
                                     </div>
                                   </div>
-
                                   <div>
                                     <label
                                       htmlFor={`amount-${entryIndex}`}
@@ -722,14 +535,13 @@ const NewCreditRequest = () => {
                                     )}
                                   </div>
                                 </div>
-
                                 <div className="flex justify-between items-start">
                                   <div className="flex-grow mr-3">
                                     <label
                                       htmlFor={`reason-${entryIndex}`}
                                       className="block text-sm font-medium text-gray-700"
                                     >
-                                      Reason <span className="text-red-500">*</span>
+                                      Reason
                                     </label>
                                     <textarea
                                       id={`reason-${entryIndex}`}
@@ -737,12 +549,10 @@ const NewCreditRequest = () => {
                                       value={entry.reason || ''}
                                       onChange={(e) => handleAccountReasonChange(entryIndex, e.target.value)}
                                       className="mt-1 focus:ring-indigo-500 focus:border-indigo-500 block w-full sm:text-sm border-gray-300 rounded-md"
-                                      placeholder="Please provide a detailed reason for this account request"
+                                      placeholder="Please provide a detailed reason for this account request (optional)"
                                       disabled={isSubmitted}
-                                      required
                                     />
                                   </div>
-                                  
                                   {!isSubmitted && (
                                     <button
                                       type="button"
@@ -760,40 +570,62 @@ const NewCreditRequest = () => {
                       </div>
                     ))}
                     
-                    {/* Dropdown to add more key accounts */}
-                    {!isSubmitted && availableKeyAccounts.length > 0 && (
-                      <div className="mt-4 border-t pt-4">
-                        <div className="flex items-center">
-                          <select 
-                            className="form-select mr-2 flex-grow p-2 border border-gray-300 rounded-md focus:outline-none focus:ring-indigo-500 focus:border-indigo-500"
-                            defaultValue=""
-                            onChange={(e) => {
-                              if (e.target.value) {
-                                addKeyAccount(e.target.value);
-                                e.target.value = "";
-                              }
-                            }}
-                          >
-                            <option value="" disabled>Add another key account...</option>
-                            {availableKeyAccounts.map(account => (
-                              <option key={account.key_account} value={account.key_account}>
-                                {account.key_account_name} ({account.type || 'Unknown'})
-                              </option>
-                            ))}
-                          </select>
-                          <button
-                            type="button"
-                            onClick={() => {
-                              const select = document.querySelector('select.form-select');
-                              if (select && select.value) {
-                                addKeyAccount(select.value);
-                                select.value = "";
-                              }
-                            }}
-                            className="ml-2 p-2 bg-indigo-50 text-indigo-600 rounded-md hover:bg-indigo-100"
-                          >
-                            Add
-                          </button>
+                    {!isSubmitted && (
+                      <div className="mt-6 border-t border-gray-200 pt-6">
+                        <div className="flex flex-col sm:flex-row gap-4">
+                          <div className="flex-grow">
+                            <label htmlFor="add-account" className="block text-sm font-medium text-gray-700 mb-1">
+                              Add Another Key Account
+                            </label>
+                            {availableKeyAccounts.length > 0 ? (
+  <select
+    id="add-account"
+    className="mt-1 block w-full pl-3 pr-10 py-2 text-base border-gray-300 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm rounded-md"
+    defaultValue=""
+    onChange={(e) => {
+      if (e.target.value) {
+        addKeyAccount(e.target.value);
+        e.target.value = "";
+      }
+    }}
+  >
+    <option value="" disabled>
+      Select an account to add ({availableKeyAccounts.length} available)
+    </option>
+    {availableKeyAccounts.map(account => (
+      <option key={account.id} value={account.id}>
+        {account.id} - {account.name} ({account.account_type})
+      </option>
+    ))}
+  </select>
+) : (
+  <div className="mt-1 p-2 bg-gray-100 border border-gray-300 rounded-md text-sm text-gray-500">
+    {!keyAccounts || keyAccounts.length === 0
+      ? 'No key accounts available in the system.'
+      : 'All available accounts have been added to this request.'}
+  </div>
+)}
+                          </div>
+                          <div className="flex items-end">
+                            <button
+                              type="button"
+                              disabled={availableKeyAccounts.length === 0}
+                              onClick={() => {
+                                const select = document.getElementById('add-account');
+                                if (select && select.value) {
+                                  addKeyAccount(select.value);
+                                  select.value = "";
+                                }
+                              }}
+                              className={`inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md ${
+                                availableKeyAccounts.length > 0
+                                  ? 'text-white bg-indigo-600 hover:bg-indigo-700'
+                                  : 'text-gray-500 bg-gray-200 cursor-not-allowed'
+                              } focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500`}
+                            >
+                              Add Account
+                            </button>
+                          </div>
                         </div>
                       </div>
                     )}
@@ -801,7 +633,7 @@ const NewCreditRequest = () => {
                 ) : (
                   <div className="text-center py-8 bg-gray-50 rounded-lg border border-gray-200">
                     <p className="text-gray-500">
-                      No key accounts found for this department. Please contact an administrator.
+                      No key accounts found for this department. You can add accounts using the dropdown below.
                     </p>
                   </div>
                 )}
@@ -822,7 +654,6 @@ const NewCreditRequest = () => {
               >
                 Cancel
               </button>
-
               <button
                 type="submit"
                 disabled={isSubmitting || accountEntries.length === 0}

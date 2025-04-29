@@ -6,7 +6,7 @@ const keyAccountService = {
   getAllKeyAccounts: async () => {
     try {
       const response = await api.get('/key-accounts');
-      return response;
+      return response; // Keep returning response for backward compatibility
     } catch (error) {
       throw error;
     }
@@ -16,7 +16,7 @@ const keyAccountService = {
   getKeyAccountById: async (id) => {
     try {
       const response = await api.get(`/key-accounts/${id}`);
-      return response;
+      return response.data;
     } catch (error) {
       throw error;
     }
@@ -26,7 +26,7 @@ const keyAccountService = {
   upsertKeyAccount: async (accountData) => {
     try {
       const response = await api.post('/key-accounts', accountData);
-      return response;
+      return response.data;
     } catch (error) {
       throw error;
     }
@@ -36,7 +36,7 @@ const keyAccountService = {
   getKeyAccountsWithUsage: async () => {
     try {
       const response = await api.get('/key-accounts/usage/all');
-      return response;
+      return response; // Keep returning response for backward compatibility
     } catch (error) {
       throw error;
     }
@@ -46,7 +46,7 @@ const keyAccountService = {
   getDepartmentSpendingByAccount: async (accountId) => {
     try {
       const response = await api.get(`/key-accounts/${accountId}/departments`);
-      return response;
+      return response.data;
     } catch (error) {
       throw error;
     }
@@ -56,7 +56,7 @@ const keyAccountService = {
   getAccountSpendingByDepartment: async (departmentId) => {
     try {
       const response = await api.get(`/key-accounts/departments/${departmentId}`);
-      return response;
+      return response.data;
     } catch (error) {
       throw error;
     }
@@ -66,7 +66,7 @@ const keyAccountService = {
   getBudgetSummary: async () => {
     try {
       const response = await api.get('/key-accounts/summary/budget');
-      return response;
+      return response.data;
     } catch (error) {
       throw error;
     }

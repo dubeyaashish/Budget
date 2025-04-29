@@ -24,7 +24,7 @@ exports.register = (req, res) => {
     }
 
     // Default role is 'user'
-    const role = 'admin';
+    const role = 'user';
 
     // Check existing user
     userModel.findUserByEmail(email, (err, user) => {

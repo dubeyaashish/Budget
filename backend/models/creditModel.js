@@ -93,7 +93,7 @@ exports.createCreditRequest = async (requestData) => {
           requestData.department_id, 
           entry.key_account_id, 
           entry.amount, 
-          entry.reason, 
+          entry.reason || null, 
           requestData.status || 'pending', 
           requestData.version || 1,
           requestData.parent_request_id || null

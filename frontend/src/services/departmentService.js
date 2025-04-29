@@ -4,6 +4,21 @@ import axios from 'axios';
 
 const API_URL = '/api/departments';
 
+// Utility function to sanitize and encode department names
+const sanitizeDepartmentName = (name) => {
+  if (!name) return '';
+  
+  // Remove any potentially problematic characters
+  const sanitized = name
+    .trim()
+    .replace(/[^a-zA-Z0-9ก-๙\s]/g, '') // Keep Thai and English alphanumeric characters
+    .replace(/\s+/g, '-')  // Replace multiple spaces with single hyphen
+    .toLowerCase();
+  
+  // Optional: Encode URI component to handle special characters safely
+  return encodeURIComponent(sanitized);
+};
+
 const departmentService = {
   // Get departments without requiring authentication
   getPublicDepartments: async () => {
@@ -20,10 +35,13 @@ const departmentService = {
   getAllDepartments: async () => {
     try {
       const response = await api.get('/departments');
-      return response;
+      return response.map(dept => ({
+        ...dept,
+        // Ensure safe name handling
+        safeName: sanitizeDepartmentName(dept.name)
+      }));
     } catch (error) {
       console.error('Error fetching all departments:', error);
-      // Return empty array instead of throwing to gracefully handle errors
       return [];
     }
   },
@@ -37,6 +55,12 @@ const departmentService = {
       }
       
       const response = await api.get(`/departments/${id}`);
+      
+      // Add safe name handling
+      if (response) {
+        response.safeName = sanitizeDepartmentName(response.name);
+      }
+      
       return response;
     } catch (error) {
       console.error(`Error fetching department with id ${id}:`, error);
@@ -44,13 +68,16 @@ const departmentService = {
     }
   },
 
-  // Find department by name - robust name matching
+  // Find department by name - robust name matching with safe encoding
   findDepartmentByName: async (name) => {
     try {
       if (!name) {
         console.warn('findDepartmentByName called with no name');
         return null;
       }
+      
+      // Sanitize and prepare name for search
+      const sanitizedName = sanitizeDepartmentName(name);
       
       // Get all departments
       const departments = await departmentService.getAllDepartments();
@@ -84,18 +111,6 @@ const departmentService = {
         return match;
       }
       
-      // Try description match as last resort
-      match = departments.find(dept => 
-        dept.description && 
-        (dept.description.toLowerCase().trim().includes(nameLower) || 
-         nameLower.includes(dept.description.toLowerCase().trim()))
-      );
-      
-      if (match) {
-        console.log(`Found department match in description for "${name}": ID ${match.id}`);
-        return match;
-      }
-      
       console.warn(`No department match found for name "${name}"`);
       return null;
     } catch (error) {
@@ -104,10 +119,16 @@ const departmentService = {
     }
   },
   
-  // Create new department
+  // Create new department with safe name handling
   createDepartment: async (departmentData) => {
     try {
-      const response = await api.post('/departments', departmentData);
+      // Ensure name is sanitized before sending
+      const safeData = {
+        ...departmentData,
+        name: sanitizeDepartmentName(departmentData.name)
+      };
+      
+      const response = await api.post('/departments', safeData);
       return response;
     } catch (error) {
       console.error('Error creating department:', error);
@@ -115,10 +136,16 @@ const departmentService = {
     }
   },
 
-  // Update department
+  // Update department with safe name handling
   updateDepartment: async (id, departmentData) => {
     try {
-      const response = await api.put(`/departments/${id}`, departmentData);
+      // Ensure name is sanitized before sending
+      const safeData = {
+        ...departmentData,
+        name: sanitizeDepartmentName(departmentData.name)
+      };
+      
+      const response = await api.put(`/departments/${id}`, safeData);
       return response;
     } catch (error) {
       console.error(`Error updating department with id ${id}:`, error);
