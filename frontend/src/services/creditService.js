@@ -1,5 +1,6 @@
 // frontend/src/services/creditService.js
 import api from './api';
+import departmentService from './departmentService';
 
 const creditService = {
   // Create a new credit request
@@ -103,8 +104,9 @@ const creditService = {
   // Approve a credit request (admin only)
   approveCreditRequest: async (id, data = {}) => {
     try {
-      // Ensure we're using the correct endpoint
+      console.log(`Approving credit request ID: ${id} with data:`, data);
       const response = await api.put(`/credits/${id}/approve`, data);
+      console.log('Approval response:', response);
       return response;
     } catch (error) {
       console.error('Error in approveCreditRequest:', error);
@@ -193,17 +195,85 @@ const creditService = {
     }
   },
   
-  // Get budget master data for a specific department
+  // Get budget master data for a specific department with robust fallbacks
   getDepartmentBudgetMasterData: async (departmentId) => {
     try {
       if (!departmentId) {
         console.warn('getDepartmentBudgetMasterData called with no departmentId');
         return [];
       }
+      
       console.log(`Fetching budget data for department ID: ${departmentId}`);
-      const response = await api.get(`/credits/budget-master/department/${departmentId}`);
-      console.log(`Retrieved budget data for department ${departmentId}:`, response.length, 'records');
-      return response;
+      
+      // Try primary method first - direct endpoint
+      try {
+        const response = await api.get(`/credits/budget-master/department/${departmentId}`);
+        console.log(`Retrieved ${response.length} budget records from direct endpoint`);
+        
+        if (response && response.length > 0) {
+          return response;
+        }
+      } catch (directErr) {
+        console.warn(`Primary budget data endpoint failed: ${directErr.message}`);
+      }
+      
+      // Second attempt - get all budget data and filter
+      try {
+        console.log('Fetching all budget master data for filtering');
+        const allData = await api.get('/credits/budget-master');
+        
+        if (allData && allData.length > 0) {
+          // First try direct ID match
+          let filteredData = allData.filter(item => {
+            return String(item.department || '') === String(departmentId);
+          });
+          
+          if (filteredData.length > 0) {
+            console.log(`Found ${filteredData.length} records with exact department ID match`);
+            return filteredData;
+          }
+          
+          // If no direct match, try to get the department name
+          try {
+            const deptInfo = await departmentService.getDepartmentById(departmentId);
+            if (deptInfo && deptInfo.name) {
+              // Try matching by department name
+              filteredData = allData.filter(item => {
+                if (!item.department_name) return false;
+                
+                const itemDeptName = item.department_name.toLowerCase();
+                const deptName = deptInfo.name.toLowerCase();
+                
+                return (
+                  itemDeptName === deptName || 
+                  itemDeptName.includes(deptName) || 
+                  deptName.includes(itemDeptName)
+                );
+              });
+              
+              if (filteredData.length > 0) {
+                console.log(`Found ${filteredData.length} records with department name match`);
+                // Update department field to ensure consistency
+                filteredData = filteredData.map(item => ({
+                  ...item,
+                  department: departmentId
+                }));
+                return filteredData;
+              }
+            }
+          } catch (deptErr) {
+            console.warn('Failed to get department name:', deptErr.message);
+          }
+          
+          console.warn(`No budget data found for department ID ${departmentId} after filtering`);
+        }
+      } catch (filterErr) {
+        console.warn('Failed to filter budget data:', filterErr.message);
+      }
+      
+      // Return empty array if all attempts fail
+      return [];
+      
     } catch (error) {
       console.error(`Error in getDepartmentBudgetMasterData for ID ${departmentId}:`, error);
       return [];
@@ -217,11 +287,14 @@ const creditService = {
         throw new Error('No request IDs provided for batch approval');
       }
       
+      console.log(`Batch approving ${requestIds.length} credit requests with feedback:`, feedbackData);
+      
       const response = await api.post('/credits/batch/approve', {
         requestIds,
         feedback: feedbackData.feedback || ''
       });
       
+      console.log('Batch approval response:', response);
       return response;
     } catch (error) {
       console.error('Error in batchApproveCreditRequests:', error);
@@ -288,47 +361,7 @@ const creditService = {
       console.error('Error in batchUpdateRevisions:', error);
       throw error;
     }
-  },
-  // frontend/src/services/creditService.js - Update these functions
-
-// Approve a credit request (admin only)
-approveCreditRequest: async (id, data = {}) => {
-  try {
-    console.log(`Approving credit request ID: ${id} with data:`, data);
-    // Ensure we're using the correct endpoint
-    const response = await api.put(`/credits/${id}/approve`, data);
-    console.log('Approval response:', response);
-    return response;
-  } catch (error) {
-    console.error('Error in approveCreditRequest:', error);
-    throw error;
   }
-},
-
-// Batch approve multiple credit requests
-batchApproveCreditRequests: async (requestIds, feedbackData = {}) => {
-  try {
-    if (!Array.isArray(requestIds) || requestIds.length === 0) {
-      throw new Error('No request IDs provided for batch approval');
-    }
-    
-    console.log(`Batch approving ${requestIds.length} credit requests with feedback:`, feedbackData);
-    
-    const response = await api.post('/credits/batch/approve', {
-      requestIds,
-      feedback: feedbackData.feedback || ''
-    });
-    
-    console.log('Batch approval response:', response);
-    return response;
-  } catch (error) {
-    console.error('Error in batchApproveCreditRequests:', error);
-    throw error;
-  }
-}
-
 };
-
-
 
 export default creditService;

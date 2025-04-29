@@ -6,6 +6,7 @@ import { KeyAccountContext } from '../../context/KeyAccountContext';
 import departmentService from '../../services/departmentService';
 import creditService from '../../services/creditService';
 import keyAccountService from '../../services/keyAccountService';
+import authService from '../../services/authService';
 import LoadingSpinner from '../common/LoadingSpinner';
 import AlertMessage from '../common/AlertMessage';
 import { formatCurrency } from '../../utils/formatCurrency';
@@ -39,51 +40,151 @@ const NewCreditRequest = () => {
   // Calculate total amount
   const totalAmount = accountEntries.reduce((sum, entry) => sum + (parseFloat(entry.amount) || 0), 0);
 
-// In frontend/src/components/user/NewCreditRequest.js
-
-useEffect(() => {
-  const fetchData = async () => {
-    if (!currentUser || !currentUser.id) {
-      console.warn('No valid currentUser, skipping fetch');
-      setError('User not authenticated');
-      setIsLoading(false);
-      return;
-    }
-  
-    try {
-      setIsLoading(true);
-      
-      // Get user's department directly from currentUser
-      if (currentUser.department) {
-        console.log(`User's department: ${currentUser.department}`);
-        setDepartmentName(currentUser.department);
-        
-        // Get the department ID (we need to look up the ID by name)
-        const departmentsData = await departmentService.getAllDepartments();
-        const userDept = departmentsData.find(d => d.name === currentUser.department);
-        
-        if (userDept) {
-          setSelectedDepartment(userDept.id);
-          setFormData(prev => ({ ...prev, department_id: userDept.id }));
-          
-          // Load budget data for this department
-          await loadDepartmentData(userDept.id);
-        } else {
-          setError('Could not find your department. Please contact an administrator.');
-        }
-      } else {
-        setError('You are not assigned to any department. Please contact an administrator.');
-      }
-    } catch (err) {
-      console.error('Error in fetchData:', err);
-      setError('Failed to load required data. Please try again.');
-    } finally {
-      setIsLoading(false);
-    }
+  // Function to find department ID from department name
+  const findDepartmentIdByName = (deptName, deptsList) => {
+    if (!deptName || !deptsList || !deptsList.length) return null;
+    
+    // Case-insensitive exact match
+    const exactMatch = deptsList.find(
+      d => d.name.toLowerCase() === deptName.toLowerCase()
+    );
+    if (exactMatch) return exactMatch.id;
+    
+    // Partial match (department name contains part of the search or vice versa)
+    const partialMatch = deptsList.find(
+      d => d.name.toLowerCase().includes(deptName.toLowerCase()) || 
+           deptName.toLowerCase().includes(d.name.toLowerCase())
+    );
+    if (partialMatch) return partialMatch.id;
+    
+    return null;
   };
 
-  fetchData();
-}, [currentUser]);
+  useEffect(() => {
+    const fetchData = async () => {
+      if (!currentUser || !currentUser.id) {
+        console.warn('No valid currentUser, skipping fetch');
+        setError('User not authenticated');
+        setIsLoading(false);
+        return;
+      }
+    
+      try {
+        setIsLoading(true);
+        
+        // Get all departments first
+        const departmentsData = await departmentService.getAllDepartments();
+        setDepartments(departmentsData);
+        
+        // Determine the user's department ID
+        let userDeptId = null;
+        let userDeptName = null;
+        
+        // STEP 1: Check all possible places where department info might be stored
+        if (currentUser.department_id) {
+          // If department_id is directly available
+          userDeptId = currentUser.department_id;
+          console.log(`Found department_id in user object: ${userDeptId}`);
+          
+          // Find department name for display
+          const deptInfo = departmentsData.find(d => d.id == userDeptId);
+          if (deptInfo) {
+            userDeptName = deptInfo.name;
+          }
+        } 
+        else if (currentUser.departments && currentUser.departments.length > 0) {
+          // If there's a departments array
+          userDeptId = currentUser.departments[0].id;
+          userDeptName = currentUser.departments[0].name;
+          console.log(`Found department in departments array: ${userDeptId} (${userDeptName})`);
+        } 
+        else if (currentUser.department) {
+          // If only department name is available, find the ID
+          userDeptName = currentUser.department;
+          console.log(`Found department name in user object: ${userDeptName}`);
+          
+          userDeptId = findDepartmentIdByName(userDeptName, departmentsData);
+          if (userDeptId) {
+            console.log(`Matched department name to ID: ${userDeptId}`);
+          }
+        }
+        
+        // STEP 2: If we still don't have a department, try to get it from the user profile
+        if (!userDeptId) {
+          try {
+            console.log('Attempting to fetch user profile for department info');
+            const userProfile = await authService.getProfile();
+            
+            if (userProfile.department_id) {
+              userDeptId = userProfile.department_id;
+              console.log(`Found department_id from profile API: ${userDeptId}`);
+              
+              // Find department name for display
+              const deptInfo = departmentsData.find(d => d.id == userDeptId);
+              if (deptInfo) {
+                userDeptName = deptInfo.name;
+              }
+            } 
+            else if (userProfile.department) {
+              userDeptName = userProfile.department;
+              console.log(`Found department name from profile API: ${userDeptName}`);
+              
+              userDeptId = findDepartmentIdByName(userDeptName, departmentsData);
+              if (userDeptId) {
+                console.log(`Matched profile department name to ID: ${userDeptId}`);
+              }
+            }
+          } catch (profileErr) {
+            console.error('Error fetching user profile:', profileErr);
+          }
+        }
+        
+        // STEP 3: Final fallback - if we have a name but no ID, try looking it up directly
+        if (userDeptName && !userDeptId) {
+          try {
+            const deptByName = await departmentService.findDepartmentByName(userDeptName);
+            if (deptByName && deptByName.id) {
+              userDeptId = deptByName.id;
+              console.log(`Found department ID via direct lookup: ${userDeptId}`);
+            }
+          } catch (lookupErr) {
+            console.error('Error in direct department lookup:', lookupErr);
+          }
+        }
+        
+        // STEP 4: Set the department info for the component
+        if (userDeptId) {
+          setSelectedDepartment(userDeptId);
+          
+          if (userDeptName) {
+            setDepartmentName(userDeptName);
+          } else {
+            // If we only have ID but no name, look up the name
+            const deptInfo = departmentsData.find(d => d.id == userDeptId);
+            if (deptInfo) {
+              setDepartmentName(deptInfo.name);
+            } else {
+              setDepartmentName(`Department ${userDeptId}`);
+            }
+          }
+          
+          setFormData(prev => ({ ...prev, department_id: userDeptId }));
+          
+          // Load budget data for this department
+          await loadDepartmentData(userDeptId);
+        } else {
+          setError('Could not determine your department. Please contact an administrator.');
+        }
+      } catch (err) {
+        console.error('Error in fetchData:', err);
+        setError('Failed to load required data. Please try again.');
+      } finally {
+        setIsLoading(false);
+      }
+    };
+
+    fetchData();
+  }, [currentUser]);
 
   // Update available key accounts when department or entries change
   useEffect(() => {
@@ -115,10 +216,34 @@ useEffect(() => {
       
       // More verbose logging for filtering
       const departmentAccounts = budgetMasterData.filter(item => {
-        const itemDept = item.department?.toString();
-        const selectedDept = selectedDepartment?.toString();
-        console.log(`Comparing item.department (${itemDept}) with selectedDepartment (${selectedDept})`);
-        return itemDept === selectedDept;
+        // Try multiple match strategies
+        
+        // Strategy 1: Direct ID match (converting both to strings for safety)
+        const itemDeptId = String(item.department || '');
+        const selectedDeptId = String(selectedDepartment || '');
+        const directMatch = itemDeptId === selectedDeptId;
+        
+        if (directMatch) {
+          return true;
+        }
+        
+        // Strategy 2: Match by department name if available
+        if (item.department_name && departmentName) {
+          const itemDeptName = String(item.department_name || '').toLowerCase();
+          const deptNameLower = departmentName.toLowerCase();
+          
+          // Exact name match
+          if (itemDeptName === deptNameLower) {
+            return true;
+          }
+          
+          // Partial name match
+          if (itemDeptName.includes(deptNameLower) || deptNameLower.includes(itemDeptName)) {
+            return true;
+          }
+        }
+        
+        return false;
       });
       
       console.log(`Found ${departmentAccounts.length} accounts for department ID: ${selectedDepartment}`);
@@ -154,7 +279,7 @@ useEffect(() => {
         setAccountEntries(newEntries);
       }
     }
-  }, [selectedDepartment, budgetMasterData, isSubmitted, accountEntries.length]);
+  }, [selectedDepartment, budgetMasterData, isSubmitted, accountEntries.length, departmentName]);
 
   const getAvailableAmount = (accountId) => {
     if (!accountId) return 0;
@@ -200,7 +325,7 @@ useEffect(() => {
         console.log(`Fetching budget data for department ID: ${departmentId}`);
         let budgetData = [];
         let attempt = 0;
-        const maxAttempts = 2;
+        const maxAttempts = 3;
         
         while (attempt < maxAttempts && budgetData.length === 0) {
           try {
@@ -208,71 +333,109 @@ useEffect(() => {
               console.log(`Retry attempt ${attempt} for department budget data`);
             }
             
-            budgetData = await creditService.getDepartmentBudgetMasterData(departmentId);
+            if (attempt === 0) {
+              // First attempt: Try the dedicated endpoint
+              budgetData = await creditService.getDepartmentBudgetMasterData(departmentId);
+            } else if (attempt === 1) {
+              // Second attempt: Try to filter from all budget data
+              const allBudgetData = await creditService.getBudgetMasterData();
+              budgetData = allBudgetData.filter(item => 
+                String(item.department) === String(departmentId) ||
+                (item.department_name && departmentName && 
+                 item.department_name.toLowerCase() === departmentName.toLowerCase())
+              );
+            } else {
+              // Third attempt: Look up department name if we only have ID
+              if (!departmentName && departmentId) {
+                try {
+                  const deptInfo = await departmentService.getDepartmentById(departmentId);
+                  if (deptInfo && deptInfo.name) {
+                    setDepartmentName(deptInfo.name);
+                    
+                    // Try to match by name in the budget data
+                    const allBudgetData = await creditService.getBudgetMasterData();
+                    budgetData = allBudgetData.filter(item => 
+                      item.department_name && deptInfo.name &&
+                      (item.department_name.toLowerCase() === deptInfo.name.toLowerCase() ||
+                       item.department_name.toLowerCase().includes(deptInfo.name.toLowerCase()) ||
+                       deptInfo.name.toLowerCase().includes(item.department_name.toLowerCase()))
+                    );
+                  }
+                } catch (deptErr) {
+                  console.error('Error fetching department details:', deptErr);
+                }
+              }
+            }
+            
             console.log(`Retrieved ${budgetData?.length || 0} budget records for department ${departmentId}:`, budgetData);
           } catch (err) {
             console.error(`Attempt ${attempt + 1} failed:`, err);
           }
           
-          // If still no data, try fallback approach
-          if (!budgetData || budgetData.length === 0) {
-            if (attempt === maxAttempts - 1) {
-              console.log('Using fallback key accounts approach');
+          attempt++;
+        }
+        
+        // If still no data, use fallback approach
+        if (!budgetData || budgetData.length === 0) {
+          console.log('Using fallback key accounts approach');
+          
+          // Get key accounts and departments
+          try {
+            console.log('Fetching key accounts for fallback');
+            const [keyAccountsData, departmentsData] = await Promise.all([
+              keyAccountService.getAllKeyAccounts(),
+              departmentService.getAllDepartments()
+            ]);
+            
+            // Find the department name if we don't have it yet
+            let deptName = departmentName;
+            if (!deptName) {
+              const departmentInfo = departmentsData.find(d => d.id == departmentId) || {};
+              deptName = departmentInfo.name || '';
               
-              // Get key accounts and departments
-              try {
-                console.log('Fetching key accounts for fallback');
-                const [keyAccountsData, departmentsData] = await Promise.all([
-                  keyAccountService.getAllKeyAccounts(),
-                  departmentService.getAllDepartments()
-                ]);
-                
-                // Find the department name
-                const departmentInfo = departmentsData.find(d => d.id == departmentId) || {};
-                const departmentName = departmentInfo.name || '';
-                
-                // Generate fallback data
-                budgetData = keyAccountsData.map(account => ({
-                  type: account.account_type || 'Unknown',
-                  key_account: account.id,
-                  key_account_name: account.name,
-                  overall: account.total_budget || 0,
-                  department: departmentId,
-                  department_name: departmentName || `Department ${departmentId}`,
-                  amount: 0.0000
-                }));
-                
-                console.log(`Generated ${budgetData.length} fallback records`);
-              } catch (fallbackErr) {
-                console.error('Error with fallback approach:', fallbackErr);
-                
-                // Last resort - minimal fallback data
-                budgetData = [
-                  {
-                    type: 'Expense',
-                    key_account: 'EXP001',
-                    key_account_name: 'Office Expenses',
-                    overall: 100000,
-                    department: departmentId,
-                    department_name: `Department ${departmentId}`,
-                    amount: 0.0000
-                  },
-                  {
-                    type: 'Asset',
-                    key_account: 'AST001',
-                    key_account_name: 'Equipment',
-                    overall: 200000,
-                    department: departmentId,
-                    department_name: `Department ${departmentId}`,
-                    amount: 0.0000
-                  }
-                ];
-                console.log('Using minimal fallback data');
+              if (deptName) {
+                setDepartmentName(deptName);
               }
             }
+            
+            // Generate fallback data
+            budgetData = keyAccountsData.map(account => ({
+              type: account.account_type || 'Unknown',
+              key_account: account.id,
+              key_account_name: account.name,
+              overall: account.total_budget || 0,
+              department: departmentId,
+              department_name: deptName || `Department ${departmentId}`,
+              amount: 0.0000
+            }));
+            
+            console.log(`Generated ${budgetData.length} fallback records`);
+          } catch (fallbackErr) {
+            console.error('Error with fallback approach:', fallbackErr);
+            
+            // Last resort - minimal fallback data
+            budgetData = [
+              {
+                type: 'Expense',
+                key_account: 'EXP001',
+                key_account_name: 'Office Expenses',
+                overall: 100000,
+                department: departmentId,
+                department_name: departmentName || `Department ${departmentId}`,
+                amount: 0.0000
+              },
+              {
+                type: 'Asset',
+                key_account: 'AST001',
+                key_account_name: 'Equipment',
+                overall: 200000,
+                department: departmentId,
+                department_name: departmentName || `Department ${departmentId}`,
+                amount: 0.0000
+              }
+            ];
+            console.log('Using minimal fallback data');
           }
-          
-          attempt++;
         }
         
         // Store the budget data (either real or fallback)
@@ -408,6 +571,8 @@ useEffect(() => {
       deptId = currentUser.departments[0].id;
     } else if (currentUser.department_id) {
       deptId = currentUser.department_id;
+    } else if (selectedDepartment) {
+      deptId = selectedDepartment;
     }
 
     setFormData({
@@ -691,7 +856,7 @@ useEffect(() => {
                     <span className="ml-2 text-sm text-yellow-600">Revision Requested</span>
                   </div>
                   <span className="text-sm text-gray-500">
-                    Date: {new Date(Date.now() - 86400000).toLocaleDateString()}
+                    Date: {new Date(Date.now() - 86400000).toLocaleDateString('en-GB')}
                   </span>
                 </div>
                 {formData.feedback && (
