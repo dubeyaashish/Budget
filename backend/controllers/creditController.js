@@ -764,6 +764,7 @@ exports.getUserDraftCreditRequests = async (req, res) => {
 };
 
 // Updated batchApproveCreditRequests function with collation fix
+// Modified batchApproveCreditRequests function in creditController.js
 exports.batchApproveCreditRequests = async (req, res) => {
   try {
     const { requestIds, feedback } = req.body;
@@ -781,102 +782,165 @@ exports.batchApproveCreditRequests = async (req, res) => {
     await db.promisePool.query('START TRANSACTION');
     
     try {
-      // Process each request
-      const results = await Promise.all(
-        requestIds.map(async (id) => {
-          try {
-            // 1. Get request details
-            const [request] = await db.query(
-              `SELECT * FROM budget_withdrawal_requests WHERE id = ?`,
-              [id]
-            );
-            
-            if (!request) {
-              return { id, success: false, error: 'Request not found' };
-            }
-            
-            // 2. Update request status
-            await db.query(
-              `UPDATE budget_withdrawal_requests
-               SET status = 'approved', feedback = ?, reviewed_by = ?, reviewed_at = CURRENT_TIMESTAMP
-               WHERE id = ?`,
-              [feedback, adminId, id]
-            );
-            
-            // 3. Record transaction with the correct column name (created_at)
+      // Group requests by department for proper handling
+      const departmentRequests = {};
+      
+      // First, collect all requests and group by department
+      for (const requestId of requestIds) {
+        // Get request and related requests (in case it's part of a multi-request submission)
+        const requestQuery = `
+          SELECT r.*, d.name as department_name 
+          FROM budget_withdrawal_requests r
+          JOIN budget_departments d ON r.department_id = d.id
+          WHERE r.id = ? OR r.parent_request_id = ?`;
+          
+        const requests = await db.query(requestQuery, [requestId, requestId]);
+        
+        if (!requests || requests.length === 0) continue;
+        
+        // Group by department name for consistent handling
+        for (const request of requests) {
+          const deptName = request.department_name;
+          if (!departmentRequests[deptName]) {
+            departmentRequests[deptName] = [];
+          }
+          
+          // Add if not already in the array
+          const exists = departmentRequests[deptName].some(r => r.id === request.id);
+          if (!exists) {
+            departmentRequests[deptName].push(request);
+          }
+        }
+      }
+      
+      // Track overall results
+      const results = [];
+      const processedRequestIds = new Set();
+      
+      // Process each department's requests
+      for (const [departmentName, requests] of Object.entries(departmentRequests)) {
+        try {
+          // 1. Update all requests for this department to 'approved'
+          const deptRequestIds = requests.map(r => r.id);
+          const deptRequestIdList = deptRequestIds.join(',');
+          
+          await db.query(
+            `UPDATE budget_withdrawal_requests
+             SET status = 'approved', feedback = ?, reviewed_by = ?, reviewed_at = CURRENT_TIMESTAMP
+             WHERE id IN (${deptRequestIdList})`,
+            [feedback, adminId]
+          );
+          
+          // 2. Record transactions for all requests
+          for (const request of requests) {
             await db.query(
               `INSERT INTO budget_transactions
                (request_id, key_account_id, amount, admin_id, created_at)
                VALUES (?, ?, ?, ?, CURRENT_TIMESTAMP)`,
-              [id, request.key_account_id, request.amount, adminId]
+              [request.id, request.key_account_id, request.amount, adminId]
             );
             
-            // 4. Get department name directly first to avoid collation issues
-            const [deptResult] = await db.query(
-              `SELECT name FROM budget_departments WHERE id = ?`, 
-              [request.department_id]
+            // Record history for this request
+            await db.query(
+              `INSERT INTO budget_withdrawal_history
+               (request_id, previous_status, new_status, changed_by, change_reason)
+               VALUES (?, ?, 'approved', ?, ?)`,
+              [request.id, request.status, adminId, feedback || 'Request approved']
             );
             
-            const departmentName = deptResult ? deptResult.name : null;
+            // Track which requests were processed
+            processedRequestIds.add(request.id);
+            results.push({ id: request.id, success: true });
+          }
+          
+          // 3. Get existing budget_master entries for this department
+          const existingEntriesQuery = `
+            SELECT key_account, amount 
+            FROM budget_master 
+            WHERE department = ?`;
+          
+          const existingEntries = await db.query(existingEntriesQuery, [departmentName]);
+          
+          // Map existing entries by key_account ID for easy lookup
+          const existingMap = {};
+          existingEntries.forEach(entry => {
+            existingMap[entry.key_account] = entry.amount;
+          });
+          
+          // 4. Process budget_master table updates by key account
+          const requestsByAccount = {};
+          requests.forEach(req => {
+            requestsByAccount[req.key_account_id] = {
+              key_account_id: req.key_account_id,
+              amount: parseFloat(req.amount) || 0
+            };
+          });
+          
+          // 5. For each account in the request, update or insert into budget_master
+          for (const keyAccountId in requestsByAccount) {
+            const newAmount = requestsByAccount[keyAccountId].amount;
             
-            // 5. Check if entry exists in budget_master using direct comparison with collation
-            const checkMasterQuery = `
-              SELECT * FROM budget_master 
-              WHERE key_account = ? 
-              AND department = ? COLLATE utf8mb4_unicode_ci`;
-            
-            const masterEntries = await db.query(checkMasterQuery, [
-              request.key_account_id, 
-              departmentName
-            ]);
-            
-            // 6. Get key account details
+            // Get key account details
             const [accountResult] = await db.query(
               `SELECT name, account_type FROM budget_key_accounts WHERE id = ?`, 
-              [request.key_account_id]
+              [keyAccountId]
             );
             
-// Key change: replacement instead of addition
-            if (masterEntries && masterEntries.length > 0) {
-              // Entry exists, REPLACE instead of adding to the amount
+            if (existingMap[keyAccountId] !== undefined) {
+              // UPDATE existing entry - REPLACE the amount
               await db.query(
                 `UPDATE budget_master 
-                SET amount = ? 
-                WHERE key_account = ? 
-                AND department = ?`,
-                [request.amount, request.key_account_id, departmentName]
+                 SET amount = ? 
+                 WHERE key_account = ? AND department = ?`,
+                [newAmount, keyAccountId, departmentName]
               );
-            } else if (departmentName) {
-              // Entry doesn't exist, create it
+            } else {
+              // INSERT new entry
               await db.query(
                 `INSERT INTO budget_master 
                  (key_account, key_account_name, type, department, amount) 
                  VALUES (?, ?, ?, ?, ?)`,
                 [
-                  request.key_account_id, 
+                  keyAccountId, 
                   accountResult ? accountResult.name : 'Unknown Account',
                   accountResult ? accountResult.account_type : 'Expense',
                   departmentName, 
-                  request.amount
+                  newAmount
                 ]
               );
             }
             
-            // 7. Record history
-            await db.query(
-              `INSERT INTO budget_withdrawal_history
-               (request_id, previous_status, new_status, changed_by, change_reason)
-               VALUES (?, ?, 'approved', ?, ?)`,
-              [id, request.status, adminId, feedback || 'Request approved']
-            );
-            
-            return { id, success: true };
-          } catch (err) {
-            console.error(`Error processing request ${id}:`, err);
-            return { id, success: false, error: err.message };
+            // Remove this key from existingMap to track which ones were processed
+            delete existingMap[keyAccountId];
           }
-        })
-      );
+          
+          // 6. Handle accounts that were removed (any remaining in existingMap)
+          // Set to zero instead of deleting to maintain history
+          for (const keyAccountId in existingMap) {
+            await db.query(
+              `UPDATE budget_master 
+               SET amount = 0 
+               WHERE key_account = ? AND department = ?`,
+              [keyAccountId, departmentName]
+            );
+          }
+        } catch (deptError) {
+          console.error(`Error processing requests for department ${departmentName}:`, deptError);
+          // Add failure results for this department's requests
+          for (const request of requests) {
+            if (!processedRequestIds.has(request.id)) {
+              results.push({ id: request.id, success: false, error: deptError.message });
+            }
+          }
+        }
+      }
+      
+      // Add failure results for any requestIds that weren't processed
+      for (const requestId of requestIds) {
+        if (!processedRequestIds.has(parseInt(requestId))) {
+          results.push({ id: requestId, success: false, error: 'Request not found or not processed' });
+        }
+      }
       
       // Commit transaction if we got here
       await db.promisePool.query('COMMIT');
@@ -899,7 +963,6 @@ exports.batchApproveCreditRequests = async (req, res) => {
     res.status(500).json({ message: 'Server error during batch approval: ' + error.message });
   }
 };
-
 /**
  * Get user draft credit requests
  * @param {Object} req - Express request object
@@ -908,6 +971,7 @@ exports.batchApproveCreditRequests = async (req, res) => {
 
 // backend/controllers/creditController.js - Updated batchApproveCreditRequests function
 // Updated approveCreditRequest function with collation fix
+// Modified approveCreditRequest function in creditController.js
 exports.approveCreditRequest = async (req, res) => {
   try {
     const requestId = req.params.id;
@@ -922,98 +986,135 @@ exports.approveCreditRequest = async (req, res) => {
     await db.promisePool.query('START TRANSACTION');
     
     try {
-      // 1. Get request details
+      // 1. Get all requests related to this submission
+      // This allows us to handle multi-account requests
       const requestQuery = `
-        SELECT * FROM budget_withdrawal_requests 
-        WHERE id = ?`;
-      const [request] = await db.query(requestQuery, [requestId]);
+        SELECT r.*, d.name as department_name 
+        FROM budget_withdrawal_requests r
+        JOIN budget_departments d ON r.department_id = d.id
+        WHERE r.id = ? OR r.parent_request_id = ?`;
+        
+      const requests = await db.query(requestQuery, [requestId, requestId]);
       
-      if (!request) {
+      if (!requests || requests.length === 0) {
         await db.promisePool.query('ROLLBACK');
         return res.status(404).json({ message: 'Credit request not found' });
       }
       
-      // 2. Update request status
+      // Get the primary request (the one with the ID we received)
+      const primaryRequest = requests.find(r => r.id == requestId) || requests[0];
+      const departmentId = primaryRequest.department_id;
+      const departmentName = primaryRequest.department_name;
+      
+      // 2. Update all requests in this submission to 'approved'
       await db.query(
         `UPDATE budget_withdrawal_requests
          SET status = 'approved', feedback = ?, reviewed_by = ?, reviewed_at = CURRENT_TIMESTAMP
-         WHERE id = ?`,
-        [feedback, adminId, requestId]
+         WHERE id = ? OR parent_request_id = ?`,
+        [feedback, adminId, requestId, requestId]
       );
       
-      // 3. Record transaction with the correct column name (created_at)
-      await db.query(
-        `INSERT INTO budget_transactions
-         (request_id, key_account_id, amount, admin_id, created_at)
-         VALUES (?, ?, ?, ?, CURRENT_TIMESTAMP)`,
-        [requestId, request.key_account_id, request.amount, adminId]
-      );
-      
-      // 4. Get department name directly first to avoid collation issues
-      const [deptResult] = await db.query(
-        `SELECT name FROM budget_departments WHERE id = ?`, 
-        [request.department_id]
-      );
-      
-      const departmentName = deptResult ? deptResult.name : null;
-      
-      // 5. Check if entry exists in budget_master using direct comparison
-      // with explicit collation to avoid collation mismatch
-      const checkMasterQuery = `
-        SELECT * FROM budget_master 
-        WHERE key_account = ? 
-        AND department = ? COLLATE utf8mb4_unicode_ci`;
-      
-      const masterEntries = await db.query(checkMasterQuery, [
-        request.key_account_id, 
-        departmentName
-      ]);
-      
-      // 6. Get key account details
-      const [accountResult] = await db.query(
-        `SELECT name, account_type FROM budget_key_accounts WHERE id = ?`, 
-        [request.key_account_id]
-      );
-      
-      if (masterEntries && masterEntries.length > 0) {
-        // Entry exists, update it
+      // 3. Record transactions for all approved requests
+      for (const request of requests) {
         await db.query(
-          `UPDATE budget_master 
-           SET amount = ? 
-           WHERE key_account = ? 
-           AND department = ?`,
-          [request.amount, request.key_account_id, departmentName]
-        );
-      } else if (departmentName) {
-        // Entry doesn't exist, create it
-        await db.query(
-          `INSERT INTO budget_master 
-           (key_account, key_account_name, type, department, amount) 
-           VALUES (?, ?, ?, ?, ?)`,
-          [
-            request.key_account_id, 
-            accountResult ? accountResult.name : 'Unknown Account',
-            accountResult ? accountResult.account_type : 'Expense',
-            departmentName, 
-            request.amount
-          ]
+          `INSERT INTO budget_transactions
+           (request_id, key_account_id, amount, admin_id, created_at)
+           VALUES (?, ?, ?, ?, CURRENT_TIMESTAMP)`,
+          [request.id, request.key_account_id, request.amount, adminId]
         );
       }
       
-      // 7. Record history
-      await db.query(
-        `INSERT INTO budget_withdrawal_history
-         (request_id, previous_status, new_status, changed_by, change_reason)
-         VALUES (?, ?, 'approved', ?, ?)`,
-        [requestId, request.status, adminId, feedback || 'Request approved']
-      );
+      // 4. Get existing budget_master entries for this department
+      const existingEntriesQuery = `
+        SELECT key_account, amount 
+        FROM budget_master 
+        WHERE department = ?`;
+      
+      const existingEntries = await db.query(existingEntriesQuery, [departmentName]);
+      
+      // Map existing entries by key_account ID for easy lookup
+      const existingMap = {};
+      existingEntries.forEach(entry => {
+        existingMap[entry.key_account] = entry.amount;
+      });
+      
+      // 5. Process budget_master table updates
+      // Group the requests by key_account to get the total amount per account
+      const requestsByAccount = {};
+      requests.forEach(req => {
+        requestsByAccount[req.key_account_id] = {
+          key_account_id: req.key_account_id,
+          amount: parseFloat(req.amount) || 0
+        };
+      });
+      
+      // For each account in the request, update or insert into budget_master
+      for (const keyAccountId in requestsByAccount) {
+        const newAmount = requestsByAccount[keyAccountId].amount;
+        
+        // Get key account details
+        const [accountResult] = await db.query(
+          `SELECT name, account_type FROM budget_key_accounts WHERE id = ?`, 
+          [keyAccountId]
+        );
+        
+        if (existingMap[keyAccountId] !== undefined) {
+          // UPDATE existing entry - IMPORTANT: this REPLACES the amount, not adds to it
+          await db.query(
+            `UPDATE budget_master 
+             SET amount = ? 
+             WHERE key_account = ? AND department = ?`,
+            [newAmount, keyAccountId, departmentName]
+          );
+        } else {
+          // INSERT new entry
+          await db.query(
+            `INSERT INTO budget_master 
+             (key_account, key_account_name, type, department, amount) 
+             VALUES (?, ?, ?, ?, ?)`,
+            [
+              keyAccountId, 
+              accountResult ? accountResult.name : 'Unknown Account',
+              accountResult ? accountResult.account_type : 'Expense',
+              departmentName, 
+              newAmount
+            ]
+          );
+        }
+        
+        // Remove this key from existingMap to track which ones were processed
+        delete existingMap[keyAccountId];
+      }
+      
+      // 6. Handle accounts that were removed (any remaining in existingMap)
+      // Set to zero instead of deleting to maintain history
+      for (const keyAccountId in existingMap) {
+        await db.query(
+          `UPDATE budget_master 
+           SET amount = 0 
+           WHERE key_account = ? AND department = ?`,
+          [keyAccountId, departmentName]
+        );
+      }
+      
+      // 7. Record history for all requests
+      for (const request of requests) {
+        await db.query(
+          `INSERT INTO budget_withdrawal_history
+           (request_id, previous_status, new_status, changed_by, change_reason)
+           VALUES (?, ?, 'approved', ?, ?)`,
+          [request.id, request.status, adminId, feedback || 'Request approved']
+        );
+      }
       
       // Commit transaction
       await db.promisePool.query('COMMIT');
       
       res.json({ 
-        message: 'Credit request approved successfully',
-        updated_master: true
+        message: `${requests.length} request(s) approved successfully`,
+        updated_master: true,
+        accounts_modified: requests.length,
+        accounts_zeroed: Object.keys(existingMap).length
       });
     } catch (innerError) {
       // Rollback transaction on error

@@ -1,4 +1,3 @@
-// frontend/src/components/admin/CreditApproval.js
 import React, { useState, useEffect, useContext, useCallback } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { KeyAccountContext } from '../../context/KeyAccountContext';
@@ -22,6 +21,7 @@ const CreditApproval = () => {
   const [remark, setRemark] = useState('');
   const [isLoading, setIsLoading] = useState(true);
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [isBatchProcessing, setIsBatchProcessing] = useState(false);
   const [error, setError] = useState(null);
   const [success, setSuccess] = useState(null);
   const [showRevisionModal, setShowRevisionModal] = useState(false);
@@ -48,9 +48,6 @@ const CreditApproval = () => {
           creditService.getAllRevisionRequests()
         ]);
         
-        console.log('Pending requests:', pending);
-        console.log('Revision requests:', revisions);
-        
         setPendingRequests(pending || []);
         setRevisionRequests(revisions || []);
         
@@ -60,7 +57,6 @@ const CreditApproval = () => {
             setDetailedRequest(requestData);
             setSelectedDepartment(requestData.department_name || 'Uncategorized');
             setEditedAmount(requestData.amount?.toString() || '');
-            // Fetch version history
             try {
               const versions = await creditService.getCreditRequestVersions(requestData.id);
               setVersionHistory(versions || []);
@@ -126,7 +122,6 @@ const CreditApproval = () => {
       setEditedAmount(req.amount?.toString() || '');
       setRemark('');
       
-      // Fetch version history
       const versions = await creditService.getCreditRequestVersions(req.id);
       setVersionHistory(versions || []);
       
@@ -158,7 +153,6 @@ const CreditApproval = () => {
       
       setSuccess('Credit request rejected successfully');
       
-      // Update the UI by removing the rejected request
       setPendingRequests(pendingRequests.filter(req => req.id !== requestId));
       setRevisionRequests(revisionRequests.filter(req => req.id !== requestId));
       setSelectedRequests(selectedRequests.filter(req => req.id !== requestId));
@@ -181,113 +175,128 @@ const CreditApproval = () => {
     }
   };
 
-// frontend/components/admin/CreditApproval.js - Updated handleApprove function
-const handleApprove = async (requestId) => {
-  if (!requestId) {
-    setError('No request selected');
-    return;
-  }
-
-  try {
-    setIsSubmitting(true);
-    setError(null);
-    
-    // Make the API call and get the expanded response
-    const response = await creditService.approveCreditRequest(requestId, { feedback: remark });
-    
-    // Handle the updated_master flag if it exists
-    const successMessage = response.updated_master 
-      ? 'Credit request approved successfully and budget master updated'
-      : 'Credit request approved successfully';
-    
-    setSuccess(successMessage);
-    
-    // Update the UI by removing the approved request
-    setPendingRequests(pendingRequests.filter(req => req.id !== requestId));
-    setRevisionRequests(revisionRequests.filter(req => req.id !== requestId));
-    setSelectedRequests(selectedRequests.filter(req => req.id !== requestId));
-    
-    if (detailedRequest?.id === requestId) {
-      setDetailedRequest(null);
-      setEditedAmount('');
-      setRemark('');
-      setVersionHistory([]);
+  const handleApprove = async (requestId) => {
+    if (!requestId) {
+      setError('No request selected');
+      return;
     }
-    
-    // Refresh key account data if the context provides that function
-    if (accountsWithUsage && typeof fetchKeyAccounts === 'function') {
+
+    try {
+      setIsSubmitting(true);
+      setError(null);
+      
+      const response = await creditService.approveCreditRequest(requestId, { feedback: remark });
+      
+      const successMessage = response.updated_master 
+        ? 'Credit request approved successfully and budget master updated'
+        : 'Credit request approved successfully';
+      
+      setSuccess(successMessage);
+      
+      setPendingRequests(pendingRequests.filter(req => req.id !== requestId));
+      setRevisionRequests(revisionRequests.filter(req => req.id !== requestId));
+      setSelectedRequests(selectedRequests.filter(req => req.id !== requestId));
+      
+      if (detailedRequest?.id === requestId) {
+        setDetailedRequest(null);
+        setEditedAmount('');
+        setRemark('');
+        setVersionHistory([]);
+      }
+      
+      if (accountsWithUsage && typeof fetchKeyAccounts === 'function') {
+        setTimeout(() => {
+          fetchKeyAccounts();
+        }, 1000);
+      }
+      
       setTimeout(() => {
-        fetchKeyAccounts();
-      }, 1000);
+        navigate('/admin/credit');
+      }, 2000);
+    } catch (err) {
+      console.error('Error approving credit request:', err);
+      setError(err.response?.data?.message || 'Failed to approve credit request');
+    } finally {
+      setIsSubmitting(false);
     }
-    
-    setTimeout(() => {
-      navigate('/admin/credit');
-    }, 2000);
-  } catch (err) {
-    console.error('Error approving credit request:', err);
-    setError(err.response?.data?.message || 'Failed to approve credit request');
-  } finally {
-    setIsSubmitting(false);
-  }
-};
+  };
 
-// In CreditApproval.js - Add or update this function
-const handleBatchApprove = async () => {
-  if (selectedRequests.length === 0) {
-    setError('Please select at least one request to approve');
-    return;
-  }
+  const handleBatchApprove = async () => {
+    if (selectedRequests.length === 0) {
+      setError('Please select at least one request to approve');
+      return;
+    }
 
-  try {
-    setIsSubmitting(true);
-    setError(null);
-    
-    const requestIds = selectedRequests.map(req => req.id);
-    
-    // Call the batch approve endpoint
-    const response = await creditService.batchApproveCreditRequests(
-      requestIds, 
-      { feedback: remark || 'Batch approved' }
+    const confirmApproval = window.confirm(
+      `Approving these ${selectedRequests.length} requests will:\n\n` +
+      `1. Update amounts for accounts included in these requests\n` +
+      `2. Set to zero any accounts that were previously allocated but removed\n\n` +
+      `This action will replace the current budget allocations for the affected departments. Continue?`
     );
     
-    // Handle the updated_master flag if it exists
-    const successMessage = response.updated_master 
-      ? `${response.results.filter(r => r.success).length} requests approved successfully and budget master updated`
-      : `${response.results.filter(r => r.success).length} requests approved successfully`;
-    
-    setSuccess(successMessage);
-    
-    // Update UI by removing approved requests
-    const approvedIds = response.results
-      .filter(result => result.success)
-      .map(result => result.id);
-    
-    setPendingRequests(pendingRequests.filter(req => !approvedIds.includes(req.id)));
-    setRevisionRequests(revisionRequests.filter(req => !approvedIds.includes(req.id)));
-    setSelectedRequests([]);
-    
-    // Refresh key account data if the context provides that function
-    if (accountsWithUsage && typeof fetchKeyAccounts === 'function') {
-      setTimeout(() => {
-        fetchKeyAccounts();
-      }, 1000);
+    if (!confirmApproval) return;
+
+    try {
+      setIsBatchProcessing(true);
+      setError(null);
+      
+      const requestIds = selectedRequests.map(req => req.id);
+      
+      const departmentGroups = {};
+      selectedRequests.forEach(req => {
+        const dept = req.department_name || 'Unknown';
+        if (!departmentGroups[dept]) {
+          departmentGroups[dept] = {
+            count: 0,
+            totalAmount: 0
+          };
+        }
+        departmentGroups[dept].count++;
+        departmentGroups[dept].totalAmount += parseFloat(req.amount) || 0;
+      });
+      
+      const response = await creditService.batchApproveCreditRequests(
+        requestIds, 
+        { feedback: remark || 'Batch approved' }
+      );
+      
+      const deptSummary = Object.entries(departmentGroups)
+        .map(([dept, data]) => `${dept}: ${data.count} requests, ${formatCurrency(data.totalAmount)}`)
+        .join('\n');
+        
+      const successMessage = response.updated_master 
+        ? `${response.results.filter(r => r.success).length} requests approved successfully.\n\nBudget master updated for:\n${deptSummary}`
+        : `${response.results.filter(r => r.success).length} requests approved successfully`;
+      
+      setSuccess(successMessage);
+      
+      const approvedIds = response.results
+        .filter(result => result.success)
+        .map(result => result.id);
+      
+      setPendingRequests(pendingRequests.filter(req => !approvedIds.includes(req.id)));
+      setRevisionRequests(revisionRequests.filter(req => !approvedIds.includes(req.id)));
+      setSelectedRequests([]);
+      
+      if (accountsWithUsage && typeof fetchKeyAccounts === 'function') {
+        setTimeout(() => {
+          fetchKeyAccounts();
+        }, 1000);
+      }
+      
+      if (detailedRequest && approvedIds.includes(detailedRequest.id)) {
+        setDetailedRequest(null);
+        setEditedAmount('');
+        setRemark('');
+        setVersionHistory([]);
+      }
+    } catch (err) {
+      console.error('Error in batch approve:', err);
+      setError(err.response?.data?.message || 'Failed to approve requests');
+    } finally {
+      setIsBatchProcessing(false);
     }
-    
-    // Reset the detailed request if it was approved
-    if (detailedRequest && approvedIds.includes(detailedRequest.id)) {
-      setDetailedRequest(null);
-      setEditedAmount('');
-      setRemark('');
-      setVersionHistory([]);
-    }
-  } catch (err) {
-    console.error('Error in batch approve:', err);
-    setError(err.response?.data?.message || 'Failed to approve requests');
-  } finally {
-    setIsSubmitting(false);
-  }
-};
+  };
 
   const handleRequestRevision = async () => {
     if (selectedRequests.length === 0 && !detailedRequest) {
@@ -299,7 +308,6 @@ const handleBatchApprove = async () => {
       setIsSubmitting(true);
       setError(null);
       
-      // Handle single request from third pane
       if (detailedRequest && selectedRequests.length === 0) {
         const amount = parseFloat(editedAmount);
         if (isNaN(amount) || amount <= 0) {
@@ -314,7 +322,6 @@ const handleBatchApprove = async () => {
           return;
         }
         
-        // Create a revision request
         await creditService.createRevisionRequest(
           detailedRequest.id,
           {
@@ -325,7 +332,6 @@ const handleBatchApprove = async () => {
         
         setSuccess('Revision requested successfully. The user will be notified.');
         
-        // Update UI state
         setPendingRequests(pendingRequests.filter(req => req.id !== detailedRequest.id));
         
         const revisedRequest = {
@@ -340,9 +346,7 @@ const handleBatchApprove = async () => {
         setEditedAmount('');
         setRemark('');
         setVersionHistory([]);
-      }
-      // Handle batch revisions
-      else if (batchRevisions.length > 0) {
+      } else if (batchRevisions.length > 0) {
         const invalidRevision = batchRevisions.find(
           rev => !rev.remark.trim() || isNaN(parseFloat(rev.editedAmount)) || parseFloat(rev.editedAmount) <= 0
         );
@@ -353,7 +357,6 @@ const handleBatchApprove = async () => {
           return;
         }
         
-        // Process all revisions in parallel
         await Promise.all(
           batchRevisions.map(rev =>
             creditService.createRevisionRequest(
@@ -368,15 +371,11 @@ const handleBatchApprove = async () => {
         
         setSuccess(`Revision requested for ${batchRevisions.length} requests. Users will be notified.`);
         
-        // Update UI state
         const revisedIds = batchRevisions.map(rev => rev.id);
         
-        // Remove from pending
         setPendingRequests(pendingRequests.filter(req => !revisedIds.includes(req.id)));
         
-        // Add to revisions
         const newRevisions = batchRevisions.map(rev => {
-          // Find the original request
           const originalRequest = pendingRequests.find(req => req.id === rev.id);
           return {
             ...originalRequest,
@@ -388,7 +387,6 @@ const handleBatchApprove = async () => {
         
         setRevisionRequests([...revisionRequests, ...newRevisions]);
         
-        // Reset selection state
         setSelectedRequests([]);
         setBatchRevisions([]);
       }
@@ -424,7 +422,6 @@ const handleBatchApprove = async () => {
         setVersionHistory([]);
       }
       
-      // Refresh data to get the newly pending request
       setTimeout(() => {
         refreshData();
       }, 1000);
@@ -471,13 +468,63 @@ const handleBatchApprove = async () => {
     return accountsWithUsage.find(acc => acc.id === accountId);
   };
 
+  // Selection handlers for second pane
+  const handleSelectAll = () => {
+    if (selectedDepartment && groupedRequests[selectedDepartment]) {
+      const allDeptRequests = groupedRequests[selectedDepartment].map(req => ({
+        ...req,
+        editedAmount: req.amount,
+        remark: ''
+      }));
+      setSelectedRequests(allDeptRequests);
+    }
+  };
+
+  const handleSelectAllPending = () => {
+    if (selectedDepartment && groupedRequests[selectedDepartment]) {
+      const pendingDeptRequests = groupedRequests[selectedDepartment]
+        .filter(req => req.status === 'pending')
+        .map(req => ({
+          ...req,
+          editedAmount: req.amount,
+          remark: ''
+        }));
+      setSelectedRequests(pendingDeptRequests);
+    }
+  };
+
+  const handleSelectAllRevision = () => {
+    if (selectedDepartment && groupedRequests[selectedDepartment]) {
+      const revisionDeptRequests = groupedRequests[selectedDepartment]
+        .filter(req => req.status === 'revision')
+        .map(req => ({
+          ...req,
+          editedAmount: req.amount,
+          remark: ''
+        }));
+      setSelectedRequests(revisionDeptRequests);
+    }
+  };
+
   return (
-    <div className="flex-1 p-8 ml-64">
+    <div className="flex-1 p-8 ml-64 relative">
       <h1 className="text-2xl font-bold mb-6">Credit Requests</h1>
       
       {error && <AlertMessage type="error" message={error} />}
       {success && <AlertMessage type="success" message={success} />}
       
+      {/* Batch Processing Overlay */}
+      {isBatchProcessing && (
+        <div className="fixed inset-0 bg-gray-600 bg-opacity-50 flex items-center justify-center z-50">
+          <div className="bg-white p-6 rounded-lg shadow-xl flex items-center space-x-4">
+            <LoadingSpinner size="large" />
+            <span className="text-lg font-medium text-gray-700">
+              Processing {selectedRequests.length} request(s)...
+            </span>
+          </div>
+        </div>
+      )}
+
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
         {/* Department List Pane */}
         <div className="bg-white rounded-lg shadow">
@@ -494,7 +541,6 @@ const handleBatchApprove = async () => {
               <div className="overflow-y-auto max-h-96">
                 <ul className="divide-y divide-gray-200">
                   {Object.entries(groupedRequests).map(([dept, reqs]) => {
-                    // Count requests by status
                     const pendingCount = reqs.filter(r => r.status === 'pending').length;
                     const revisionCount = reqs.filter(r => r.status === 'revision').length;
                     
@@ -541,6 +587,29 @@ const handleBatchApprove = async () => {
           </div>
           
           <div className="p-6">
+            {selectedDepartment && (
+              <div className="mb-4 flex space-x-2">
+                <button
+                  onClick={handleSelectAll}
+                  className="py-1 px-3 border border-gray-300 text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50"
+                >
+                  Select All
+                </button>
+                <button
+                  onClick={handleSelectAllPending}
+                  className="py-1 px-3 border border-gray-300 text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50"
+                >
+                  Select All Pending
+                </button>
+                <button
+                  onClick={handleSelectAllRevision}
+                  className="py-1 px-3 border border-gray-300 text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50"
+                >
+                  Select All Revision
+                </button>
+              </div>
+            )}
+            
             {isLoading ? (
               <div className="flex justify-center py-8">
                 <LoadingSpinner size="large" />
@@ -593,14 +662,24 @@ const handleBatchApprove = async () => {
                   ))}
                 </ul>
                 {selectedRequests.length > 0 && (
-                  <div className="mt-4">
+                  <div className="mt-4 space-y-2">
                     <button
                       onClick={openRevisionModal}
-                      disabled={isSubmitting}
+                      disabled={isSubmitting || isBatchProcessing}
                       className="w-full py-2 px-4 border border-transparent text-sm font-medium rounded-md text-yellow-700 bg-yellow-100 hover:bg-yellow-200 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-yellow-500"
                     >
                       Request Revision for {selectedRequests.length} Request(s)
                     </button>
+                    
+                    {selectedRequests.some(req => req.status === 'pending') && (
+                      <button
+                        onClick={handleBatchApprove}
+                        disabled={isSubmitting || isBatchProcessing}
+                        className="w-full py-2 px-4 border border-transparent text-sm font-medium rounded-md text-white bg-green-600 hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500"
+                      >
+                        Batch Approve {selectedRequests.length} Request(s)
+                      </button>
+                    )}
                   </div>
                 )}
               </div>
