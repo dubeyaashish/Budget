@@ -33,6 +33,7 @@ const NewCreditRequest = () => {
   const [success, setSuccess] = useState(null);
   const [isSubmitted, setIsSubmitted] = useState(false);
   const [budgetMasterData, setBudgetMasterData] = useState([]);
+  const [allKeyAccounts, setAllKeyAccounts] = useState([]);
 
   const navigate = useNavigate();
 
@@ -57,6 +58,7 @@ const NewCreditRequest = () => {
     return null;
   };
 
+  // Fetch the initial data when component mounts
   useEffect(() => {
     const fetchData = async () => {
       if (!currentUser || !currentUser.id) {
@@ -72,6 +74,17 @@ const NewCreditRequest = () => {
         // Get all departments
         const departmentsData = await departmentService.getAllDepartments();
         setDepartments(departmentsData);
+        
+        // Fetch ALL key accounts for the dropdown
+        try {
+          const allAccounts = await keyAccountService.getAllKeyAccounts();
+          console.log('Fetched ALL key accounts:', allAccounts);
+          if (allAccounts && allAccounts.length > 0) {
+            setAllKeyAccounts(allAccounts);
+          }
+        } catch (kaError) {
+          console.error('Error fetching all key accounts:', kaError);
+        }
         
         // Determine the user's department ID
         let userDeptId = null;
@@ -125,36 +138,44 @@ const NewCreditRequest = () => {
     fetchData();
   }, [currentUser]);
 
-  // Update available key accounts for the dropdown
-// Update available key accounts for the dropdown
-useEffect(() => {
-  console.log('Debug - keyAccounts:', keyAccounts);
-  console.log('Debug - accountEntries:', accountEntries);
-  
-  if (keyAccounts && keyAccounts.length > 0) {
-    const selectedIds = accountEntries.map(entry => entry.key_account_id);
-    console.log('Debug - selectedIds:', selectedIds);
+  // Update available key accounts for the dropdown using allKeyAccounts
+  useEffect(() => {
+    console.log('Updating available key accounts');
+    console.log('allKeyAccounts:', allKeyAccounts);
+    console.log('accountEntries:', accountEntries);
     
-    // Filter out already added accounts
-    const available = keyAccounts.filter(
-      account => !selectedIds.includes(account.id)
-    );
-    
-    console.log('Debug - available accounts:', available);
-    setAvailableKeyAccounts(available);
-    
-    // Only show error if there are truly no accounts in the system
-    if (keyAccounts.length === 0) {
-      setError('No key accounts available in the system. Please contact an administrator.');
-    } else if (available.length === 0 && accountEntries.length > 0) {
-      setError('All available accounts have been added to this request.');
+    if (allKeyAccounts && allKeyAccounts.length > 0) {
+      // Get IDs of accounts that have already been added to the request
+      const selectedIds = accountEntries.map(entry => entry.key_account_id);
+      console.log('Selected IDs:', selectedIds);
+      
+      // Filter out already added accounts from the available options
+      const available = allKeyAccounts.filter(
+        account => !selectedIds.includes(account.id)
+      );
+      
+      console.log('Available accounts for dropdown:', available);
+      setAvailableKeyAccounts(available);
+      
+      // Clear any previous errors if we have available accounts
+      if (available.length > 0) {
+        setError(null);
+      }
+    } else if (keyAccounts && keyAccounts.length > 0) {
+      // Fallback to context keyAccounts if allKeyAccounts is empty
+      const selectedIds = accountEntries.map(entry => entry.key_account_id);
+      const available = keyAccounts.filter(
+        account => !selectedIds.includes(account.id)
+      );
+      setAvailableKeyAccounts(available);
+      
+      if (available.length > 0) {
+        setError(null);
+      }
     } else {
-      setError(null);
+      setAvailableKeyAccounts([]);
     }
-  } else {
-    setAvailableKeyAccounts([]);
-  }
-}, [keyAccounts, accountEntries]);
+  }, [allKeyAccounts, accountEntries, keyAccounts]);
 
   // Update department key accounts
   useEffect(() => {
@@ -197,7 +218,8 @@ useEffect(() => {
   const getAvailableAmount = (accountId) => {
     if (!accountId) return 0;
     const account = accountsWithUsage.find(a => a.id === accountId) || 
-                   keyAccounts.find(a => a.id === accountId);
+                   keyAccounts.find(a => a.id === accountId) ||
+                   allKeyAccounts.find(a => a.id === accountId);
     if (account) {
       return account.available_amount ?? (account.total_budget - (account.used_amount || 0));
     }
@@ -222,6 +244,19 @@ useEffect(() => {
     if (departmentId) {
       try {
         setIsLoading(true);
+        
+        // Fetch ALL key accounts separately for the dropdown
+        try {
+          const accounts = await keyAccountService.getAllKeyAccounts();
+          console.log('Fetched key accounts in loadDepartmentData:', accounts);
+          if (accounts && accounts.length > 0) {
+            setAllKeyAccounts(accounts);
+          }
+        } catch (kaError) {
+          console.error('Error fetching key accounts in loadDepartmentData:', kaError);
+        }
+        
+        // Get department budget data
         let budgetData = [];
         let attempt = 0;
         const maxAttempts = 3;
@@ -261,7 +296,13 @@ useEffect(() => {
             keyAccountService.getAllKeyAccounts(),
             departmentService.getAllDepartments()
           ]);
-          const keyAccountsData = keyAccountsResponse.data || [];
+          
+          // Store ALL key accounts for the dropdown
+          if (keyAccountsResponse && keyAccountsResponse.length > 0) {
+            setAllKeyAccounts(keyAccountsResponse);
+          }
+          
+          const keyAccountsData = keyAccountsResponse || [];
           const deptName = departmentName || departmentsData.find(d => d.id == departmentId)?.name || '';
           if (deptName) setDepartmentName(deptName);
           
@@ -302,12 +343,35 @@ useEffect(() => {
   };
 
   const addKeyAccount = (accountId) => {
+    // Prevent duplicates
     if (accountEntries.some(entry => entry.key_account_id === accountId)) {
       setError('This account is already added to your request.');
       return;
     }
     
-    const account = keyAccounts.find(acc => acc.id === accountId);
+    // Look for the account in all possible sources
+    let account = null;
+    
+    // First try allKeyAccounts (most complete)
+    if (allKeyAccounts && allKeyAccounts.length > 0) {
+      account = allKeyAccounts.find(acc => acc.id === accountId);
+    }
+    
+    // Then try context keyAccounts
+    if (!account && keyAccounts && keyAccounts.length > 0) {
+      account = keyAccounts.find(acc => acc.id === accountId);
+    }
+    
+    // Then try availableKeyAccounts
+    if (!account && availableKeyAccounts && availableKeyAccounts.length > 0) {
+      account = availableKeyAccounts.find(acc => acc.id === accountId);
+    }
+    
+    // Finally try accountsWithUsage
+    if (!account && accountsWithUsage && accountsWithUsage.length > 0) {
+      account = accountsWithUsage.find(acc => acc.id === accountId);
+    }
+    
     if (account) {
       const newEntry = {
         key_account_id: account.id,
@@ -318,10 +382,13 @@ useEffect(() => {
         type: account.account_type || 'Unknown',
         total: parseFloat(account.total_budget) || 0
       };
+      
+      console.log('Adding new key account entry:', newEntry);
       setAccountEntries([...accountEntries, newEntry]);
       setError(null);
     } else {
-      setError(`Could not find account with ID: ${accountId}`);
+      console.error(`Could not find account data for ID: ${accountId}`);
+      setError(`Could not find account with ID: ${accountId}. Please try refreshing the page.`);
     }
   };
 
@@ -577,34 +644,36 @@ useEffect(() => {
                             <label htmlFor="add-account" className="block text-sm font-medium text-gray-700 mb-1">
                               Add Another Key Account
                             </label>
-                            {availableKeyAccounts.length > 0 ? (
-  <select
-    id="add-account"
-    className="mt-1 block w-full pl-3 pr-10 py-2 text-base border-gray-300 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm rounded-md"
-    defaultValue=""
-    onChange={(e) => {
-      if (e.target.value) {
-        addKeyAccount(e.target.value);
-        e.target.value = "";
-      }
-    }}
-  >
-    <option value="" disabled>
-      Select an account to add ({availableKeyAccounts.length} available)
-    </option>
-    {availableKeyAccounts.map(account => (
-      <option key={account.id} value={account.id}>
-        {account.id} - {account.name} ({account.account_type})
-      </option>
-    ))}
-  </select>
-) : (
-  <div className="mt-1 p-2 bg-gray-100 border border-gray-300 rounded-md text-sm text-gray-500">
-    {!keyAccounts || keyAccounts.length === 0
-      ? 'No key accounts available in the system.'
-      : 'All available accounts have been added to this request.'}
-  </div>
-)}
+                            {allKeyAccounts && allKeyAccounts.length > 0 ? (
+                              <select
+                                id="add-account"
+                                className="mt-1 block w-full pl-3 pr-10 py-2 text-base border-gray-300 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm rounded-md"
+                                defaultValue=""
+                                onChange={(e) => {
+                                  if (e.target.value) {
+                                    addKeyAccount(e.target.value);
+                                    e.target.value = "";
+                                  }
+                                }}
+                              >
+                                <option value="" disabled>
+                                  Select an account to add ({availableKeyAccounts.length} available)
+                                </option>
+                                {availableKeyAccounts.map(account => (
+                                  <option key={account.id} value={account.id}>
+                                    {account.id} - {account.name} {account.account_type ? `(${account.account_type})` : ''}
+                                  </option>
+                                ))}
+                              </select>
+                            ) : (
+                              <div className="mt-1 p-2 bg-gray-100 border border-gray-300 rounded-md text-sm text-gray-500">
+                                {!allKeyAccounts || allKeyAccounts.length === 0
+                                  ? 'No key accounts available in the system.'
+                                  : accountEntries.length > 0 
+                                    ? 'All available accounts have been added to this request.'
+                                    : 'Loading available accounts...'}
+                              </div>
+                            )}
                           </div>
                           <div className="flex items-end">
                             <button
@@ -646,62 +715,62 @@ useEffect(() => {
           </div>
 
           {!isSubmitted && (
-            <div className="flex justify-end space-x-3">
-              <button
-                type="button"
-                className="bg-white py-2 px-4 border border-gray-300 rounded-md shadow-sm text-sm font-medium text-gray-700 hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500"
-                onClick={() => navigate('/dashboard')}
-              >
-                Cancel
-              </button>
-              <button
-                type="submit"
-                disabled={isSubmitting || accountEntries.length === 0}
-                className="inline-flex justify-center py-2 px-4 border border-transparent shadow-sm text-sm font-medium rounded-md text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500"
-              >
-                {isSubmitting ? <LoadingSpinner /> : 'Submit Request'}
-              </button>
-            </div>
-          )}
-        </form>
-      </div>
-
-      {(formData.version > 1 || formData.request_id) && (
-        <div className="mt-6 bg-white rounded-lg shadow p-6">
-          <h2 className="text-lg font-medium text-gray-900 mb-4">Request Version History</h2>
-          <div className="space-y-4">
-            <div className="p-3 bg-gray-50 rounded border border-gray-200">
-              <div className="flex justify-between items-center">
-                <div>
-                  <span className="font-medium">Version {formData.version}</span>
-                  <span className="ml-2 text-sm text-gray-500">Current ({formData.status})</span>
+                        <div className="flex justify-end space-x-3">
+                        <button
+                          type="button"
+                          className="bg-white py-2 px-4 border border-gray-300 rounded-md shadow-sm text-sm font-medium text-gray-700 hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500"
+                          onClick={() => navigate('/dashboard')}
+                        >
+                          Cancel
+                        </button>
+                        <button
+                          type="submit"
+                          disabled={isSubmitting || accountEntries.length === 0}
+                          className="inline-flex justify-center py-2 px-4 border border-transparent shadow-sm text-sm font-medium rounded-md text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500"
+                        >
+                          {isSubmitting ? <LoadingSpinner /> : 'Submit Request'}
+                        </button>
+                      </div>
+                    )}
+                  </form>
                 </div>
-                <span className="text-sm text-gray-500">Date: {new Date().toLocaleDateString()}</span>
-              </div>
-            </div>
-            {formData.version > 1 && (
-              <div className="p-3 bg-gray-50 rounded border border-gray-200">
-                <div className="flex justify-between items-center">
-                  <div>
-                    <span className="font-medium">Version {formData.version - 1}</span>
-                    <span className="ml-2 text-sm text-yellow-600">Revision Requested</span>
+          
+                {(formData.version > 1 || formData.request_id) && (
+                  <div className="mt-6 bg-white rounded-lg shadow p-6">
+                    <h2 className="text-lg font-medium text-gray-900 mb-4">Request Version History</h2>
+                    <div className="space-y-4">
+                      <div className="p-3 bg-gray-50 rounded border border-gray-200">
+                        <div className="flex justify-between items-center">
+                          <div>
+                            <span className="font-medium">Version {formData.version}</span>
+                            <span className="ml-2 text-sm text-gray-500">Current ({formData.status})</span>
+                          </div>
+                          <span className="text-sm text-gray-500">Date: {new Date().toLocaleDateString()}</span>
+                        </div>
+                      </div>
+                      {formData.version > 1 && (
+                        <div className="p-3 bg-gray-50 rounded border border-gray-200">
+                          <div className="flex justify-between items-center">
+                            <div>
+                              <span className="font-medium">Version {formData.version - 1}</span>
+                              <span className="ml-2 text-sm text-yellow-600">Revision Requested</span>
+                            </div>
+                            <span className="text-sm text-gray-500">
+                              Date: {new Date(Date.now() - 86400000).toLocaleDateString('en-GB')}
+                            </span>
+                          </div>
+                          {formData.feedback && (
+                            <p className="mt-2 text-sm text-gray-600">
+                              Admin feedback: {formData.feedback}
+                            </p>
+                          )}
+                        </div>
+                      )}
+                    </div>
                   </div>
-                  <span className="text-sm text-gray-500">
-                    Date: {new Date(Date.now() - 86400000).toLocaleDateString('en-GB')}
-                  </span>
-                </div>
-                {formData.feedback && (
-                  <p className="mt-2 text-sm text-gray-600">
-                    Admin feedback: {formData.feedback}
-                  </p>
                 )}
               </div>
-            )}
-          </div>
-        </div>
-      )}
-    </div>
-  );
-};
-
-export default NewCreditRequest;
+            );
+          };
+          
+          export default NewCreditRequest;
