@@ -20,9 +20,10 @@ const Sidebar = () => {
     { to: '/admin/key-account-allocation', label: 'Budget Allocation', icon: 'wallet' },
     { to: '/admin/credit', label: 'Credit Requests', icon: 'file-invoice-dollar' },
     { to: '/admin/departments', label: 'Departments', icon: 'building' },
-    { to: '/admin/budget-limits', label: 'Budget Limits', icon: 'chart-pie' },
-    { to: '/admin/users', label: 'User Management', icon: 'users' },
-    { to: '/admin/reports/departments', label: 'Spending Reports', icon: 'chart-bar' }
+    { to: '/admin/budget-limits', label: 'Budget Limits', icon: 'chart-pie', disabled: true },
+    { to: '/admin/users',         label: 'User Management', icon: 'users',         disabled: true },
+    { to: '/admin/reports/departments', label: 'Spending Reports', icon: 'chart-bar', disabled: true },
+
   ];
 
   const userLinks = [
@@ -59,6 +60,8 @@ const Sidebar = () => {
           {isAdmin ? 'Admin Panel' : 'User Panel'}
         </p>
       </div>
+
+      
       
       <div className="p-4 border-b border-gray-700">
         <div className="flex items-center">
@@ -76,6 +79,16 @@ const Sidebar = () => {
         <ul className="space-y-2">
           {links.map((link) => (
             <li key={link.to}>
+              {link.disabled ? (
+                // ---- Disabled state ----
+                <div
+                  className="flex items-center p-2 rounded-md opacity-50 cursor-not-allowed pointer-events-none text-gray-400"
+                  title="This feature is currently disabled"
+                >
+                  <span className={`${getIconClass(link.icon)} w-5 h-5 mr-3`} />
+                  <span>{link.label}</span>
+                </div>
+              ) : (
               <Link
                 to={link.to}
                 className={`flex items-center p-2 rounded-md transition-colors ${
@@ -86,6 +99,7 @@ const Sidebar = () => {
                 <span className={`${getIconClass(link.icon)} w-5 h-5 mr-3`} />
                 <span>{link.label}</span>
               </Link>
+              )}
             </li>
           ))}
         </ul>
