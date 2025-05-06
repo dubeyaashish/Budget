@@ -1,4 +1,4 @@
-// frontend/src/components/admin/DepartmentManagement.js
+// Updated frontend/src/components/admin/DepartmentManagement.js
 import React, { useState, useEffect, useContext } from 'react';
 import { KeyAccountContext } from '../../context/KeyAccountContext';
 import departmentService from '../../services/departmentService';
@@ -6,6 +6,7 @@ import creditService from '../../services/creditService';
 import LoadingSpinner from '../common/LoadingSpinner';
 import AlertMessage from '../common/AlertMessage';
 import { formatCurrency } from '../../utils/formatCurrency';
+import { exportToExcel } from '../../utils/excelExport';
 
 const DepartmentManagement = () => {
   const { keyAccounts } = useContext(KeyAccountContext);
@@ -14,6 +15,7 @@ const DepartmentManagement = () => {
   const [budgetData, setBudgetData] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState(null);
+  const [success, setSuccess] = useState(null);
   const [expandedDepartments, setExpandedDepartments] = useState({});
   const [departmentTotals, setDepartmentTotals] = useState({});
   const [accountsByDepartment, setAccountsByDepartment] = useState({});
@@ -118,6 +120,78 @@ const DepartmentManagement = () => {
     return Object.values(accountsByDepartment[deptId])
       .sort((a, b) => b.amount - a.amount);
   };
+
+  // Function to export department data to Excel
+  const exportDepartmentData = () => {
+    const enrichedDepartments = getEnrichedDepartments();
+    
+    // Format data for Excel export
+    const exportData = enrichedDepartments.map(dept => ({
+      ID: dept.id,
+      Name: dept.name,
+      Description: dept.description || '',
+      TotalBudget: dept.totalBudget || 0
+    }));
+
+    const columns = [
+      { header: 'ID', key: 'ID', width: 10 },
+      { header: 'Department Name', key: 'Name', width: 30 },
+      { header: 'Description', key: 'Description', width: 40 },
+      { header: 'Total Budget', key: 'TotalBudget', width: 15 }
+    ];
+
+    const success = exportToExcel(exportData, 'Departments', columns);
+
+    if (success) {
+      setSuccess('Department data exported successfully!');
+      setTimeout(() => setSuccess(null), 3000);
+    } else {
+      setError('Failed to export department data');
+      setTimeout(() => setError(null), 3000);
+    }
+  };
+
+  // Function to export specific department accounts to Excel
+  const exportDepartmentAccounts = (deptId, deptName) => {
+    const accounts = getSortedAccounts(deptId);
+    
+    if (accounts.length === 0) {
+      setError(`No account data found for ${deptName}`);
+      setTimeout(() => setError(null), 3000);
+      return;
+    }
+    
+    // Format data for Excel export
+    const exportData = accounts.map(account => ({
+      AccountID: account.id,
+      AccountName: account.name,
+      Amount: account.amount || 0,
+      Percentage: departmentTotals[deptId] > 0 
+        ? ((account.amount / departmentTotals[deptId]) * 100).toFixed(2)
+        : 0
+    }));
+
+    const columns = [
+      { header: 'Account ID', key: 'AccountID', width: 15 },
+      { header: 'Account Name', key: 'AccountName', width: 30 },
+      { header: 'Amount', key: 'Amount', width: 15 },
+      { header: 'Percentage', key: 'Percentage', width: 15 }
+    ];
+
+    const success = exportToExcel(
+      exportData, 
+      `Department_${deptName.replace(/\s+/g, '_')}_Accounts`, 
+      columns
+    );
+
+    if (success) {
+      setSuccess(`Account data for ${deptName} exported successfully!`);
+      setTimeout(() => setSuccess(null), 3000);
+    } else {
+      setError(`Failed to export account data for ${deptName}`);
+      setTimeout(() => setError(null), 3000);
+    }
+  };
   
   const enrichedDepartments = getEnrichedDepartments();
   
@@ -126,13 +200,24 @@ const DepartmentManagement = () => {
       <h1 className="text-2xl font-bold mb-6">Department Management</h1>
       
       {error && <AlertMessage type="error" message={error} />}
+      {success && <AlertMessage type="success" message={success} />}
       
       <div className="bg-white rounded-lg shadow">
         <div className="p-6 border-b border-gray-200">
-          <h2 className="text-lg font-medium text-gray-900">Departments</h2>
-          <p className="mt-1 text-sm text-gray-500">
-            Click on the arrow to see key account distribution for each department
-          </p>
+          <div className="flex justify-between items-center">
+            <div>
+              <h2 className="text-lg font-medium text-gray-900">Departments</h2>
+              <p className="mt-1 text-sm text-gray-500">
+                Click on the arrow to see key account distribution for each department
+              </p>
+            </div>
+            <button
+              onClick={exportDepartmentData}
+              className="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md text-white bg-green-600 hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500"
+            >
+              Export to Excel
+            </button>
+          </div>
         </div>
         
         <div className="p-6">
@@ -153,6 +238,9 @@ const DepartmentManagement = () => {
                     </th>
                     <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                       Total Budget
+                    </th>
+                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                      Actions
                     </th>
                   </tr>
                 </thead>
@@ -181,6 +269,16 @@ const DepartmentManagement = () => {
                           </td>
                           <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
                             {formatCurrency(dept.totalBudget)}
+                          </td>
+                          <td className="px-6 py-4 whitespace-nowrap">
+                            {hasAccountData && (
+                              <button
+                                onClick={() => exportDepartmentAccounts(dept.id, dept.name)}
+                                className="inline-flex items-center px-2 py-1 border border-transparent text-xs font-medium rounded text-green-700 bg-green-100 hover:bg-green-200"
+                              >
+                                Export Accounts
+                              </button>
+                            )}
                           </td>
                         </tr>
                         

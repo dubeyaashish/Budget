@@ -30,6 +30,7 @@ import UserManagement from './components/admin/UserManagement';
 import KeyAccountManagement from './components/admin/KeyAccountManagement';
 import KeyAccountAllocation from './components/admin/KeyAccountAllocation';
 import DepartmentSpendingReport from './components/admin/DepartmentSpendingReport';
+import AdminCreditRequestCreation from './components/admin/AdminCreditRequestCreation';
 
 import './App.css';
 
@@ -148,6 +149,17 @@ function App() {
                       <div className="flex w-full">
                         <Sidebar />
                         <KeyAccountAllocation />
+                      </div>
+                    </ProtectedRoute>
+                  } 
+                />
+                <Route 
+                  path="/admin/create-credit" 
+                  element={
+                    <ProtectedRoute requireAdmin={true}>
+                      <div className="flex w-full">
+                        <Sidebar />
+                        <AdminCreditRequestCreation />
                       </div>
                     </ProtectedRoute>
                   } 

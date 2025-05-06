@@ -1,3 +1,4 @@
+// frontend/src/components/admin/CreditApproval.js
 import React, { useState, useEffect, useContext, useCallback } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { KeyAccountContext } from '../../context/KeyAccountContext';
@@ -40,54 +41,52 @@ const CreditApproval = () => {
 
   // Fetch data on mount and when id changes
   useEffect(() => {
-    const fetchData = async () => {
-      try {
-        setIsLoading(true);
-        const [pending, revisions] = await Promise.all([
-          creditService.getAllPendingRequests(),
-          creditService.getAllRevisionRequests()
-        ]);
-
-        // Log API responses for debugging in deployed environment
-
-
-        setPendingRequests(Array.isArray(pending) ? pending : []);
-        setRevisionRequests(Array.isArray(revisions) ? revisions : []);
-
-        console.log('Pending Requests Response:', pending);
-        console.log('Revision Requests Response:', revisions);
-        
-        
-        if (id) {
-          const requestData = await creditService.getCreditRequestById(id);
-          console.log('Detailed Request Response:', requestData);
-          if (requestData) {
-            setDetailedRequest(requestData);
-            setSelectedDepartment(
-              requestData.department_name || 
-              (requestData.department_id ? `Department ID: ${requestData.department_id}` : 'Uncategorized')
-            );
-            setEditedAmount(requestData.amount?.toString() || '');
-            try {
-              const versions = await creditService.getCreditRequestVersions(requestData.id);
-              console.log('Version History Response:', versions);
-              setVersionHistory(Array.isArray(versions) ? versions : []);
-            } catch (err) {
-              console.error('Error fetching versions:', err);
-              setVersionHistory([]);
-            }
-          }
-        }
-      } catch (err) {
-        console.error('Error fetching credit requests:', err);
-        setError('Failed to load credit requests');
-      } finally {
-        setIsLoading(false);
-      }
-    };
-
     fetchData();
   }, [id]);
+
+  // Filter requests when user department or revision requests change
+  const fetchData = async () => {
+    try {
+      setIsLoading(true);
+      const [pending, revisions] = await Promise.all([
+        creditService.getAllPendingRequests(),
+        creditService.getAllRevisionRequests()
+      ]);
+
+      // Log API responses for debugging in deployed environment
+      console.log('Pending Requests Response:', pending);
+      console.log('Revision Requests Response:', revisions);
+      
+      setPendingRequests(Array.isArray(pending) ? pending : []);
+      setRevisionRequests(Array.isArray(revisions) ? revisions : []);
+      
+      if (id) {
+        const requestData = await creditService.getCreditRequestById(id);
+        console.log('Detailed Request Response:', requestData);
+        if (requestData) {
+          setDetailedRequest(requestData);
+          setSelectedDepartment(
+            requestData.department_name || 
+            (requestData.department_id ? `Department ID: ${requestData.department_id}` : 'Uncategorized')
+          );
+          setEditedAmount(requestData.amount?.toString() || '');
+          try {
+            const versions = await creditService.getCreditRequestVersions(requestData.id);
+            console.log('Version History Response:', versions);
+            setVersionHistory(Array.isArray(versions) ? versions : []);
+          } catch (err) {
+            console.error('Error fetching versions:', err);
+            setVersionHistory([]);
+          }
+        }
+      }
+    } catch (err) {
+      console.error('Error fetching credit requests:', err);
+      setError('Failed to load credit requests');
+    } finally {
+      setIsLoading(false);
+    }
+  };
 
   const refreshData = useCallback(async () => {
     try {
@@ -663,6 +662,23 @@ const CreditApproval = () => {
                 </ul>
                 {selectedRequests.length > 0 && (
                   <div className="mt-4 space-y-2">
+                    {/* Display total amount of selected requests */}
+                    <div className="w-full bg-gray-100 rounded-md p-3 mb-3">
+                      <div className="flex justify-between items-center">
+                        <span className="text-sm font-medium text-gray-700">
+                          Total Selected Amount:
+                        </span>
+                        <span className="text-lg font-bold text-indigo-600">
+                          {formatCurrency(
+                            selectedRequests.reduce(
+                              (sum, request) => sum + (parseFloat(request.amount) || 0),
+                              0
+                            )
+                          )}
+                        </span>
+                      </div>
+                    </div>
+                    
                     <button
                       onClick={openRevisionModal}
                       disabled={isSubmitting || isBatchProcessing}
@@ -682,6 +698,23 @@ const CreditApproval = () => {
                     )}
                   </div>
                 )}
+                
+                {/* Total amount for all displayed requests */}
+                <div className="sticky bottom-0 bg-gray-50 border-t border-gray-200 p-4 mt-4">
+                  <div className="flex justify-between items-center">
+                    <span className="text-sm font-medium text-gray-700">
+                      Total Department Requests:
+                    </span>
+                    <span className="text-lg font-bold text-indigo-600">
+                      {formatCurrency(
+                        groupedRequests[selectedDepartment].reduce(
+                          (sum, request) => sum + (parseFloat(request.amount) || 0), 
+                          0
+                        )
+                      )}
+                    </span>
+                  </div>
+                </div>
               </div>
             ) : (
               <p className="px-4 text-gray-500">No requests found for this department.</p>

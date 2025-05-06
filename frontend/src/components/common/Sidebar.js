@@ -18,6 +18,7 @@ const Sidebar = () => {
     { to: '/admin/dashboard', label: 'Dashboard', icon: 'home' },
     { to: '/admin/key-accounts', label: 'Key Accounts', icon: 'money-bill' },
     { to: '/admin/key-account-allocation', label: 'Budget Allocation', icon: 'wallet' },
+    { to: '/admin/create-credit', label: 'Create Credit Request', icon: 'plus-circle' },
     { to: '/admin/credit', label: 'Credit Requests', icon: 'file-invoice-dollar' },
     { to: '/admin/departments', label: 'Departments', icon: 'building' },
     { to: '/admin/budget-limits', label: 'Budget Limits', icon: 'chart-pie', disabled: true },

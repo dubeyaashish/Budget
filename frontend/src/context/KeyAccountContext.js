@@ -11,6 +11,7 @@ export const KeyAccountProvider = ({ children }) => {
   const [error, setError] = useState(null);
 
 // In KeyAccountContext.js, update fetchKeyAccounts:
+// Updated fetch function in KeyAccountContext.js
 const fetchKeyAccounts = useCallback(async () => {
   try {
     setIsLoading(true);
@@ -24,8 +25,12 @@ const fetchKeyAccounts = useCallback(async () => {
     console.log('Accounts raw response:', accountsResponse); // Debug log
     console.log('Usage raw response:', usageResponse); // Debug log
 
-    const accounts = accountsResponse.data || [];
-    const usage = usageResponse.data || [];
+    // Handle both data formats - direct array or nested in data property
+    const accounts = Array.isArray(accountsResponse) ? accountsResponse : 
+                    (accountsResponse && accountsResponse.data) ? accountsResponse.data : [];
+    
+    const usage = Array.isArray(usageResponse) ? usageResponse : 
+                 (usageResponse && usageResponse.data) ? usageResponse.data : [];
 
     if (accounts.length === 0) {
       console.warn('No key accounts received from API');

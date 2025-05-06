@@ -1,20 +1,27 @@
-// frontend/src/components/admin/KeyAccountManagement.js
+// Updated frontend/src/components/admin/KeyAccountManagement.js
 import React, { useState, useEffect, useContext } from 'react';
 import { KeyAccountContext } from '../../context/KeyAccountContext';
 import creditService from '../../services/creditService';
 import LoadingSpinner from '../common/LoadingSpinner';
 import AlertMessage from '../common/AlertMessage';
 import { formatCurrency } from '../../utils/formatCurrency';
+import { exportToExcel } from '../../utils/excelExport';
 
 const KeyAccountManagement = () => {
-  const { keyAccounts, isLoading: accountsLoading, error: accountsError } = useContext(KeyAccountContext);
+  const { keyAccounts, accountsWithUsage, isLoading: accountsLoading, error: accountsError, fetchKeyAccounts } = useContext(KeyAccountContext);
   
   const [budgetData, setBudgetData] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState(null);
+  const [success, setSuccess] = useState(null);
   const [expandedAccounts, setExpandedAccounts] = useState({});
   const [accountTotals, setAccountTotals] = useState({});
   const [departmentByAccount, setDepartmentByAccount] = useState({});
+  
+  // Ensure data is refreshed when component mounts
+  useEffect(() => {
+    fetchKeyAccounts();
+  }, [fetchKeyAccounts]);
   
   // Load budget master data
   useEffect(() => {
@@ -25,7 +32,7 @@ const KeyAccountManagement = () => {
         // Get budget master data
         const data = await creditService.getBudgetMasterData();
         console.log('Raw budget data:', data);
-        setBudgetData(data);
+        setBudgetData(Array.isArray(data) ? data : []);
         
         // Process data for account totals and department distribution
         const totals = {};
@@ -84,12 +91,15 @@ const KeyAccountManagement = () => {
   
   // Get enriched account data with totals
   const getEnrichedAccounts = () => {
-    if (!keyAccounts || !Array.isArray(keyAccounts)) {
-      console.error('keyAccounts is not an array:', keyAccounts);
-      return [];
+    // Ensure keyAccounts is treated as an array
+    const accountsArray = Array.isArray(keyAccounts) ? keyAccounts : 
+                         (keyAccounts && keyAccounts.data && Array.isArray(keyAccounts.data)) ? keyAccounts.data : [];
+    
+    if (accountsArray.length === 0) {
+      console.warn('No key accounts found in:', keyAccounts);
     }
     
-    return keyAccounts.map(account => ({
+    return accountsArray.map(account => ({
       ...account,
       totalBudget: accountTotals[account.id] || 0
     }))
@@ -106,6 +116,198 @@ const KeyAccountManagement = () => {
       .sort((a, b) => b.amount - a.amount);
   };
   
+  // Export all key accounts data to Excel, including all department distributions
+  const exportKeyAccountsData = () => {
+    const enrichedAccounts = getEnrichedAccounts();
+    
+    if (enrichedAccounts.length === 0) {
+      setError('No key accounts data to export');
+      setTimeout(() => setError(null), 3000);
+      return;
+    }
+    
+    try {
+      // Create two datasets: one for accounts and one for department distributions
+      const accountsData = enrichedAccounts.map(account => ({
+        ID: account.id,
+        Name: account.name,
+        Type: account.account_type || 'Not specified',
+        TotalBudget: account.totalBudget || 0,
+        // Get usage data if available
+        UsedAmount: accountsWithUsage.find(a => a.id === account.id)?.used_amount || 0,
+        AvailableAmount: accountsWithUsage.find(a => a.id === account.id)?.available_amount || 0,
+      }));
+
+      const accountsColumns = [
+        { header: 'ID', key: 'ID', width: 15 },
+        { header: 'Account Name', key: 'Name', width: 30 },
+        { header: 'Account Type', key: 'Type', width: 20 },
+        { header: 'Total Budget', key: 'TotalBudget', width: 15 },
+        { header: 'Used Amount', key: 'UsedAmount', width: 15 },
+        { header: 'Available Amount', key: 'AvailableAmount', width: 15 }
+      ];
+
+      // Prepare the department distribution data
+      let allDepartmentData = [];
+      
+      enrichedAccounts.forEach(account => {
+        const departments = getSortedDepartments(account.id);
+        
+        if (departments.length > 0) {
+          const deptsForAccount = departments.map(dept => ({
+            AccountID: account.id,
+            AccountName: account.name,
+            AccountType: account.account_type || 'Not specified',
+            Department: dept.name,
+            Amount: dept.amount || 0,
+            Percentage: account.totalBudget > 0 
+              ? ((dept.amount / account.totalBudget) * 100).toFixed(2)
+              : 0
+          }));
+          
+          allDepartmentData = [...allDepartmentData, ...deptsForAccount];
+        }
+      });
+
+      const departmentColumns = [
+        { header: 'Account ID', key: 'AccountID', width: 15 },
+        { header: 'Account Name', key: 'AccountName', width: 30 },
+        { header: 'Account Type', key: 'AccountType', width: 20 },
+        { header: 'Department', key: 'Department', width: 30 },
+        { header: 'Amount', key: 'Amount', width: 15 },
+        { header: 'Percentage', key: 'Percentage', width: 15 }
+      ];
+
+      // Create a workbook with multiple sheets using a custom helper function
+      const success = exportMultipleSheets([
+        { name: 'Key Accounts', data: accountsData, columns: accountsColumns },
+        { name: 'Department Distributions', data: allDepartmentData, columns: departmentColumns }
+      ], 'Key_Accounts_Complete');
+
+      if (success) {
+        setSuccess('Key accounts data exported successfully with all department distributions!');
+        setTimeout(() => setSuccess(null), 3000);
+      } else {
+        setError('Failed to export key accounts data');
+        setTimeout(() => setError(null), 3000);
+      }
+    } catch (error) {
+      console.error('Error exporting key accounts data:', error);
+      setError('Error exporting data: ' + error.message);
+      setTimeout(() => setError(null), 3000);
+    }
+  };
+
+  // Helper function to export multiple sheets in a single Excel file
+  const exportMultipleSheets = (sheets, fileName) => {
+    try {
+      // Load the xlsx library
+      const XLSX = require('xlsx');
+      
+      // Create a new workbook
+      const wb = XLSX.utils.book_new();
+      
+      // Add each sheet to the workbook
+      sheets.forEach(sheet => {
+        if (!sheet.data || sheet.data.length === 0) return;
+        
+        let ws;
+        
+        if (sheet.columns) {
+          // Create worksheet from array of objects with specific columns
+          const wsData = [
+            // Header row
+            sheet.columns.map(col => col.header),
+            // Data rows
+            ...sheet.data.map(item => 
+              sheet.columns.map(col => {
+                // Handle nested properties with dot notation
+                if (col.key.includes('.')) {
+                  const keys = col.key.split('.');
+                  let value = item;
+                  for (const key of keys) {
+                    value = value?.[key];
+                    if (value === undefined) break;
+                  }
+                  return value ?? '';
+                }
+                return item[col.key] ?? '';
+              })
+            )
+          ];
+          
+          ws = XLSX.utils.aoa_to_sheet(wsData);
+          
+          // Set column widths if provided
+          if (sheet.columns.some(col => col.width)) {
+            ws['!cols'] = sheet.columns.map(col => ({ wch: col.width || 10 }));
+          }
+        } else {
+          // Create worksheet from array of objects using all properties
+          ws = XLSX.utils.json_to_sheet(sheet.data);
+        }
+        
+        // Add worksheet to workbook
+        XLSX.utils.book_append_sheet(wb, ws, sheet.name || 'Sheet');
+      });
+      
+      // Generate Excel file and trigger download
+      XLSX.writeFile(wb, `${fileName}.xlsx`, { 
+        bookType: 'xlsx',
+        type: 'binary',
+        bookSST: false,
+        cellStyles: true
+      });
+      
+      return true;
+    } catch (error) {
+      console.error('Error exporting multiple sheets:', error);
+      return false;
+    }
+  };
+
+  // Export departments for a specific account to Excel
+  const exportAccountDepartments = (accountId, accountName) => {
+    const departments = getSortedDepartments(accountId);
+    
+    if (departments.length === 0) {
+      setError(`No department data found for account ${accountName}`);
+      setTimeout(() => setError(null), 3000);
+      return;
+    }
+    
+    // Format data for Excel export
+    const exportData = departments.map(dept => ({
+      Department: dept.name,
+      Amount: dept.amount || 0,
+      Percentage: accountTotals[accountId] > 0 
+        ? ((dept.amount / accountTotals[accountId]) * 100).toFixed(2)
+        : 0
+    }));
+
+    const columns = [
+      { header: 'Department', key: 'Department', width: 30 },
+      { header: 'Amount', key: 'Amount', width: 15 },
+      { header: 'Percentage', key: 'Percentage', width: 15 }
+    ];
+
+    // Sanitize account name for filename
+    const sanitizedName = accountName.replace(/[^a-zA-Z0-9ก-๙]/g, '_');
+    const success = exportToExcel(
+      exportData, 
+      `Account_${sanitizedName}_Departments`, 
+      columns
+    );
+
+    if (success) {
+      setSuccess(`Department data for ${accountName} exported successfully!`);
+      setTimeout(() => setSuccess(null), 3000);
+    } else {
+      setError(`Failed to export department data for ${accountName}`);
+      setTimeout(() => setError(null), 3000);
+    }
+  };
+  
   // Combined loading state
   const isPageLoading = isLoading || accountsLoading;
   
@@ -119,15 +321,36 @@ const KeyAccountManagement = () => {
       <h1 className="text-2xl font-bold mb-6">Key Account Management</h1>
       
       {pageError && <AlertMessage type="error" message={pageError} />}
+      {success && <AlertMessage type="success" message={success} />}
       
       <div className="bg-white rounded-lg shadow">
         <div className="p-6 border-b border-gray-200">
-          <h2 className="text-lg font-medium text-gray-900">Key Accounts</h2>
-          <p className="mt-1 text-sm text-gray-500">
-            Click on the arrow to see department distribution for each account
-          </p>
-          {budgetData.length === 0 && (
-            <div className="mt-2 text-sm text-yellow-500">No budget data found. Make sure budget_master table has data.</div>
+          <div className="flex justify-between items-center">
+            <div>
+              <h2 className="text-lg font-medium text-gray-900">Key Accounts</h2>
+              <p className="mt-1 text-sm text-gray-500">
+                Click on the arrow to see department distribution for each account
+              </p>
+            </div>
+            <div className="flex space-x-3">
+              <button 
+                onClick={fetchKeyAccounts}
+                className="inline-flex items-center px-3 py-2 border border-transparent text-sm font-medium rounded-md text-white bg-indigo-600 hover:bg-indigo-700"
+              >
+                Refresh Data
+              </button>
+              <button 
+                onClick={exportKeyAccountsData}
+                className="inline-flex items-center px-3 py-2 border border-transparent text-sm font-medium rounded-md text-white bg-green-600 hover:bg-green-700"
+              >
+                Export to Excel
+              </button>
+            </div>
+          </div>
+          {enrichedAccounts.length === 0 && (
+            <div className="mt-2 text-sm text-yellow-500">
+              No key accounts found. Make sure key_accounts table has data.
+            </div>
           )}
         </div>
         
@@ -152,6 +375,9 @@ const KeyAccountManagement = () => {
                     </th>
                     <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                       Total Budget
+                    </th>
+                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                      Actions
                     </th>
                   </tr>
                 </thead>
@@ -184,12 +410,22 @@ const KeyAccountManagement = () => {
                           <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
                             {formatCurrency(account.totalBudget)}
                           </td>
+                          <td className="px-6 py-4 whitespace-nowrap">
+                            {hasDeptData && (
+                              <button
+                                onClick={() => exportAccountDepartments(account.id, account.name)}
+                                className="inline-flex items-center px-2 py-1 border border-transparent text-xs font-medium rounded text-green-700 bg-green-100 hover:bg-green-200"
+                              >
+                                Export Departments
+                              </button>
+                            )}
+                          </td>
                         </tr>
                         
                         {/* Expandable department distribution section */}
                         {isExpanded && (
                           <tr className="bg-gray-50">
-                            <td colSpan="4" className="px-8 py-4">
+                            <td colSpan="5" className="px-8 py-4">
                               <div className="border-l-4 border-indigo-400 pl-4">
                                 <h4 className="text-sm font-medium text-gray-900 mb-2">Department Distribution</h4>
                                 
