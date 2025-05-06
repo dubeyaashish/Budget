@@ -12,46 +12,51 @@ import { formatCurrency } from '../../utils/formatCurrency';
 
 const AdminCreditRequestCreation = () => {
   const { currentUser } = useContext(AuthContext);
-  const { keyAccounts, accountsWithUsage } = useContext(KeyAccountContext);
-  const navigate = useNavigate();
+  const { accountsWithUsage, keyAccounts } = useContext(KeyAccountContext);
 
   const [formData, setFormData] = useState({
     department_id: '',
-    status: 'revision', // Important: Default status is revision for admin-created requests
     version: 1,
   });
 
   const [selectedDepartment, setSelectedDepartment] = useState(null);
   const [departmentName, setDepartmentName] = useState('');
-  const [departments, setDepartments] = useState([]);
+  const [departmentKeyAccounts, setDepartmentKeyAccounts] = useState([]);
   const [accountEntries, setAccountEntries] = useState([]);
   const [availableKeyAccounts, setAvailableKeyAccounts] = useState([]);
+  const [departments, setDepartments] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [error, setError] = useState(null);
   const [success, setSuccess] = useState(null);
   const [isSubmitted, setIsSubmitted] = useState(false);
+  const [budgetMasterData, setBudgetMasterData] = useState([]);
   const [allKeyAccounts, setAllKeyAccounts] = useState([]);
+
+  const navigate = useNavigate();
 
   // Calculate total amount
   const totalAmount = accountEntries.reduce((sum, entry) => sum + (parseFloat(entry.amount) || 0), 0);
 
-  // Fetch departments and key accounts when component mounts
+  // Fetch the initial data when component mounts
   useEffect(() => {
     const fetchData = async () => {
       try {
         setIsLoading(true);
         
-        // Get all departments for admin to choose from
+        // Get all departments
         const departmentsData = await departmentService.getAllDepartments();
         setDepartments(departmentsData);
         
-        // Fetch ALL key accounts
-        const allAccounts = await keyAccountService.getAllKeyAccounts();
-        console.log('Fetched ALL key accounts:', allAccounts);
-        if (allAccounts && allAccounts.length > 0) {
-          setAllKeyAccounts(allAccounts);
-          setAvailableKeyAccounts(allAccounts);
+        // Fetch ALL key accounts for the dropdown
+        try {
+          const allAccounts = await keyAccountService.getAllKeyAccounts();
+          console.log('Fetched ALL key accounts:', allAccounts);
+          if (allAccounts && allAccounts.length > 0) {
+            setAllKeyAccounts(allAccounts);
+          }
+        } catch (kaError) {
+          console.error('Error fetching all key accounts:', kaError);
         }
       } catch (err) {
         console.error('Error in fetchData:', err);
@@ -64,53 +69,62 @@ const AdminCreditRequestCreation = () => {
     fetchData();
   }, []);
 
-  // Handle department selection change
-  const handleDepartmentChange = async (e) => {
-    const deptId = e.target.value;
-    if (!deptId) return;
+  // Update available key accounts for the dropdown using allKeyAccounts
+  useEffect(() => {
+    console.log('Updating available key accounts');
+    console.log('allKeyAccounts:', allKeyAccounts);
+    console.log('accountEntries:', accountEntries);
     
-    try {
-      setIsLoading(true);
-      setSelectedDepartment(deptId);
+    if (allKeyAccounts && allKeyAccounts.length > 0) {
+      // Get IDs of accounts that have already been added to the request
+      const selectedIds = accountEntries.map(entry => entry.key_account_id);
+      console.log('Selected IDs:', selectedIds);
       
-      // Get department name
-      const dept = departments.find(d => d.id == deptId);
-      if (dept) {
-        setDepartmentName(dept.name);
+      // Filter out already added accounts from the available options
+      const available = allKeyAccounts.filter(
+        account => !selectedIds.includes(account.id)
+      );
+      
+      console.log('Available accounts for dropdown:', available);
+      setAvailableKeyAccounts(available);
+      
+      // Clear any previous errors if we have available accounts
+      if (available.length > 0) {
+        setError(null);
       }
+    } else if (keyAccounts && keyAccounts.length > 0) {
+      // Fallback to context keyAccounts if allKeyAccounts is empty
+      const selectedIds = accountEntries.map(entry => entry.key_account_id);
+      const available = keyAccounts.filter(
+        account => !selectedIds.includes(account.id)
+      );
+      setAvailableKeyAccounts(available);
       
-      setFormData(prev => ({
-        ...prev,
-        department_id: deptId
-      }));
-      
-      // Reset account entries for new department
-      setAccountEntries([]);
-      
-      // Update available key accounts for the department
-      await loadDepartmentData(deptId);
-    } catch (err) {
-      console.error('Error selecting department:', err);
-      setError('Failed to load department data');
-    } finally {
-      setIsLoading(false);
+      if (available.length > 0) {
+        setError(null);
+      }
+    } else {
+      setAvailableKeyAccounts([]);
     }
-  };
+  }, [allKeyAccounts, accountEntries, keyAccounts]);
 
-  // Load budget data for the selected department
-  const loadDepartmentData = async (departmentId) => {
-    try {
-      setIsLoading(true);
+  // Update department key accounts
+  useEffect(() => {
+    console.log('budgetMasterData:', budgetMasterData);
+    console.log('budgetMasterData type:', typeof budgetMasterData);
+    console.log('budgetMasterData isArray:', Array.isArray(budgetMasterData));
+    if (selectedDepartment && budgetMasterData.length > 0) {
+      const departmentAccounts = budgetMasterData.filter(item => 
+        String(item.department) === String(selectedDepartment) ||
+        (item.department_name && departmentName && 
+         item.department_name.toLowerCase() === departmentName.toLowerCase())
+      );
+      console.log('departmentAccounts:', departmentAccounts);
+      setDepartmentKeyAccounts(departmentAccounts);
       
-      // Try to get budget master data for the department
-      const budgetData = await creditService.getDepartmentBudgetMasterData(departmentId);
-      console.log('Budget master data for department:', budgetData);
-      
-      // If we have budget data, use it to initialize account entries
-      if (budgetData && budgetData.length > 0) {
+      if (accountEntries.length === 0 && !isSubmitted) {
         const groupedAccounts = {};
-        
-        budgetData.forEach(account => {
+        departmentAccounts.forEach(account => {
           if (!groupedAccounts[account.key_account]) {
             groupedAccounts[account.key_account] = {
               key_account_id: account.key_account,
@@ -125,38 +139,13 @@ const AdminCreditRequestCreation = () => {
             groupedAccounts[account.key_account].total += parseFloat(account.amount) || 0;
           }
         });
-        
         const newEntries = Object.values(groupedAccounts);
         console.log('Setting accountEntries:', newEntries);
         setAccountEntries(newEntries);
       }
-      
-      // Also filter available key accounts for this department
-      try {
-        const departmentAccounts = await keyAccountService.getAccountSpendingByDepartment(departmentId);
-        if (departmentAccounts && departmentAccounts.length > 0) {
-          // Filter out accounts already added
-          const selectedIds = accountEntries.map(entry => entry.key_account_id);
-          const available = allKeyAccounts.filter(
-            account => !selectedIds.includes(account.id)
-          );
-          setAvailableKeyAccounts(available);
-        } else {
-          setAvailableKeyAccounts(allKeyAccounts);
-        }
-      } catch (err) {
-        console.error('Error getting department accounts:', err);
-        setAvailableKeyAccounts(allKeyAccounts);
-      }
-    } catch (err) {
-      console.error('Error in loadDepartmentData:', err);
-      setError('Failed to load budget data for this department');
-    } finally {
-      setIsLoading(false);
     }
-  };
+  }, [selectedDepartment, budgetMasterData, isSubmitted, accountEntries.length, departmentName]);
 
-  // Get available amount for an account
   const getAvailableAmount = (accountId) => {
     if (!accountId) return 0;
     const account = accountsWithUsage.find(a => a.id === accountId) || 
@@ -168,21 +157,73 @@ const AdminCreditRequestCreation = () => {
     return 0;
   };
 
-  // Handle amount change for an account
+  const handleDepartmentChange = async (e) => {
+    const deptId = e.target.value;
+    if (!deptId) return;
+    
+    setFormData({
+      ...formData,
+      department_id: deptId
+    });
+    
+    setSelectedDepartment(deptId);
+    
+    // Get department name
+    const dept = departments.find(d => d.id == deptId);
+    if (dept) {
+      setDepartmentName(dept.name);
+    }
+    
+    setAccountEntries([]);
+    setIsSubmitted(false);
+    setSuccess(null);
+    setError(null);
+    setBudgetMasterData([]);
+    
+    if (deptId) {
+      try {
+        setIsLoading(true);
+        
+        // Get department budget data
+        const budgetData = await creditService.getDepartmentBudgetMasterData(deptId);
+        console.log('Budget data for department:', budgetData);
+        setBudgetMasterData(budgetData);
+        
+        if (!budgetData || budgetData.length === 0) {
+          try {
+            const allBudgetData = await creditService.getBudgetMasterData();
+            const filteredData = allBudgetData.filter(item => 
+              String(item.department) === String(deptId) ||
+              (item.department_name && dept && 
+               item.department_name.toLowerCase() === dept.name.toLowerCase())
+            );
+            console.log('Filtered budget data:', filteredData);
+            setBudgetMasterData(filteredData);
+          } catch (err) {
+            console.error('Error fetching all budget data:', err);
+          }
+        }
+      } catch (err) {
+        console.error('Error loading department data:', err);
+        setError('Failed to load budget data for this department');
+      } finally {
+        setIsLoading(false);
+      }
+    }
+  };
+
   const handleAccountAmountChange = (index, value) => {
     const updatedEntries = [...accountEntries];
     updatedEntries[index].amount = value;
     setAccountEntries(updatedEntries);
   };
 
-  // Handle reason change for an account
   const handleAccountReasonChange = (index, value) => {
     const updatedEntries = [...accountEntries];
     updatedEntries[index].reason = value;
     setAccountEntries(updatedEntries);
   };
 
-  // Add a new key account
   const addKeyAccount = (accountId) => {
     // Prevent duplicates
     if (accountEntries.some(entry => entry.key_account_id === accountId)) {
@@ -190,15 +231,27 @@ const AdminCreditRequestCreation = () => {
       return;
     }
     
-    // Look for the account in available sources
+    // Look for the account in all possible sources
     let account = null;
     
+    // First try allKeyAccounts (most complete)
     if (allKeyAccounts && allKeyAccounts.length > 0) {
       account = allKeyAccounts.find(acc => acc.id === accountId);
-    } else if (keyAccounts && keyAccounts.length > 0) {
+    }
+    
+    // Then try context keyAccounts
+    if (!account && keyAccounts && keyAccounts.length > 0) {
       account = keyAccounts.find(acc => acc.id === accountId);
-    } else if (availableKeyAccounts && availableKeyAccounts.length > 0) {
+    }
+    
+    // Then try availableKeyAccounts
+    if (!account && availableKeyAccounts && availableKeyAccounts.length > 0) {
       account = availableKeyAccounts.find(acc => acc.id === accountId);
+    }
+    
+    // Finally try accountsWithUsage
+    if (!account && accountsWithUsage && accountsWithUsage.length > 0) {
+      account = accountsWithUsage.find(acc => acc.id === accountId);
     }
     
     if (account) {
@@ -221,19 +274,21 @@ const AdminCreditRequestCreation = () => {
     }
   };
 
-  // Remove a key account
   const removeKeyAccount = (index) => {
     const updatedEntries = [...accountEntries];
     updatedEntries.splice(index, 1);
     setAccountEntries(updatedEntries);
   };
 
-  // Handle form submission
   const handleSubmit = async (e) => {
     e.preventDefault();
+    console.log('handleSubmit called');
+    console.log('formData:', formData);
+    console.log('accountEntries:', accountEntries);
     
     if (!formData.department_id) {
       setError('Please select a department');
+      console.log('Error: No department_id');
       return;
     }
     
@@ -243,8 +298,11 @@ const AdminCreditRequestCreation = () => {
               parseFloat(entry.amount) > 0
     );
     
+    console.log('validEntries:', validEntries);
+    
     if (validEntries.length === 0) {
       setError('Please add at least one account with a valid amount');
+      console.log('Error: No valid entries');
       return;
     }
     
@@ -252,6 +310,7 @@ const AdminCreditRequestCreation = () => {
       setIsSubmitting(true);
       setError(null);
       
+      // Step 1: Create the request with regular Credit Request
       const payload = {
         department_id: parseInt(formData.department_id),
         entries: validEntries.map(entry => ({
@@ -259,54 +318,53 @@ const AdminCreditRequestCreation = () => {
           amount: parseFloat(entry.amount),
           reason: entry.reason || 'Request created by admin',
         })),
-        status: 'revision', // Important: Submit as revision
-        adminGenerated: true, // Flag to indicate admin-generated request
-        feedback: 'This request was created by an administrator for your review.',
-        version: 1
+        version: formData.version || 1,
+        status: 'pending'
       };
       
-      console.log('Submitting admin credit request:', payload);
-      
-      // Create the request
+      console.log('Submitting payload:', payload);
       const response = await creditService.createCreditRequest(payload);
-      console.log('Admin credit request response:', response);
+      console.log('Submission response:', response);
       
-      // For each created entry, mark it as a revision request
-      if (response.entries && response.entries.length > 0) {
-        const entries = response.entries;
+      // Step 2: Update the status to 'revision' for each created request
+      // This is the key difference - we convert the request to a revision request
+      if (response && response.entries && response.entries.length > 0) {
+        const requests = response.entries;
         
-        // Mark each entry as a revision request
-        for (const entry of entries) {
-          await creditService.createRevisionRequest(
-            entry.id, 
-            {
-              feedback: 'This request was created by an administrator for your review.',
-              suggested_amount: entry.amount
-            }
-          );
+        // Process each request to make it a revision request
+        for (const request of requests) {
+          try {
+            await creditService.createRevisionRequest(
+              request.id,
+              {
+                feedback: 'This request was created by an administrator for your review.',
+                suggested_amount: request.amount
+              }
+            );
+          } catch (revErr) {
+            console.error(`Error converting request ${request.id} to revision:`, revErr);
+            // Continue with other requests even if one fails
+          }
         }
       }
       
       setSuccess('Credit request created successfully and is now pending user revision!');
       setIsSubmitted(true);
       
-      // Reset form after submission
       setTimeout(() => {
         navigate('/admin/credit');
       }, 3000);
     } catch (err) {
-      console.error('Error submitting admin credit request:', err);
+      console.error('Error in handleSubmit:', err);
       setError(err.message || 'Failed to submit credit request');
     } finally {
       setIsSubmitting(false);
     }
   };
 
-  // Reset form for a new request
   const startNewRequest = () => {
     setFormData({
       department_id: '',
-      status: 'revision',
       version: 1,
     });
     setSelectedDepartment(null);
