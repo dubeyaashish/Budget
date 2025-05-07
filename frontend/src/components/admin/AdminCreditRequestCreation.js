@@ -32,8 +32,24 @@ const AdminCreditRequestCreation = () => {
   const [isSubmitted, setIsSubmitted] = useState(false);
   const [budgetMasterData, setBudgetMasterData] = useState([]);
   const [allKeyAccounts, setAllKeyAccounts] = useState([]);
+  const [formattedAmounts, setFormattedAmounts] = useState({});
 
   const navigate = useNavigate();
+
+  // Format number with commas
+  const formatNumberWithCommas = (value) => {
+    if (!value) return '';
+    
+    // Convert to number and handle formatting
+    const numValue = parseFloat(value);
+    if (isNaN(numValue)) return '';
+    
+    // Format with commas for thousands
+    return numValue.toLocaleString('en-US', {
+      minimumFractionDigits: 2,
+      maximumFractionDigits: 2
+    });
+  };
 
   // Calculate total amount
   const totalAmount = accountEntries.reduce((sum, entry) => sum + (parseFloat(entry.amount) || 0), 0);
@@ -142,6 +158,15 @@ const AdminCreditRequestCreation = () => {
         const newEntries = Object.values(groupedAccounts);
         console.log('Setting accountEntries:', newEntries);
         setAccountEntries(newEntries);
+        
+        // Initialize formatted amounts for new entries
+        const newFormattedAmounts = {};
+        newEntries.forEach((entry, index) => {
+          if (entry.amount) {
+            newFormattedAmounts[index] = formatNumberWithCommas(entry.amount);
+          }
+        });
+        setFormattedAmounts(newFormattedAmounts);
       }
     }
   }, [selectedDepartment, budgetMasterData, isSubmitted, accountEntries.length, departmentName]);
@@ -175,6 +200,7 @@ const AdminCreditRequestCreation = () => {
     }
     
     setAccountEntries([]);
+    setFormattedAmounts({});
     setIsSubmitted(false);
     setSuccess(null);
     setError(null);
@@ -213,9 +239,19 @@ const AdminCreditRequestCreation = () => {
   };
 
   const handleAccountAmountChange = (index, value) => {
+    // Remove any non-numeric characters except decimal point
+    const numericValue = value.replace(/[^\d.]/g, '');
+    
     const updatedEntries = [...accountEntries];
-    updatedEntries[index].amount = value;
+    updatedEntries[index].amount = numericValue; // Store raw value for submission
     setAccountEntries(updatedEntries);
+    
+    // Store formatted value for display
+    const formatted = numericValue ? formatNumberWithCommas(numericValue) : '';
+    setFormattedAmounts({
+      ...formattedAmounts,
+      [index]: formatted
+    });
   };
 
   const handleAccountReasonChange = (index, value) => {
@@ -266,7 +302,8 @@ const AdminCreditRequestCreation = () => {
       };
       
       console.log('Adding new key account entry:', newEntry);
-      setAccountEntries([...accountEntries, newEntry]);
+      const newEntries = [...accountEntries, newEntry];
+      setAccountEntries(newEntries);
       setError(null);
     } else {
       console.error(`Could not find account data for ID: ${accountId}`);
@@ -278,6 +315,21 @@ const AdminCreditRequestCreation = () => {
     const updatedEntries = [...accountEntries];
     updatedEntries.splice(index, 1);
     setAccountEntries(updatedEntries);
+    
+    // Also remove the formatted amount
+    const updatedFormattedAmounts = { ...formattedAmounts };
+    delete updatedFormattedAmounts[index];
+    
+    // Reindex the remaining formatted amounts
+    const newFormattedAmounts = {};
+    updatedEntries.forEach((entry, i) => {
+      const oldIndex = accountEntries.findIndex(e => e.key_account_id === entry.key_account_id);
+      if (formattedAmounts[oldIndex]) {
+        newFormattedAmounts[i] = formattedAmounts[oldIndex];
+      }
+    });
+    
+    setFormattedAmounts(newFormattedAmounts);
   };
 
   const handleSubmit = async (e) => {
@@ -326,29 +378,10 @@ const AdminCreditRequestCreation = () => {
       const response = await creditService.createCreditRequest(payload);
       console.log('Submission response:', response);
       
-      // Step 2: Update the status to 'revision' for each created request
-      // This is the key difference - we convert the request to a revision request
-      if (response && response.entries && response.entries.length > 0) {
-        const requests = response.entries;
-        
-        // Process each request to make it a revision request
-        for (const request of requests) {
-          try {
-            await creditService.createRevisionRequest(
-              request.id,
-              {
-                feedback: 'This request was created by an administrator for your review.',
-                suggested_amount: request.amount
-              }
-            );
-          } catch (revErr) {
-            console.error(`Error converting request ${request.id} to revision:`, revErr);
-            // Continue with other requests even if one fails
-          }
-        }
-      }
+      // Remove Step 2 to keep status as 'pending'
+      // The revision request code was here
       
-      setSuccess('Credit request created successfully and is now pending user revision!');
+      setSuccess('Credit request created successfully and is now pending!');
       setIsSubmitted(true);
       
       setTimeout(() => {
@@ -370,6 +403,7 @@ const AdminCreditRequestCreation = () => {
     setSelectedDepartment(null);
     setDepartmentName('');
     setAccountEntries([]);
+    setFormattedAmounts({});
     setIsSubmitted(false);
     setSuccess(null);
     setError(null);
@@ -471,14 +505,12 @@ const AdminCreditRequestCreation = () => {
                                         <span className="text-gray-500 sm:text-sm">฿</span>
                                       </div>
                                       <input
-                                        type="number"
+                                        type="text" // Changed from number to text
                                         id={`amount-${entryIndex}`}
-                                        value={entry.amount || ''}
+                                        value={formattedAmounts[entryIndex] || ''}
                                         onChange={(e) => handleAccountAmountChange(entryIndex, e.target.value)}
                                         className="focus:ring-indigo-500 focus:border-indigo-500 block w-full pl-7 pr-12 sm:text-sm border-gray-300 rounded-md"
                                         placeholder="0.00"
-                                        step="0.01"
-                                        min="0"
                                         disabled={isSubmitted}
                                         required
                                       />

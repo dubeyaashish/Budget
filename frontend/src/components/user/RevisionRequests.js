@@ -1,4 +1,4 @@
-// frontend/src/components/user/RevisionRequests.js
+// Updated frontend/src/components/user/RevisionRequests.js
 import React, { useState, useEffect, useContext } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { AuthContext } from '../../context/AuthContext';
@@ -108,7 +108,42 @@ const RevisionRequests = () => {
       // Get revision requests for the current user
       const requests = await creditService.getUserCreditRevisionRequests();
       console.log('Fetched revision requests:', requests);
-      setRevisionRequests(requests || []);
+      
+      // NEW: Also fetch pending requests that might be admin-created
+      const pendingRequests = await creditService.getUserCreditRequests();
+      console.log('Fetched pending/other requests:', pendingRequests);
+      
+      // Filter and mark admin-created requests
+      const adminCreatedRequests = pendingRequests
+        .filter(req => {
+          // Look for attributes indicating admin-created revision requests
+          return (
+            req.status === 'revision' && 
+            req.feedback && 
+            req.feedback.toLowerCase().includes('administrator') && 
+            req.user_id === currentUser.id
+          );
+        })
+        .map(req => ({
+          ...req,
+          isAdminCreated: true // Mark as admin-created
+        }));
+      
+      console.log('Admin-created requests:', adminCreatedRequests);
+      
+      // Combine regular and admin-created requests and mark any unmarked requests
+      const combinedRequests = [
+        ...requests.map(req => ({
+          ...req,
+          isAdminCreated: req.feedback?.toLowerCase().includes('administrator') || false
+        })),
+        ...adminCreatedRequests
+      ].filter((req, index, self) => 
+        // Remove duplicates by comparing IDs
+        index === self.findIndex(r => r.id === req.id)
+      );
+      
+      setRevisionRequests(combinedRequests || []);
       
       // Get available key accounts for selection
       // Filter key accounts to only those from the user's department
@@ -295,9 +330,14 @@ const RevisionRequests = () => {
                 </thead>
                 <tbody className="bg-white divide-y divide-gray-200">
                   {filteredRequests.map(request => (
-                    <tr key={request.id} className="hover:bg-gray-50">
+                    <tr key={request.id} className={`hover:bg-gray-50 ${request.isAdminCreated ? 'bg-blue-50' : ''}`}>
                       <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
                         {new Date(request.created_at).toLocaleDateString()}
+                        {request.isAdminCreated && (
+                          <span className="ml-2 inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-blue-100 text-blue-800">
+                            Admin Created
+                          </span>
+                        )}
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
                         {request.department_name || 'N/A'}
@@ -369,7 +409,14 @@ const RevisionRequests = () => {
               </svg>
             </button>
             
-            <h2 className="text-xl font-bold mb-4">Revise Credit Request</h2>
+            <h2 className="text-xl font-bold mb-4">
+              Revise Credit Request
+              {selectedRequest.isAdminCreated && (
+                <span className="ml-2 inline-block text-sm font-medium px-2 py-1 bg-blue-100 text-blue-800 rounded-md">
+                  Created by Administrator
+                </span>
+              )}
+            </h2>
             
             <div className="bg-yellow-50 border-l-4 border-yellow-400 p-4 mb-6">
               <div className="flex">
