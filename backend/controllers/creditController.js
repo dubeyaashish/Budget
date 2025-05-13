@@ -558,6 +558,7 @@ exports.rejectCreditRequest = async (req, res) => {
  * @param {Object} req - Express request object
  * @param {Object} res - Express response object
  */
+// Update the createRevisionRequest function in creditController.js
 exports.createRevisionRequest = async (req, res) => {
   try {
     const requestId = req.params.id;
@@ -566,6 +567,12 @@ exports.createRevisionRequest = async (req, res) => {
     
     if (!feedback) {
       return res.status(400).json({ message: 'Feedback is required for revision' });
+    }
+    
+    // Remove this validation that was checking if amount > 0
+    // Now we just need to validate it's a number
+    if (suggested_amount !== undefined && suggested_amount !== null && isNaN(parseFloat(suggested_amount))) {
+      return res.status(400).json({ message: 'Suggested amount must be a valid number' });
     }
     
     if (req.user.role !== 'admin') {
@@ -596,7 +603,7 @@ exports.createRevisionRequest = async (req, res) => {
              reviewed_at = CURRENT_TIMESTAMP,
              suggested_amount = ?
          WHERE id = ?`,
-        [feedback, adminId, suggested_amount || null, requestId]
+        [feedback, adminId, suggested_amount !== undefined ? parseFloat(suggested_amount) : null, requestId]
       );
       
       // Record history
@@ -631,14 +638,18 @@ exports.createRevisionRequest = async (req, res) => {
  * @param {Object} req - Express request object
  * @param {Object} res - Express response object
  */
+// Update the updateRevisionRequest function in creditController.js
 exports.updateRevisionRequest = async (req, res) => {
   try {
     const requestId = req.params.id;
     const userId = req.user.id;
     const { amount, reason, key_account_id } = req.body;
     
-    if (!amount || parseFloat(amount) <= 0 || !reason) {
-      return res.status(400).json({ message: 'Valid amount and reason are required' });
+    // Modified validation to allow zero values
+    if (amount === undefined || amount === null || isNaN(parseFloat(amount)) || parseFloat(amount) < 0 || !reason) {
+      return res.status(400).json({ 
+        message: 'Valid amount (zero or positive) and reason are required' 
+      });
     }
     
     const result = await creditModel.updateRevisionRequest(requestId, userId, {

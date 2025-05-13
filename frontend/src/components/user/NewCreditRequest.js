@@ -398,73 +398,75 @@ const NewCreditRequest = () => {
     setAccountEntries(updatedEntries);
   };
 
-  const handleSubmit = async (e) => {
-    e.preventDefault();
-    console.log('handleSubmit called');
-    console.log('formData:', formData);
-    console.log('accountEntries:', accountEntries);
+// Updated handleSubmit function in NewCreditRequest.js
+const handleSubmit = async (e) => {
+  e.preventDefault();
+  console.log('handleSubmit called');
+  console.log('formData:', formData);
+  console.log('accountEntries:', accountEntries);
+  
+  if (!formData.department_id) {
+    setError('Please select a department');
+    console.log('Error: No department_id');
+    return;
+  }
+  
+  // Modified validation to allow zero values
+  const validEntries = accountEntries.filter(
+    entry => entry.key_account_id && 
+            entry.amount !== '' && 
+            !isNaN(parseFloat(entry.amount)) &&
+            parseFloat(entry.amount) >= 0
+  );
+  
+  console.log('validEntries:', validEntries);
+  
+  if (validEntries.length === 0) {
+    setError('Please add at least one account with a valid amount');
+    console.log('Error: No valid entries');
+    return;
+  }
+  
+  try {
+    setIsSubmitting(true);
+    setError(null);
     
-    if (!formData.department_id) {
-      setError('Please select a department');
-      console.log('Error: No department_id');
-      return;
-    }
+    const payload = {
+      department_id: parseInt(formData.department_id),
+      entries: validEntries.map(entry => ({
+        key_account_id: entry.key_account_id,
+        amount: parseFloat(entry.amount),
+        reason: entry.reason || '',
+      })),
+      version: formData.version || 1,
+      status: 'pending'
+    };
     
-    const validEntries = accountEntries.filter(
-      entry => entry.key_account_id && 
-              entry.amount && 
-              parseFloat(entry.amount) > 0
-    );
+    console.log('Submitting payload:', payload);
+    const response = await creditService.createCreditRequest(payload);
+    console.log('Submission response:', response);
+    setSuccess('Credit request submitted successfully!');
+    setIsSubmitted(true);
     
-    console.log('validEntries:', validEntries);
-    
-    if (validEntries.length === 0) {
-      setError('Please add at least one account with a valid amount');
-      console.log('Error: No valid entries');
-      return;
-    }
-    
-    try {
-      setIsSubmitting(true);
-      setError(null);
-      
-      const payload = {
-        department_id: parseInt(formData.department_id),
-        entries: validEntries.map(entry => ({
-          key_account_id: entry.key_account_id,
-          amount: parseFloat(entry.amount),
-          reason: entry.reason || '',
-        })),
-        version: formData.version || 1,
+    if (response.requestId || response.id || (response.entries && response.entries.length > 0)) {
+      const requestId = response.requestId || response.id || response.entries[0].id;
+      setFormData(prev => ({
+        ...prev,
+        request_id: requestId,
         status: 'pending'
-      };
-      
-      console.log('Submitting payload:', payload);
-      const response = await creditService.createCreditRequest(payload);
-      console.log('Submission response:', response);
-      setSuccess('Credit request submitted successfully!');
-      setIsSubmitted(true);
-      
-      if (response.requestId || response.id || (response.entries && response.entries.length > 0)) {
-        const requestId = response.requestId || response.id || response.entries[0].id;
-        setFormData(prev => ({
-          ...prev,
-          request_id: requestId,
-          status: 'pending'
-        }));
-      }
-      
-      setTimeout(() => {
-        navigate('/credit-history');
-      }, 3000);
-    } catch (err) {
-      console.error('Error in handleSubmit:', err);
-      setError(err.message || 'Failed to submit credit request');
-    } finally {
-      setIsSubmitting(false);
+      }));
     }
-  };
-
+    
+    setTimeout(() => {
+      navigate('/credit-history');
+    }, 3000);
+  } catch (err) {
+    console.error('Error in handleSubmit:', err);
+    setError(err.message || 'Failed to submit credit request');
+  } finally {
+    setIsSubmitting(false);
+  }
+};
   const startNewRequest = () => {
     const deptId = currentUser.departments?.[0]?.id || currentUser.department_id || selectedDepartment || '';
     setFormData({

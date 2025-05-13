@@ -215,52 +215,54 @@ const RevisionRequests = () => {
     }));
   };
 
-  const handleSubmit = async (e) => {
-    e.preventDefault();
+// Updated handleSubmit function in RevisionRequests.js
+const handleSubmit = async (e) => {
+  e.preventDefault();
+  
+  // Modified validation for amount - allow zero amounts
+  if (formData.amount === '' || formData.amount === null || isNaN(parseFloat(formData.amount)) || parseFloat(formData.amount) < 0) {
+    setError('Please enter a valid amount (can be zero or positive)');
+    return;
+  }
+  
+  if (!formData.reason) {
+    setError('Please provide a reason for this request');
+    return;
+  }
+  
+  if (!formData.key_account_id) {
+    setError('Please select a key account');
+    return;
+  }
+  
+  try {
+    setIsSubmitting(true);
+    setError(null);
     
-    if (!formData.amount || parseFloat(formData.amount) <= 0) {
-      setError('Please enter a valid amount');
-      return;
-    }
+    // Submit updated revision back to the admin
+    await creditService.updateRevisionVersion(selectedRequest.id, {
+      amount: parseFloat(formData.amount),
+      reason: formData.reason,
+      key_account_id: formData.key_account_id
+    });
     
-    if (!formData.reason) {
-      setError('Please provide a reason for this request');
-      return;
-    }
+    setSuccess('Revision updated successfully and sent back for review');
+    setShowModal(false);
     
-    if (!formData.key_account_id) {
-      setError('Please select a key account');
-      return;
-    }
+    // Refresh the data
+    fetchData();
     
-    try {
-      setIsSubmitting(true);
-      setError(null);
-      
-      // Submit updated revision back to the admin
-      await creditService.updateRevisionVersion(selectedRequest.id, {
-        amount: parseFloat(formData.amount),
-        reason: formData.reason,
-        key_account_id: formData.key_account_id
-      });
-      
-      setSuccess('Revision updated successfully and sent back for review');
-      setShowModal(false);
-      
-      // Refresh the data
-      fetchData();
-      
-      // After 2 seconds, redirect to credit history to see the updated request
-      setTimeout(() => {
-        navigate('/credit-history');
-      }, 2000);
-    } catch (err) {
-      console.error('Error submitting revision:', err);
-      setError(err.response?.data?.message || 'Failed to update revision');
-    } finally {
-      setIsSubmitting(false);
-    }
-  };
+    // After 2 seconds, redirect to credit history to see the updated request
+    setTimeout(() => {
+      navigate('/credit-history');
+    }, 2000);
+  } catch (err) {
+    console.error('Error submitting revision:', err);
+    setError(err.response?.data?.message || 'Failed to update revision');
+  } finally {
+    setIsSubmitting(false);
+  }
+};
 
   const closeModal = () => {
     setShowModal(false);

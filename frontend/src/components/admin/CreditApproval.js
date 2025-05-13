@@ -295,111 +295,114 @@ const CreditApproval = () => {
     }
   };
 
-  const handleRequestRevision = async () => {
-    if (selectedRequests.length === 0 && !detailedRequest) {
-      setError('Please select at least one request');
-      return;
-    }
+// Updated code for the handleRequestRevision function in CreditApproval.js
+const handleRequestRevision = async () => {
+  if (selectedRequests.length === 0 && !detailedRequest) {
+    setError('Please select at least one request');
+    return;
+  }
+  
+  try {
+    setIsSubmitting(true);
+    setError(null);
     
-    try {
-      setIsSubmitting(true);
-      setError(null);
-      
-      if (detailedRequest && selectedRequests.length === 0) {
-        const amount = parseFloat(editedAmount);
-        if (isNaN(amount) || amount <= 0) {
-          setError('Please enter a valid amount');
-          setIsSubmitting(false);
-          return;
-        }
-        
-        if (!remark.trim()) {
-          setError('Please provide a remark for the revision');
-          setIsSubmitting(false);
-          return;
-        }
-        
-        await creditService.createRevisionRequest(
-          detailedRequest.id,
-          {
-            feedback: remark,
-            suggested_amount: amount
-          }
-        );
-        
-        setSuccess('Revision requested successfully. The user will be notified.');
-        
-        setPendingRequests(pendingRequests.filter(req => req.id !== detailedRequest.id));
-        
-        const revisedRequest = {
-          ...detailedRequest,
-          status: 'revision',
-          suggested_amount: amount,
-          feedback: remark
-        };
-        
-        setRevisionRequests([...revisionRequests, revisedRequest]);
-        setDetailedRequest(null);
-        setEditedAmount('');
-        setRemark('');
-        setVersionHistory([]);
-      } else if (batchRevisions.length > 0) {
-        const invalidRevision = batchRevisions.find(
-          rev => !rev.remark.trim() || isNaN(parseFloat(rev.editedAmount)) || parseFloat(rev.editedAmount) <= 0
-        );
-        
-        if (invalidRevision) {
-          setError('Please provide feedback and valid amounts for all selected requests');
-          setIsSubmitting(false);
-          return;
-        }
-        
-        await Promise.all(
-          batchRevisions.map(rev =>
-            creditService.createRevisionRequest(
-              rev.id,
-              {
-                feedback: rev.remark,
-                suggested_amount: parseFloat(rev.editedAmount)
-              }
-            )
-          )
-        );
-        
-        setSuccess(`Revision requested for ${batchRevisions.length} requests. Users will be notified.`);
-        
-        const revisedIds = batchRevisions.map(rev => rev.id);
-        
-        setPendingRequests(pendingRequests.filter(req => !revisedIds.includes(req.id)));
-        
-        const newRevisions = batchRevisions.map(rev => {
-          const originalRequest = pendingRequests.find(req => req.id === rev.id);
-          return {
-            ...originalRequest,
-            status: 'revision',
-            suggested_amount: parseFloat(rev.editedAmount),
-            feedback: rev.remark
-          };
-        });
-        
-        setRevisionRequests([...revisionRequests, ...newRevisions]);
-        
-        setSelectedRequests([]);
-        setBatchRevisions([]);
+    if (detailedRequest && selectedRequests.length === 0) {
+      const amount = parseFloat(editedAmount);
+      // Modified validation - allow zero values
+      if (isNaN(amount) || amount < 0) {
+        setError('Please enter a valid amount (can be zero or positive)');
+        setIsSubmitting(false);
+        return;
       }
       
-      closeRevisionModal();
+      if (!remark.trim()) {
+        setError('Please provide a remark for the revision');
+        setIsSubmitting(false);
+        return;
+      }
       
-      setTimeout(() => {
-        navigate('/admin/credit');
-      }, 2000);
-    } catch (err) {
-      console.error('Error requesting revision:', err);
-      setError(err.response?.data?.message || 'Failed to request revision');
-    } finally {
-      setIsSubmitting(false);
+      await creditService.createRevisionRequest(
+        detailedRequest.id,
+        {
+          feedback: remark,
+          suggested_amount: amount
+        }
+      );
+      
+      setSuccess('Revision requested successfully. The user will be notified.');
+      
+      setPendingRequests(pendingRequests.filter(req => req.id !== detailedRequest.id));
+      
+      const revisedRequest = {
+        ...detailedRequest,
+        status: 'revision',
+        suggested_amount: amount,
+        feedback: remark
+      };
+      
+      setRevisionRequests([...revisionRequests, revisedRequest]);
+      setDetailedRequest(null);
+      setEditedAmount('');
+      setRemark('');
+      setVersionHistory([]);
+    } else if (batchRevisions.length > 0) {
+      // Modified validation for batch revisions - allow zero values
+      const invalidRevision = batchRevisions.find(
+        rev => !rev.remark.trim() || isNaN(parseFloat(rev.editedAmount)) || parseFloat(rev.editedAmount) < 0
+      );
+      
+      if (invalidRevision) {
+        setError('Please provide feedback and valid amounts (can be zero or positive) for all selected requests');
+        setIsSubmitting(false);
+        return;
+      }
+      
+      await Promise.all(
+        batchRevisions.map(rev =>
+          creditService.createRevisionRequest(
+            rev.id,
+            {
+              feedback: rev.remark,
+              suggested_amount: parseFloat(rev.editedAmount)
+            }
+          )
+        )
+      );
+      
+      setSuccess(`Revision requested for ${batchRevisions.length} requests. Users will be notified.`);
+      
+      const revisedIds = batchRevisions.map(rev => rev.id);
+      
+      setPendingRequests(pendingRequests.filter(req => !revisedIds.includes(req.id)));
+      
+      const newRevisions = batchRevisions.map(rev => {
+        const originalRequest = pendingRequests.find(req => req.id === rev.id);
+        return {
+          ...originalRequest,
+          status: 'revision',
+          suggested_amount: parseFloat(rev.editedAmount),
+          feedback: rev.remark
+        };
+      });
+      
+      setRevisionRequests([...revisionRequests, ...newRevisions]);
+      
+      setSelectedRequests([]);
+      setBatchRevisions([]);
     }
-  };
+    
+    closeRevisionModal();
+    
+    setTimeout(() => {
+      navigate('/admin/credit');
+    }, 2000);
+  } catch (err) {
+    console.error('Error requesting revision:', err);
+    setError(err.response?.data?.message || 'Failed to request revision');
+  } finally {
+    setIsSubmitting(false);
+  }
+};
 
   const handleResolve = async (requestId) => {
     try {

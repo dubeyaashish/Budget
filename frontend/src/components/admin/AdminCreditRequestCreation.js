@@ -9,6 +9,7 @@ import keyAccountService from '../../services/keyAccountService';
 import LoadingSpinner from '../common/LoadingSpinner';
 import AlertMessage from '../common/AlertMessage';
 import { formatCurrency } from '../../utils/formatCurrency';
+import { NumericFormat } from 'react-number-format';
 
 const AdminCreditRequestCreation = () => {
   const { currentUser } = useContext(AuthContext);
@@ -32,24 +33,8 @@ const AdminCreditRequestCreation = () => {
   const [isSubmitted, setIsSubmitted] = useState(false);
   const [budgetMasterData, setBudgetMasterData] = useState([]);
   const [allKeyAccounts, setAllKeyAccounts] = useState([]);
-  const [formattedAmounts, setFormattedAmounts] = useState({});
 
   const navigate = useNavigate();
-
-  // Format number with commas
-  const formatNumberWithCommas = (value) => {
-    if (!value) return '';
-    
-    // Convert to number and handle formatting
-    const numValue = parseFloat(value);
-    if (isNaN(numValue)) return '';
-    
-    // Format with commas for thousands
-    return numValue.toLocaleString('en-US', {
-      minimumFractionDigits: 2,
-      maximumFractionDigits: 2
-    });
-  };
 
   // Calculate total amount
   const totalAmount = accountEntries.reduce((sum, entry) => sum + (parseFloat(entry.amount) || 0), 0);
@@ -158,15 +143,6 @@ const AdminCreditRequestCreation = () => {
         const newEntries = Object.values(groupedAccounts);
         console.log('Setting accountEntries:', newEntries);
         setAccountEntries(newEntries);
-        
-        // Initialize formatted amounts for new entries
-        const newFormattedAmounts = {};
-        newEntries.forEach((entry, index) => {
-          if (entry.amount) {
-            newFormattedAmounts[index] = formatNumberWithCommas(entry.amount);
-          }
-        });
-        setFormattedAmounts(newFormattedAmounts);
       }
     }
   }, [selectedDepartment, budgetMasterData, isSubmitted, accountEntries.length, departmentName]);
@@ -200,7 +176,6 @@ const AdminCreditRequestCreation = () => {
     }
     
     setAccountEntries([]);
-    setFormattedAmounts({});
     setIsSubmitted(false);
     setSuccess(null);
     setError(null);
@@ -238,20 +213,12 @@ const AdminCreditRequestCreation = () => {
     }
   };
 
-  const handleAccountAmountChange = (index, value) => {
-    // Remove any non-numeric characters except decimal point
-    const numericValue = value.replace(/[^\d.]/g, '');
+  const handleAccountAmountChange = (index, values) => {
+    const { floatValue } = values;
     
     const updatedEntries = [...accountEntries];
-    updatedEntries[index].amount = numericValue; // Store raw value for submission
+    updatedEntries[index].amount = floatValue || '';
     setAccountEntries(updatedEntries);
-    
-    // Store formatted value for display
-    const formatted = numericValue ? formatNumberWithCommas(numericValue) : '';
-    setFormattedAmounts({
-      ...formattedAmounts,
-      [index]: formatted
-    });
   };
 
   const handleAccountReasonChange = (index, value) => {
@@ -315,21 +282,6 @@ const AdminCreditRequestCreation = () => {
     const updatedEntries = [...accountEntries];
     updatedEntries.splice(index, 1);
     setAccountEntries(updatedEntries);
-    
-    // Also remove the formatted amount
-    const updatedFormattedAmounts = { ...formattedAmounts };
-    delete updatedFormattedAmounts[index];
-    
-    // Reindex the remaining formatted amounts
-    const newFormattedAmounts = {};
-    updatedEntries.forEach((entry, i) => {
-      const oldIndex = accountEntries.findIndex(e => e.key_account_id === entry.key_account_id);
-      if (formattedAmounts[oldIndex]) {
-        newFormattedAmounts[i] = formattedAmounts[oldIndex];
-      }
-    });
-    
-    setFormattedAmounts(newFormattedAmounts);
   };
 
   const handleSubmit = async (e) => {
@@ -403,7 +355,6 @@ const AdminCreditRequestCreation = () => {
     setSelectedDepartment(null);
     setDepartmentName('');
     setAccountEntries([]);
-    setFormattedAmounts({});
     setIsSubmitted(false);
     setSuccess(null);
     setError(null);
@@ -501,18 +452,18 @@ const AdminCreditRequestCreation = () => {
                                       Amount <span className="text-red-500">*</span>
                                     </label>
                                     <div className="mt-1 relative rounded-md shadow-sm">
-                                      <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                                        <span className="text-gray-500 sm:text-sm">฿</span>
-                                      </div>
-                                      <input
-                                        type="text" // Changed from number to text
+                                      <NumericFormat
                                         id={`amount-${entryIndex}`}
-                                        value={formattedAmounts[entryIndex] || ''}
-                                        onChange={(e) => handleAccountAmountChange(entryIndex, e.target.value)}
-                                        className="focus:ring-indigo-500 focus:border-indigo-500 block w-full pl-7 pr-12 sm:text-sm border-gray-300 rounded-md"
+                                        value={entry.amount}
+                                        onValueChange={(values) => handleAccountAmountChange(entryIndex, values)}
+                                        thousandSeparator=","
+                                        decimalScale={2}
+                                        fixedDecimalScale
+                                        prefix="฿"
                                         placeholder="0.00"
                                         disabled={isSubmitted}
                                         required
+                                        className="focus:ring-indigo-500 focus:border-indigo-500 block w-full sm:text-sm border-gray-300 rounded-md"
                                       />
                                     </div>
                                     {entry.available !== undefined && (
